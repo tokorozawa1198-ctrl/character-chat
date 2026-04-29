@@ -219,6 +219,7 @@ function TypeText({ text }: { text: string }) { const [shown, setShown] = useSta
 function StatBar({ label, value, danger }: { label: string; value: number; danger?: boolean }) { return <div className="statBar"><div className="statHead"><span>{label}</span><b>{value}%</b></div><div className="statTrack"><div className={`statFill ${danger ? "danger" : ""}`} style={{ width: `${value}%` }} /></div></div>; }
 
 export default function Page() {
+   const [started, setStarted] = useState(false);
   const [view, setView] = useState<View>("chat");
   const [stats, setStats] = useState<Stats>(initialStats);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -237,6 +238,44 @@ export default function Page() {
   useEffect(() => { setIsMounted(true); try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) { const saved = JSON.parse(raw) as SaveData; setStats(saved.stats ?? initialStats); setMessages(saved.messages?.length ? saved.messages : [makeMessage("assistant", "다시 시작할까? 나 여기 있어.")]); setView(saved.view ?? "chat"); setCurrentScenarioId(saved.currentScenarioId ?? null); setSeenTriggers(saved.seenTriggers ?? {}); setCurrentPortrait(saved.currentPortrait ?? "/oppa1.png"); setGalleryTab(saved.galleryTab ?? "all"); return; } } catch {} setMessages([makeMessage("assistant", "다시 시작할까? 나 여기 있어.")]); }, []);
   useEffect(() => { if (!isMounted) return; const save: SaveData = { version: VERSION, stats, messages, view, currentScenarioId, seenTriggers, currentPortrait, galleryTab, savedAt: new Date().toISOString() }; localStorage.setItem(STORAGE_KEY, JSON.stringify(save)); }, [isMounted, stats, messages, view, currentScenarioId, seenTriggers, currentPortrait, galleryTab]);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, view]);
+
+if (!isMounted) return <main className="loading">불러오는 중...</main>;
+
+if (!started) {
+  return (
+    <main
+      style={{
+        width: "100%",
+        height: "100vh",
+        backgroundImage: "url('/cover.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        display: "flex",
+        justifyContent: "flex-end",
+        alignItems: "center",
+        flexDirection: "column",
+        paddingBottom: "60px",
+      }}
+    >
+      <button
+        onClick={() => setStarted(true)}
+        style={{
+          padding: "18px 44px",
+          fontSize: "20px",
+          borderRadius: "999px",
+          border: "none",
+          background: "linear-gradient(90deg, #ff7eb3, #ff4d6d)",
+          color: "#fff",
+          fontWeight: "bold",
+          boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
+          cursor: "pointer",
+        }}
+      >
+        대화 시작
+      </button>
+    </main>
+  );
+}
 
   function startScenario(id: string) { const s = scenarioData[id]; if (!s) return; setCurrentScenarioId(id); setCurrentPortrait(pick(s.imagePool) || s.image || fallbackImage(s.kind)); setView("chat"); }
   function checkTrigger(nextStats: Stats, customSeen = seenTriggers) { const id = getTrigger(nextStats, customSeen); if (!id) return; setSeenTriggers({ ...customSeen, [id]: true }); startScenario(id); }
