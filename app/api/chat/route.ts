@@ -209,21 +209,44 @@ ${styleExamples.slice(0, 6).map((x: string) => `- ${x}`).join("\n")}
 `
       : "";
 
-   const completion = await client.chat.completions.create({
-  model: "deepseek-v4-flash",  // 🔥 V4 모델 명시적으로 사용!
+  const message = String(body.message || "").trim();
+
+const history = normalizeMessages(body.history ?? body.messages ?? [])
+  .slice(-8)
+  .map((m) => ({
+    role: m.role,
+    content: m.content.slice(0, 500),
+  }));
+
+const completion = await client.chat.completions.create({
+  model: process.env.DEEPSEEK_CHAT_MODEL || "deepseek-chat",
   messages: [
     {
       role: "system",
-      content: characterPrompt + stylePrompt + savedStylePrompt,
+      content:
+        characterPrompt +
+        stylePrompt +
+        savedStylePrompt +
+        "\n\n[최종 지시]\n사용자의 마지막 말에 직접 반응해라. 같은 문장 반복 금지. 짧은 한국어 반말 1~2문장.",
     },
     ...exampleMessages,
-    ...recentMessages,
+    ...history,
+    {
+      role: "user",
+      content: message,
+    },
   ],
-  temperature: 1.0,  // 🔥 DeepSeek V4 권장값! [citation:4][citation:7]
-  top_p: 1.0,        // 🔥 DeepSeek V4 권장값!
+  temperature: 0.55,
+  top_p: 0.9,
   max_tokens: 180,
   stream: false,
 });
+
+const reply =
+  completion.choices?.[0]?.message?.content?.trim() ||
+  "아 방금 좀 꼬였다 😐 다시 말해봐.";
+
+return NextResponse.json({ reply });
 
   } catch (e: any) {
     console.error("chat api error:", e);
