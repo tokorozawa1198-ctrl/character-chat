@@ -1,15 +1,29 @@
-import "./globals.css";
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "근떡존",
-  description: "Cinematic chat game",
+  description: "AI visual novel chat",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="ko">
+      <head>
+        <link
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
+          rel="stylesheet"
+        />
+      </head>
       <body>{children}</body>
     </html>
   );
