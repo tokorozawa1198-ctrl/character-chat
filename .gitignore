@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -40,4 +41,21 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.vercel
+# local backups / scratch
+*_backup_*/
+app_backup_*/
+public_backup_*/
+backup/
+backups/
+tmp/
+temp/
+
+# local notes / repair scratch
+README_APPLY.txt
+README_FIX.md
+vercel
+
+# unused source / export assets
+public/*.original.png
+public/cover_avatar_*.png
+public/DGD.png

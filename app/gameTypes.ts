@@ -1,0 +1,75 @@
+"use client";
+
+export type Role = "user" | "assistant" | "narration";
+export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events";
+export type ScenarioKind = "normal" | "jealousy" | "obsession" | "confinement" | "yandere";
+export type ScenarioCategory = "main" | "action" | "special" | "after" | "side";
+export type StatKey = "affinity" | "jealousy" | "obsession" | "trust";
+export type GalleryTab = "all" | "normal" | "jealousy" | "obsession" | "confinement" | "yandere" | "action";
+export type EndingRoute = "none" | "pure" | "obsession" | "confinement" | "jealousy" | "bad";
+export type EndingKey = "pure" | "obsession" | "confinement" | "jealousy" | "bad";
+
+export type Message = { id: string; role: Role; content: string; time: string; image?: string };
+export type Stats = { affinity: number; jealousy: number; obsession: number; trust: number };
+export type StatDelta = Partial<Record<StatKey, number>>;
+export type StoryRoute = "common" | "pure" | "obsession";
+export type MemoryNote = {
+  id: string;
+  text: string;
+  createdAt: string;
+  chapter: number;
+  kind: "promise" | "affection" | "boundary" | "jealousy" | "story" | "emotion";
+};
+export type AfterScenarioCue = { id: string; text: string; chapter: number; sourceId: string; used?: boolean };
+export type Choice = {
+  label: string;
+  text?: string;
+  stat?: StatDelta;
+  next?: string;
+  end?: boolean;
+  forceImage?: string;
+  route?: StoryRoute;
+};
+export type VNLine = { speaker: "나레이션" | "근떡존" | "히든" | "메시지"; text: string };
+export type ActionItem = { label: string; emoji: string; text: string; stat: StatDelta; scenario?: string };
+export type Scenario = {
+  id: string;
+  title: string;
+  subtitle: string;
+  text: string;
+  kind: ScenarioKind;
+  min?: Partial<Stats>;
+  image?: string;
+  imagePool?: string[];
+  background?: string;
+  choices: Choice[];
+  storyRoute?: StoryRoute;
+  category?: ScenarioCategory;
+};
+export type SaveData = {
+  version: number;
+  stats: Stats;
+  messages: Message[];
+  view: View;
+  currentScenarioId: string | null;
+  currentEndingId?: EndingKey | null;
+  seenTriggers: Record<string, boolean>;
+  currentPortrait: string;
+  galleryTab: GalleryTab;
+  savedAt: string;
+  memorySummary?: string;
+  relationshipLog?: string[];
+  memoryNotes?: MemoryNote[];
+  afterScenarioCues?: AfterScenarioCue[];
+  silenceLevel?: number;
+  notificationEnabled?: boolean;
+  endingFlags?: Record<string, boolean>;
+  afterRoute?: EndingRoute;
+  unlockedCGs?: Record<string, boolean>;
+  saveThumbnail?: string;
+  routeLabel?: string;
+  lastMessagePreview?: string;
+  seenEvents?: Record<string, boolean>;
+  showStatNumbers?: boolean;
+  storyRoute?: StoryRoute;
+};
