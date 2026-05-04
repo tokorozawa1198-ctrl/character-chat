@@ -2350,13 +2350,11 @@ export default function Page() {
           <div className="chatArea">{messages.map((m)=><div key={m.id} className={`msgRow ${m.role}`}>{m.role==="assistant" && <img className="chatAvatar" src={bladderLevel >= 95 ? `/sd_geunddeok_limit.png?v=${SD_IMAGE_VERSION}` : bladderLevel >= 90 ? `/sd_geunddeok_desperate.png?v=${SD_IMAGE_VERSION}` : bladderLevel >= 80 ? `/sd_geunddeok_pout.png?v=${SD_IMAGE_VERSION}` : getHomeCharacterImage(stats, storyRoute)} onError={(e)=>{e.currentTarget.src=`/sd_geunddeok_idle.png?v=${SD_IMAGE_VERSION}`}} alt=""/>}<div className="bubble">{m.image && <img className="bubbleImg" src={m.image} alt="" onClick={(e)=>{const el=e.currentTarget;el.classList.toggle("bubbleImgExpand");}}/>}{m.image && m.content==="📷 사진" ? null : m.content}<small>{m.time}</small></div></div>)}<div ref={bottomRef}/></div>
           <input type="file" accept="image/*" style={{display:"none"}} ref={photoInputRef} onChange={async(e)=>{const f=e.target.files?.[0];if(f){try{const c=await compressImage(f);setPendingPhoto(c);}catch{}}e.target.value="";}}/>
           {pendingPhoto && <div className="photoPreviewBar"><img src={pendingPhoto} className="photoPreviewThumb" alt="미리보기"/><button className="photoPreviewCancel" onClick={()=>setPendingPhoto(null)}>✕</button><span className="photoPreviewHint">전송 버튼을 누르면 사진이 전송돼요</span></div>}
-          {bladderLevel >= 70 && (
-            <div className={`bladderStatusBar${bladderLevel >= 95 ? " bsb-critical" : bladderLevel >= 85 ? " bsb-urgent" : ""}`}>
-              <span className="bsbIcon">🚽</span>
-              <div className="bsbTrack"><div className="bsbFill" style={{ width: `${bladderLevel}%` }}/></div>
-              <span className="bsbLabel">{bladderLevel >= 95 ? "한계..." : bladderLevel >= 85 ? "너무 마려워요ㅠ" : "슬슬 마려워요..."}</span>
-            </div>
-          )}
+          <div className={`bladderStatusBar${bladderLevel >= 95 ? " bsb-critical" : bladderLevel >= 85 ? " bsb-urgent" : bladderLevel >= 70 ? " bsb-warn" : bladderLevel >= 40 ? " bsb-low" : " bsb-empty"}`}>
+            <span className="bsbIcon">🚽</span>
+            <div className="bsbTrack"><div className="bsbFill" style={{ width: `${bladderLevel}%` }}/></div>
+            <span className="bsbLabel">{bladderLevel >= 95 ? "한계..." : bladderLevel >= 85 ? "너무 마려워요ㅠ" : bladderLevel >= 70 ? "슬슬 마려워요..." : bladderLevel >= 40 ? "조금 마려워요" : bladderLevel >= 10 ? "괜찮아요" : "여유있어요"}</span>
+          </div>
           <footer className="inputBar"><button onClick={()=>setView("home")}>홈</button><button className="photoBtn" onClick={()=>photoInputRef.current?.click()}>📷</button><input value={input} onChange={(e)=>setInput(e.target.value)} onKeyDown={(e)=>{if(e.key==="Enter") sendMessage();}} placeholder={pendingPhoto ? "캡션 입력 (선택)..." : "메시지를 입력하세요..."}/><button disabled={isSending} onClick={()=>sendMessage()}>전송</button></footer>
         </>}
         {view === "scenarioMenu" && <Panel title="시나리오"><div className="sectionStack"><h3>메인 시나리오</h3><div className="grid">{mainScenarios.map((s)=><button className="cardBtn" key={s.id} onClick={()=>startScenario(s.id)}><b>{s.title}</b><small>{s.subtitle}</small></button>)}</div><h3>기타 / 특수</h3><div className="grid">{sideScenarios.map((s)=><button className="cardBtn" key={s.id} onClick={()=>startScenario(s.id)}><b>{s.title}</b><small>{s.subtitle}</small></button>)}</div></div></Panel>}
@@ -3372,7 +3370,10 @@ const CSS = `
 .bladderDeny{padding:14px;border:0;border-radius:14px;background:#2a1d14;color:#c0977a;font-weight:900;font-size:14px;cursor:pointer;border:1px solid rgba(255,200,140,.15)}
 .bladderDeny:hover{background:#3a2d22}
 /* ─ 방광 인풋 상태바 ─ */
-.bladderStatusBar{display:flex;align-items:center;gap:8px;padding:5px 12px;background:rgba(30,14,8,.72);border-top:1px solid rgba(79,195,247,.18)}
+.bladderStatusBar{display:flex;align-items:center;gap:8px;padding:5px 12px;background:rgba(30,14,8,.72);border-top:1px solid rgba(79,195,247,.18);transition:opacity .4s ease,border-color .6s ease}
+.bladderStatusBar.bsb-empty{opacity:.28;border-top-color:rgba(255,255,255,.06)}
+.bladderStatusBar.bsb-low{opacity:.48;border-top-color:rgba(79,195,247,.10)}
+.bladderStatusBar.bsb-warn{opacity:.82;border-top-color:rgba(79,195,247,.22)}
 .bsbIcon{font-size:13px;flex-shrink:0}
 .bsbTrack{flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden}
 .bsbFill{height:100%;border-radius:99px;background:#4fc3f7;transition:width .8s ease,background .6s ease}
