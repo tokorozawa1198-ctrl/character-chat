@@ -25,7 +25,7 @@ import type {
   VNLine,
 } from "./gameTypes";
 
-type AppView = View | "home";
+type AppView = View | "home" | "admin";
 type ChapterTransition = { mode: "start" | "end"; eyebrow: string; title: string; subtitle?: string };
 
 const VERSION = 12;
@@ -1508,6 +1508,15 @@ export default function Page() {
   const [bladderMaxAt, setBladderMaxAt] = useState<number | null>(null); // 100% 도달 시각
   const [obsessionCinematic, setObsessionCinematic] = useState(false);
   const [pureCinematic, setPureCinematic] = useState(false);
+  // ── 관리자 모드 ──
+  const [isAdminMode, setIsAdminMode] = useState(() => {
+    try { return localStorage.getItem("adminMode") === "1"; } catch { return false; }
+  });
+  const [showAdminPrompt, setShowAdminPrompt] = useState(false);
+  const [adminPwInput, setAdminPwInput] = useState("");
+  const [adminTapCount, setAdminTapCount] = useState(0);
+  const adminTapTimer = useRef<number | null>(null);
+  const ADMIN_PASSWORD = "geunddeok1004";
   const [pendingPhoto, setPendingPhoto] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
@@ -1617,7 +1626,7 @@ export default function Page() {
       version: VERSION,
       stats,
       messages,
-      view: view === "home" ? "chat" : view,
+      view: (view === "home" || view === "admin") ? "chat" : view,
       currentScenarioId,
       seenTriggers: {},
       currentPortrait,
@@ -1886,6 +1895,33 @@ export default function Page() {
       setShakeClass("screenShake");
       setTimeout(() => setShakeClass(""), 550);
     }, 10);
+  }
+  // ── 관리자 모드 핸들러 ──
+  function handleAdminTap() {
+    if (adminTapTimer.current) window.clearTimeout(adminTapTimer.current);
+    const next = adminTapCount + 1;
+    if (next >= 5) {
+      setAdminTapCount(0);
+      setShowAdminPrompt(true);
+      setAdminPwInput("");
+    } else {
+      setAdminTapCount(next);
+      adminTapTimer.current = window.setTimeout(() => setAdminTapCount(0), 2000);
+    }
+  }
+  function confirmAdminLogin() {
+    if (adminPwInput === ADMIN_PASSWORD) {
+      setIsAdminMode(true);
+      try { localStorage.setItem("adminMode", "1"); } catch {}
+      setShowAdminPrompt(false);
+      setAdminPwInput("");
+    } else {
+      setAdminPwInput("");
+    }
+  }
+  function adminLogout() {
+    setIsAdminMode(false);
+    try { localStorage.removeItem("adminMode"); } catch {}
   }
   // 루트 전환 — 집착 루트 첫 진입 시 씨네마틱 발동
   function enterRoute(route: StoryRoute) {
@@ -2226,7 +2262,7 @@ export default function Page() {
     setView("home");
   }
 
-  const availableScenarios = Object.values(scenarioData).filter((s) => getScenarioCategory(s.id, s) !== "action" && isScenarioAvailable(s, stats, storyRoute));
+  const availableScenarios = Object.values(scenarioData).filter((s) => getScenarioCategory(s.id, s) !== "action" && (isAdminMode || isScenarioAvailable(s, stats, storyRoute)));
   const mainScenarios = availableScenarios.filter((s) => getScenarioCategory(s.id, s) === "main");
   const sideScenarios = availableScenarios.filter((s) => getScenarioCategory(s.id, s) !== "main");
   const galleryImages = useMemo(() => {
@@ -2259,7 +2295,7 @@ export default function Page() {
           <div className="relBadge"><div className="relBadgeTop"><span className="relLvLabel">Lv.{relLevel.lv}</span><span className="relLvName">{relLevel.displayName}</span><span className="relLvNext">{relLevel.lv < 10 ? `${relLevel.progressPct}%` : "MAX"}</span></div><div className="relProgressTrack"><div className="relProgressFill" style={{ width: `${relLevel.lv < 10 ? relLevel.progressPct : 100}%` }} /></div></div>
           <div className="statsBox"><StatBar label="호감" value={stats.affinity}/><StatBar label="질투" value={stats.jealousy} danger={stats.jealousy >= 500}/><StatBar label="집착" value={stats.obsession} danger={stats.obsession >= 500}/><StatBar label="신뢰" value={stats.trust}/></div>
         </div>
-        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"]].map(([key,label])=><button key={key} className={`${view===key ? "active" : ""}${key==="checkin" && !isCheckedInToday(lastCheckIn) ? " navDot" : ""}`} onClick={()=>setView(key as AppView)}>{label}</button>)}</nav>
+        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=><button key={key} className={`${view===key ? "active" : ""}${key==="checkin" && !isCheckedInToday(lastCheckIn) ? " navDot" : ""}${key==="admin" ? " adminNavBtn" : ""}`} onClick={()=>setView(key as AppView)}>{label}</button>)}</nav>
       </aside>
       <section className="content">
         {currentScenario && <div className={`scenarioOverlay${vnDramatic ? " vnDramatic" : ""}`} style={{ "--bg-url": `url(${currentScenario.background ?? "/bg_room_night.png"})` } as React.CSSProperties}>
@@ -2286,7 +2322,7 @@ export default function Page() {
             {isVNLastLine && vnTextRevealed && !currentScenario.mission && <div className="vnChoices">
               {lockedChoiceMsg && <p className="lockedMsg">아직 근떡존은 이 말을 받아들일 준비가 되지 않았다.</p>}
               {currentScenario.choices.map((choice)=>{
-                const locked = isChoiceLocked(choice, stats, storyRoute);
+                const locked = !isAdminMode && isChoiceLocked(choice, stats, storyRoute);
                 return (
                   <button key={choice.label} className={locked ? "lockedChoice" : ""} onClick={()=>{ if(locked){ setLockedChoiceMsg(true); setTimeout(()=>setLockedChoiceMsg(false), 2200); } else { chooseScenario(choice); } }}>
                     {choice.condition && <span className="condBadge">{formatCondition(choice.condition)}</span>}
@@ -2299,7 +2335,7 @@ export default function Page() {
         </div>}
 
         {view === "home" && <section className="homeView">
-          <div className="homeHeader"><div className="homeLogo"><span>근떡존</span><small>{routeLabel}</small></div></div>
+          <div className="homeHeader"><div className="homeLogo" onClick={handleAdminTap} style={{cursor:"default"}}><span>근떡존</span><small>{routeLabel}</small>{isAdminMode && <span className="adminBadge">🔑 관리자</span>}</div></div>
           <div className="homeStage">
             <div className="homeBubble">{homeBubble}</div>
             <button className="homeCharacterCard" onClick={handleHomeReact} onPointerMove={handleHomePointerMove} onPointerLeave={()=>setHomeTilt({x:0,y:0})} style={{ "--tilt-x": `${homeTilt.x}deg`, "--tilt-y": `${homeTilt.y}deg` } as React.CSSProperties}>
@@ -2325,8 +2361,8 @@ export default function Page() {
         </>}
         {view === "scenarioMenu" && <Panel title="시나리오"><div className="sectionStack"><h3>메인 시나리오</h3><div className="grid">{mainScenarios.map((s)=><button className="cardBtn" key={s.id} onClick={()=>startScenario(s.id)}><b>{s.title}</b><small>{s.subtitle}</small></button>)}</div><h3>기타 / 특수</h3><div className="grid">{sideScenarios.map((s)=><button className="cardBtn" key={s.id} onClick={()=>startScenario(s.id)}><b>{s.title}</b><small>{s.subtitle}</small></button>)}</div></div></Panel>}
         {view === "profile" && <Panel title="상태"><div className="profilePanel"><div className="profileOverview"><div className="profileIllustration"><img key={currentPortrait} className="portraitCrossfade" src={currentPortrait || getHomeCharacterImage(stats, storyRoute)} alt={`${profile.name} 초상`} onError={(e)=>{e.currentTarget.src="/oppa1.png"}}/></div><div className="profileSummary"><h3>{profile.name}</h3><p className="profileTag">Lv.{relLevel.lv} · {relLevel.displayName}</p><div className="profileStatsLine"><span>{routeLabel}</span><span>{currentChapter}장 진행</span>{currentScenario ? <span>{currentScenario.title}</span> : null}</div><div className="profileDetails"><span>나이 {profile.age}</span><span>키 {profile.height}</span><span>{profile.location}</span></div><div className="statusCards"><div className="statusCard"><strong>호감</strong><span>{stats.affinity}%</span><small>{getStatMood("affinity", stats.affinity)}</small></div><div className="statusCard"><strong>질투</strong><span>{stats.jealousy}%</span><small>{getStatMood("jealousy", stats.jealousy)}</small></div><div className="statusCard"><strong>집착</strong><span>{stats.obsession}%</span><small>{getStatMood("obsession", stats.obsession)}</small></div><div className="statusCard"><strong>신뢰</strong><span>{stats.trust}%</span><small>{getStatMood("trust", stats.trust)}</small></div></div><div className="statusNote"><b>{emotionState.label}</b><span>{emotionState.detail}</span><small>{getCurrentStatusText(stats, storyRoute)}</small></div></div></div><div className="memoryPanel"><div><strong>관계 기억 노트</strong><small>{memoryNotes.length}개 저장됨</small></div>{memoryNotes.length ? memoryNotes.slice(-8).reverse().map((note)=><p key={note.id}><b>{note.chapter}장</b>{note.text}</p>) : <p>아직 근떡존이 오래 붙잡고 있을 만한 기억은 없어요.</p>}</div><div className="profileTextBlock"><p>{profile.bio}</p><p>{profile.personality}</p></div><div className="profileMeta"><div><strong>좋아하는 것</strong><p>{profile.likes.join(" · ")}</p></div><div><strong>취미</strong><p>{profile.hobbies.join(" · ")}</p></div><div><strong>키워드</strong><p>{profile.tags.join(" · ")}</p></div></div></div></Panel>}
-        {view === "gallery" && <Panel title="CG 갤러리"><div className="tabs">{(Object.keys(galleryTabLabels) as GalleryTab[]).map((tab)=><button key={tab} onClick={()=>setGalleryTab(tab)}>{galleryTabLabels[tab]}</button>)}</div>{cgReaction && <div className="cgReaction"><img src={cgReaction.img} alt="" onError={(e)=>{e.currentTarget.style.display="none"}}/><p>{cgReaction.text}</p><button onClick={()=>setCgReaction(null)}>닫기</button></div>}<div className="galleryGrid">{galleryImages.map((img)=><button className="cgCard" key={img} onClick={()=>unlockedCGs[img] && setCgReaction({ img, text: getCgReaction(img, stats, storyRoute) })}>{unlockedCGs[img] ? <img src={img} alt="" onError={(e)=>{e.currentTarget.style.display="none"}}/> : <span>LOCKED</span>}</button>)}</div></Panel>}
-        {view === "events" && <Panel title="전진협 / 이벤트 도감"><div className="grid">{eventCatalog.map((s)=><button className="cardBtn" key={s.id} onClick={()=>seenEvents[s.id] && startScenario(s.id)}><b>{seenEvents[s.id] ? s.title : "미해금 · ???"}</b><small>{seenEvents[s.id] ? s.subtitle : "해당 이벤트를 보면 도감에 기록돼요."}</small></button>)}</div></Panel>}
+        {view === "gallery" && <Panel title="CG 갤러리"><div className="tabs">{(Object.keys(galleryTabLabels) as GalleryTab[]).map((tab)=><button key={tab} onClick={()=>setGalleryTab(tab)}>{galleryTabLabels[tab]}</button>)}</div>{cgReaction && <div className="cgReaction"><img src={cgReaction.img} alt="" onError={(e)=>{e.currentTarget.style.display="none"}}/><p>{cgReaction.text}</p><button onClick={()=>setCgReaction(null)}>닫기</button></div>}<div className="galleryGrid">{galleryImages.map((img)=><button className="cgCard" key={img} onClick={()=>(isAdminMode || unlockedCGs[img]) && setCgReaction({ img, text: getCgReaction(img, stats, storyRoute) })}>{(isAdminMode || unlockedCGs[img]) ? <img src={img} alt="" onError={(e)=>{e.currentTarget.style.display="none"}}/> : <span>LOCKED</span>}</button>)}</div></Panel>}
+        {view === "events" && <Panel title="전진협 / 이벤트 도감"><div className="grid">{eventCatalog.map((s)=><button className="cardBtn" key={s.id} onClick={()=>(isAdminMode || seenEvents[s.id]) && startScenario(s.id)}><b>{(isAdminMode || seenEvents[s.id]) ? s.title : "미해금 · ???"}</b><small>{(isAdminMode || seenEvents[s.id]) ? s.subtitle : "해당 이벤트를 보면 도감에 기록돼요."}</small></button>)}</div></Panel>}
         {view === "gift" && (
           <Panel title="선물하기">
             <div className="giftTabs">
@@ -2342,7 +2378,7 @@ export default function Page() {
                 const coolUntil = giftCooldowns[gift.id] ?? 0;
                 const onCooldown = now < coolUntil;
                 const hoursLeft = onCooldown ? Math.ceil((coolUntil - now) / 3600000) : 0;
-                const locked = relLevel.lv < gift.unlockLevel;
+                const locked = !isAdminMode && relLevel.lv < gift.unlockLevel;
                 return (
                   <button
                     key={gift.id}
@@ -2519,7 +2555,7 @@ export default function Page() {
         })()}
 
         {view === "diary" && (() => {
-          const unlockedIds = getUnlockedDiaryIds(seenEvents);
+          const unlockedIds = isAdminMode ? DIARY_ENTRIES.map((e) => e.id) : getUnlockedDiaryIds(seenEvents);
           const openEntry = selectedDiary ? DIARY_ENTRIES.find((e) => e.id === selectedDiary) : null;
           // 루트별 텍스트 조건: 순애 전용 항목은 호감+신뢰, 집착 전용 항목은 집착, 공통은 집착
           function diaryTextFor(entry: DiaryEntry) {
@@ -2595,6 +2631,7 @@ export default function Page() {
 
         {view === "miniMap" && (() => {
           const isLocked = (loc: MapLocation) => {
+            if (isAdminMode) return false;
             if (relLevel.lv < loc.unlockLevel) return true;
             if (loc.minAffinity && stats.affinity < loc.minAffinity) return true;
             if (loc.minObsession && stats.obsession < loc.minObsession) return true;
@@ -2812,6 +2849,55 @@ export default function Page() {
         {view === "save" && <Panel title="저장"><div className="grid">{[1,2,3].map((slot)=><div className="cardBtn" key={slot}><b>슬롯 {slot}</b><button onClick={()=>saveSlot(slot)}>저장</button><button onClick={()=>loadSlot(slot)}>불러오기</button></div>)}</div><button className="bigBtn dangerBtn" onClick={resetAll}>전체 초기화</button></Panel>}
         {view === "settings" && <Panel title="액션"><div className="grid">{actionItems.map((item)=><button className="cardBtn" key={item.label} onClick={()=>runAction(item)}><b>{item.emoji} {item.label}</b><small>{item.text}</small></button>)}</div></Panel>}
 
+        {view === "admin" && isAdminMode && (
+          <Panel title="🔑 관리자 패널">
+            <div className="adminPanel">
+              <div className="adminSection">
+                <h3 className="adminSectionTitle">🎛 수치 조정</h3>
+                <div className="adminStatRows">
+                  {(["affinity","jealousy","obsession","trust"] as (keyof Stats)[]).map((key) => (
+                    <div key={key} className="adminStatRow">
+                      <span className="adminStatLabel">{{affinity:"호감",jealousy:"질투",obsession:"집착",trust:"신뢰"}[key]}</span>
+                      <input type="range" min={0} max={1000} step={10} value={stats[key]}
+                        onChange={(e) => setStats((p) => ({ ...p, [key]: Number(e.target.value) }))} />
+                      <span className="adminStatVal">{stats[key]}</span>
+                      <div className="adminStatBtns">
+                        <button onClick={() => setStats((p) => ({ ...p, [key]: Math.max(0, p[key] - 100) }))}>-100</button>
+                        <button onClick={() => setStats((p) => ({ ...p, [key]: Math.min(1000, p[key] + 100) }))}>+100</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="adminSection">
+                <h3 className="adminSectionTitle">🗺 루트 강제 변경</h3>
+                <div className="adminRouteBtns">
+                  {(["common","pure","obsession"] as StoryRoute[]).map((r) => (
+                    <button key={r} className={`adminRouteBtn${storyRoute === r ? " active" : ""}`}
+                      onClick={() => setStoryRoute(r)}>
+                      {r === "pure" ? "🤍 순애" : r === "obsession" ? "🖤 집착" : "⬜ 공통"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="adminSection">
+                <h3 className="adminSectionTitle">📖 전체 시나리오</h3>
+                <div className="grid">
+                  {Object.values(scenarioData).filter((s) => getScenarioCategory(s.id, s) !== "action").map((s) => (
+                    <button key={s.id} className="cardBtn" onClick={() => startScenario(s.id)}>
+                      <b>{s.title}</b>
+                      <small>{s.id} · {getScenarioCategory(s.id, s)}</small>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="adminSection">
+                <button className="adminLogoutBtn" onClick={adminLogout}>🔒 관리자 모드 종료</button>
+              </div>
+            </div>
+          </Panel>
+        )}
+
         {showTutorial && <div className="tutorialOverlay"><section className="tutorialCard"><div>첫 플레이 안내 <span>{tutorialStep + 1} / {tutorialCards.length}</span></div><h2>{currentTutorial.title}</h2><p>{currentTutorial.body}</p><footer><button onClick={closeTutorial}>건너뛰기</button>{tutorialStep < tutorialCards.length - 1 ? <button onClick={()=>setTutorialStep((v)=>v+1)}>다음</button> : <button onClick={closeTutorial}>시작하기</button>}</footer></section></div>}
         {chapterTransition && <div className={`chapterTransition ${chapterTransition.mode}`}><section><span>{chapterTransition.eyebrow}</span><h2>{chapterTransition.title}</h2>{chapterTransition.subtitle && <p>{chapterTransition.subtitle}</p>}</section></div>}
         {cgUnlockToast && <div className="cgUnlockToast"><div className="cgUnlockIcon">🖼</div><div><b>CG 해금</b><span>「{cgUnlockToast.name}」</span><small>갤러리에 추가되었습니다.</small></div></div>}
@@ -2897,6 +2983,27 @@ export default function Page() {
             <span className="pureCinSub">처음처럼, 그 마음 그대로</span>
           </div>
           <button className="pureCinSkip" onClick={(e) => { e.stopPropagation(); setPureCinematic(false); }}>SKIP ▶</button>
+        </div>
+      )}
+      {/* ── 관리자 비밀번호 모달 ── */}
+      {showAdminPrompt && (
+        <div className="adminOverlay" onClick={() => { setShowAdminPrompt(false); setAdminPwInput(""); }}>
+          <div className="adminModal" onClick={(e) => e.stopPropagation()}>
+            <p className="adminModalTitle">🔑 관리자 모드</p>
+            <input
+              className="adminPwInput"
+              type="password"
+              placeholder="비밀번호 입력"
+              value={adminPwInput}
+              autoFocus
+              onChange={(e) => setAdminPwInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") confirmAdminLogin(); if (e.key === "Escape") { setShowAdminPrompt(false); setAdminPwInput(""); } }}
+            />
+            <div className="adminModalBtns">
+              <button className="adminCancelBtn" onClick={() => { setShowAdminPrompt(false); setAdminPwInput(""); }}>취소</button>
+              <button className="adminConfirmBtn" onClick={confirmAdminLogin}>입력</button>
+            </div>
+          </div>
         </div>
       )}
       {levelUpCard && (
@@ -3036,6 +3143,31 @@ const CSS = `
 .wardrobeDesc{font-size:11px;color:#6b4f3d;line-height:1.5;display:block}
 .wardrobeEquippedBadge{position:absolute;top:8px;right:8px;background:#f0c060;color:#1a0e00;font-size:9px;font-weight:900;letter-spacing:.06em;padding:3px 8px;border-radius:99px}
 .diaryHint{margin:0 0 20px;font-size:13px;color:#6b4f3d;font-weight:700}
+/* ─ 관리자 모드 ─ */
+.adminBadge{font-size:9px;font-weight:900;letter-spacing:.08em;background:rgba(255,220,80,.18);color:#c8a020;border:1px solid rgba(200,160,30,.35);border-radius:99px;padding:2px 8px;margin-left:6px;vertical-align:middle}
+.adminNavBtn{background:linear-gradient(135deg,#4a3800,#2a2000)!important;border:1px solid rgba(255,210,60,.22)!important;color:#f0c840!important}
+.adminNavBtn:hover,.adminNavBtn.active{background:linear-gradient(135deg,#7a6000,#4a3a00)!important}
+.adminOverlay{position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.72);backdrop-filter:blur(10px);display:grid;place-items:center;padding:24px}
+.adminModal{width:min(340px,100%);background:#1a1400;border:1px solid rgba(255,210,60,.3);border-radius:24px;padding:28px 24px;display:grid;gap:16px;box-shadow:0 28px 70px rgba(0,0,0,.6);animation:diaryModalIn .2s ease}
+.adminModalTitle{margin:0;font-size:18px;font-weight:900;color:#f0c840;text-align:center}
+.adminPwInput{border:1px solid rgba(255,210,60,.35);border-radius:14px;background:rgba(255,255,255,.07);color:white;padding:13px 16px;font-size:16px;outline:none;width:100%;box-sizing:border-box}
+.adminPwInput:focus{border-color:rgba(255,210,60,.7);box-shadow:0 0 0 3px rgba(255,200,40,.12)}
+.adminModalBtns{display:flex;gap:10px}
+.adminCancelBtn{flex:1;border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.6);padding:12px;font-weight:900;cursor:pointer}
+.adminConfirmBtn{flex:2;border:0;border-radius:14px;background:linear-gradient(135deg,#c8a020,#7a6000);color:white;padding:12px;font-weight:900;cursor:pointer}
+.adminPanel{display:grid;gap:28px}
+.adminSection{display:grid;gap:12px}
+.adminSectionTitle{margin:0;font-size:14px;font-weight:900;letter-spacing:.06em;color:#7b4f2f;text-transform:uppercase}
+.adminStatRows{display:grid;gap:10px}
+.adminStatRow{display:grid;grid-template-columns:60px 1fr 50px auto;gap:8px;align-items:center}
+.adminStatLabel{font-size:13px;font-weight:900;color:#4a2d1a}
+.adminStatVal{font-size:14px;font-weight:900;color:#c87830;text-align:right}
+.adminStatBtns{display:flex;gap:4px}
+.adminStatBtns button{border:1px solid #ddd0c5;border-radius:8px;background:#fff7ef;color:#4a2d1a;padding:4px 8px;font-size:11px;font-weight:900;cursor:pointer;white-space:nowrap}
+.adminRouteBtns{display:flex;gap:10px;flex-wrap:wrap}
+.adminRouteBtn{border:1px solid #ddd0c5;border-radius:14px;background:#fff7ef;color:#4a2d1a;padding:12px 20px;font-weight:900;cursor:pointer;transition:all .15s}
+.adminRouteBtn.active{background:#df842c;border-color:#c06820;color:white}
+.adminLogoutBtn{border:1px solid rgba(200,60,60,.35);border-radius:14px;background:rgba(200,60,60,.08);color:#c84040;padding:14px 24px;font-weight:900;cursor:pointer;width:100%;font-size:15px}
 /* ─ 테마 전환 페이드인 ─ */
 .app.theme-pure{animation:themeFadeIn .7s ease}
 .app.theme-obsession{animation:themeFadeIn .7s ease}
