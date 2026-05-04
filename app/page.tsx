@@ -2521,16 +2521,37 @@ export default function Page() {
         {view === "diary" && (() => {
           const unlockedIds = getUnlockedDiaryIds(seenEvents);
           const openEntry = selectedDiary ? DIARY_ENTRIES.find((e) => e.id === selectedDiary) : null;
+          // 루트별 텍스트 조건: 순애 전용 항목은 호감+신뢰, 집착 전용 항목은 집착, 공통은 집착
+          function diaryTextFor(entry: DiaryEntry) {
+            if (entry.routeRequired === "pure") {
+              return (stats.affinity >= entry.highThreshold || stats.trust >= entry.highThreshold)
+                ? entry.textHigh : entry.textNormal;
+            }
+            return stats.obsession >= entry.highThreshold ? entry.textHigh : entry.textNormal;
+          }
+          function diaryIsHigh(entry: DiaryEntry) {
+            if (entry.routeRequired === "pure") {
+              return stats.affinity >= entry.highThreshold || stats.trust >= entry.highThreshold;
+            }
+            return stats.obsession >= entry.highThreshold;
+          }
+          const modalThemeClass = openEntry?.routeRequired === "pure"
+            ? " diaryModal-pure"
+            : openEntry?.routeRequired === "obsession" || storyRoute === "obsession"
+              ? " diaryModal-obsession"
+              : "";
           return (
             <Panel title="근떡존의 일기">
               <p className="diaryHint">챕터를 진행하면 근떡존의 속마음이 해금돼요.</p>
               <div className="diaryGrid">
                 {DIARY_ENTRIES.map((entry) => {
                   const isUnlocked = unlockedIds.includes(entry.id);
+                  const cardTheme = entry.routeRequired === "pure" ? " diaryCard-pure"
+                    : entry.routeRequired === "obsession" ? " diaryCard-obsession" : "";
                   return (
                     <button
                       key={entry.id}
-                      className={`diaryCard${isUnlocked ? "" : " locked"}`}
+                      className={`diaryCard${isUnlocked ? cardTheme : " locked"}`}
                       onClick={() => isUnlocked && setSelectedDiary(entry.id)}
                       disabled={!isUnlocked}
                     >
@@ -2539,8 +2560,7 @@ export default function Page() {
                       <b className="diaryCardTitle">{isUnlocked ? entry.title : "미해금"}</b>
                       {isUnlocked && (
                         <small className="diaryCardPreview">
-                          {(stats.obsession >= entry.highThreshold ? entry.textHigh : entry.textNormal)
-                            .split("\n")[0]}
+                          {diaryTextFor(entry).split("\n")[0]}
                         </small>
                       )}
                     </button>
@@ -2549,7 +2569,7 @@ export default function Page() {
               </div>
               {openEntry && (
                 <div className="diaryOverlay" onClick={() => setSelectedDiary(null)}>
-                  <div className="diaryModal" onClick={(e) => e.stopPropagation()}>
+                  <div className={`diaryModal${modalThemeClass}`} onClick={(e) => e.stopPropagation()}>
                     <div className="diaryModalHeader">
                       <span className="diaryModalEmoji">{openEntry.emoji}</span>
                       <div>
@@ -2557,13 +2577,13 @@ export default function Page() {
                         <h3 className="diaryModalTitle">{openEntry.title}</h3>
                       </div>
                     </div>
-                    <p className="diaryModalText">
-                      {stats.obsession >= openEntry.highThreshold
-                        ? openEntry.textHigh
-                        : openEntry.textNormal}
-                    </p>
-                    {stats.obsession >= openEntry.highThreshold && (
-                      <div className="diaryModalObsTag">집착 {stats.obsession} · 고조된 감정</div>
+                    <p className="diaryModalText">{diaryTextFor(openEntry)}</p>
+                    {diaryIsHigh(openEntry) && (
+                      <div className={`diaryModalObsTag${openEntry.routeRequired === "pure" ? " diaryModalPureTag" : ""}`}>
+                        {openEntry.routeRequired === "pure"
+                          ? `호감 ${stats.affinity} · 깊어진 감정`
+                          : `집착 ${stats.obsession} · 고조된 감정`}
+                      </div>
                     )}
                     <button className="diaryModalClose" onClick={() => setSelectedDiary(null)}>닫기</button>
                   </div>
@@ -3016,16 +3036,35 @@ const CSS = `
 .wardrobeDesc{font-size:11px;color:#6b4f3d;line-height:1.5;display:block}
 .wardrobeEquippedBadge{position:absolute;top:8px;right:8px;background:#f0c060;color:#1a0e00;font-size:9px;font-weight:900;letter-spacing:.06em;padding:3px 8px;border-radius:99px}
 .diaryHint{margin:0 0 20px;font-size:13px;color:#6b4f3d;font-weight:700}
+/* ─ 테마 전환 페이드인 ─ */
+.app.theme-pure{animation:themeFadeIn .7s ease}
+.app.theme-obsession{animation:themeFadeIn .7s ease}
+@keyframes themeFadeIn{0%{opacity:.55}100%{opacity:1}}
+/* ─ 일기 ─ */
 .diaryGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
 .diaryCard{display:flex;flex-direction:column;align-items:flex-start;gap:5px;border-radius:20px;background:#fff7ec;border:1px solid #e8d2b6;cursor:pointer;transition:all .18s;text-align:left;padding:18px 16px 16px;position:relative;overflow:hidden}
 .diaryCard:hover:not(:disabled){background:rgba(255,230,180,.1);border-color:rgba(255,220,140,.38);transform:translateY(-2px)}
 .diaryCard.locked{opacity:.42;cursor:not-allowed}
+.diaryCard.diaryCard-pure{background:linear-gradient(135deg,#fff5f8,#fdedf2);border-color:#f0c4d4}
+.diaryCard.diaryCard-pure:hover:not(:disabled){background:linear-gradient(135deg,#ffeef4,#fce0ea);border-color:#e8a8be;transform:translateY(-2px)}
+.diaryCard.diaryCard-obsession{background:linear-gradient(135deg,#1e1214,#2a1418);border-color:rgba(180,60,70,.32);color:#f5eae8}
+.diaryCard.diaryCard-obsession .diaryCardLabel{color:#e08090}
+.diaryCard.diaryCard-obsession .diaryCardTitle{color:#f5eae8}
+.diaryCard.diaryCard-obsession .diaryCardPreview{color:#d4b0b4}
+.diaryCard.diaryCard-obsession:hover:not(:disabled){background:linear-gradient(135deg,#2d1a1e,#3a1e24);border-color:rgba(200,80,90,.5);transform:translateY(-2px)}
 .diaryCardEmoji{font-size:22px;line-height:1;margin-bottom:2px}
 .diaryCardLabel{font-size:10px;font-weight:900;letter-spacing:.1em;color:#a8825a;text-transform:uppercase}
 .diaryCardTitle{font-size:15px;font-weight:900;color:#2a1a14;display:block;line-height:1.3}
 .diaryCardPreview{font-size:12px;color:#7a6253;line-height:1.5;margin-top:2px;display:block}
 .diaryOverlay{position:fixed;inset:0;z-index:9999;background:rgba(8,4,4,.76);backdrop-filter:blur(10px);display:grid;place-items:center;padding:24px}
 .diaryModal{width:min(440px,100%);background:#1a1210;border:1px solid rgba(255,220,150,.2);border-radius:28px;padding:32px 28px;display:grid;gap:20px;box-shadow:0 32px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.04) inset;animation:diaryModalIn .22s cubic-bezier(.2,.8,.4,1)}
+.diaryModal.diaryModal-pure{background:linear-gradient(160deg,#fff8fb,#fdeef4);border:1px solid rgba(220,145,170,.35);box-shadow:0 28px 70px rgba(180,100,130,.14),0 0 0 1px rgba(255,255,255,.6) inset}
+.diaryModal.diaryModal-pure .diaryModalLabel{color:rgba(190,100,140,.75)}
+.diaryModal.diaryModal-pure .diaryModalTitle{color:#3a1e2a}
+.diaryModal.diaryModal-pure .diaryModalText{color:#4a2535;border-left-color:rgba(220,130,160,.45)}
+.diaryModal.diaryModal-pure .diaryModalClose{color:rgba(80,35,55,.7);border-color:rgba(200,130,155,.3);background:rgba(255,240,245,.5)}
+.diaryModal.diaryModal-pure .diaryModalClose:hover{background:rgba(255,220,235,.8)}
+.diaryModal.diaryModal-obsession .diaryModalText{border-left-color:rgba(200,60,70,.5)}
 @keyframes diaryModalIn{0%{opacity:0;transform:translateY(16px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
 .diaryModalHeader{display:flex;align-items:center;gap:14px}
 .diaryModalEmoji{font-size:36px;flex:none}
@@ -3033,6 +3072,7 @@ const CSS = `
 .diaryModalTitle{font-size:22px;font-weight:900;color:rgba(255,255,255,.92);margin:0}
 .diaryModalText{font-size:16px;line-height:2;color:rgba(255,245,235,.78);white-space:pre-line;border-left:2px solid rgba(255,200,100,.28);padding-left:18px;margin:0;font-style:italic}
 .diaryModalObsTag{font-size:11px;font-weight:900;color:#e07070;background:rgba(200,60,60,.14);border:1px solid rgba(200,60,60,.28);border-radius:99px;padding:5px 12px;width:fit-content}
+.diaryModalObsTag.diaryModalPureTag{color:#c0607a;background:rgba(210,120,150,.12);border-color:rgba(210,120,150,.3)}
 .diaryModalClose{border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.7);padding:13px 24px;font-weight:900;cursor:pointer;font-size:14px;transition:background .15s}
 .diaryModalClose:hover{background:rgba(255,255,255,.14)}
 .achHeader{margin-bottom:18px}
