@@ -1363,15 +1363,22 @@ function parseVNLines(text: string): VNLine[] {
   }
   // 빈 결과 방지
   if (!lines.length) return [{ speaker: "나레이션" as VNLine["speaker"], text }];
-  // 연속된 같은 speaker의 나레이션 병합 (짧은 단락 잘게 쪼개진 경우)
+  // 짧은 나레이션끼리만 병합 (한 페이지가 너무 길어지지 않도록 길이 제한)
+  // 합쳐도 5줄/180자 이하인 경우에만 묶음
+  const MERGE_MAX_CHARS = 180;
+  const MERGE_MAX_LINES = 5;
   const merged: VNLine[] = [];
   for (const line of lines) {
     const prev = merged[merged.length - 1];
     if (prev && prev.speaker === "나레이션" && line.speaker === "나레이션") {
-      prev.text += "\n\n" + line.text;
-    } else {
-      merged.push({ ...line });
+      const combined = prev.text + "\n\n" + line.text;
+      const combinedLines = combined.split(/\n/).filter((s) => s.trim()).length;
+      if (combined.length <= MERGE_MAX_CHARS && combinedLines <= MERGE_MAX_LINES) {
+        prev.text = combined;
+        continue;
+      }
     }
+    merged.push({ ...line });
   }
   return merged;
 }
