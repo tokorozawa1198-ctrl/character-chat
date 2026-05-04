@@ -3061,9 +3061,9 @@ export default function Page() {
             onEnded={() => setPureCinematic(false)}
           />
           <div className="pureCinText">
-            <span className="pureCinEyebrow">L · O · V · E · R · O · U · T · E</span>
-            <p className="pureCinTitle">순애 루트에 진입</p>
-            <span className="pureCinSub">처음처럼, 그 마음 그대로</span>
+            <span className="pureCinEyebrow">✦ L · O · V · E &nbsp;&nbsp; R · O · U · T · E ✦</span>
+            <p className="pureCinTitle"><span className="pureCinSparkle pureCinSparkleL">✿</span>순애 루트에 진입<span className="pureCinSparkle pureCinSparkleR">✿</span></p>
+            <span className="pureCinSub">— 오직 당신에게로 —</span>
           </div>
           <button className="pureCinSkip" onClick={(e) => { e.stopPropagation(); setPureCinematic(false); }}>SKIP ▶</button>
         </div>
@@ -3449,14 +3449,18 @@ const CSS = `
 /* ─ 순애 루트 진입 씨네마틱 ─ */
 .pureCinematic{position:fixed;inset:0;z-index:999999;background:#fff0f4;display:grid;place-items:center;cursor:pointer;animation:pureCinFadeIn .6s ease forwards}
 .pureCinematic video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.82;pointer-events:none}
-.pureCinText{position:relative;z-index:1;text-align:center;pointer-events:none;display:grid;gap:16px;justify-items:center}
-.pureCinEyebrow{font-size:10px;font-weight:400;letter-spacing:.55em;color:rgba(230,140,170,.85);text-transform:uppercase;padding-right:.55em;animation:pureCinTextIn 1.2s .4s ease both}
-.pureCinTitle{margin:0;font-size:clamp(30px,6.5vw,64px);font-weight:200;letter-spacing:.32em;padding-right:.32em;background:linear-gradient(135deg,#f48fb1 0%,#f06292 40%,#e91e8c 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 28px rgba(240,100,160,.55)) drop-shadow(0 2px 0 rgba(255,255,255,.4));animation:pureCinTextIn 1.4s .15s ease both;line-height:1.25}
-.pureCinSub{font-size:13px;font-weight:300;letter-spacing:.2em;color:rgba(220,120,160,.7);padding-right:.2em;animation:pureCinTextIn 1.2s .85s ease both}
-.pureCinSkip{position:absolute;bottom:28px;right:28px;z-index:2;border:1px solid rgba(240,100,160,.3);background:rgba(255,255,255,.35);color:rgba(200,80,130,.6);padding:9px 18px;border-radius:999px;font-size:11px;letter-spacing:.14em;cursor:pointer;backdrop-filter:blur(8px);transition:color .2s,border-color .2s}
-.pureCinSkip:hover{color:rgba(200,60,110,.95);border-color:rgba(240,100,160,.6)}
+.pureCinText{position:relative;z-index:1;text-align:center;pointer-events:none;display:grid;gap:18px;justify-items:center;padding:38px 56px;background:radial-gradient(ellipse at center,rgba(255,240,247,.55) 0%,rgba(255,228,240,.28) 55%,transparent 85%);backdrop-filter:blur(2px)}
+.pureCinEyebrow{font-size:11px;font-weight:700;letter-spacing:.55em;color:#fff;text-transform:uppercase;padding-right:.55em;text-shadow:0 0 14px rgba(255,90,150,.95),0 0 26px rgba(255,120,170,.7),0 2px 4px rgba(150,30,80,.4);animation:pureCinTextIn 1.2s .4s ease both}
+.pureCinTitle{margin:0;font-size:clamp(34px,7vw,72px);font-weight:900;letter-spacing:.18em;padding-right:.18em;color:#fff;text-shadow:0 0 18px rgba(255,140,180,1),0 0 38px rgba(255,100,160,.85),0 0 60px rgba(255,80,150,.6),0 3px 0 rgba(170,50,100,.55),0 6px 14px rgba(140,30,80,.45);animation:pureCinTextIn 1.4s .15s ease both;line-height:1.2;display:inline-flex;align-items:center;gap:.4em;justify-content:center;flex-wrap:nowrap}
+.pureCinSparkle{font-size:.7em;color:#fff;text-shadow:0 0 12px rgba(255,200,220,1),0 0 24px rgba(255,140,180,.9);animation:pureCinSparkleSpin 3.4s ease-in-out infinite;display:inline-block}
+.pureCinSparkleL{animation-delay:.2s}
+.pureCinSparkleR{animation-delay:1.2s}
+.pureCinSub{font-size:14px;font-weight:600;letter-spacing:.32em;color:#fff;padding-right:.32em;text-shadow:0 0 12px rgba(255,110,160,.95),0 0 22px rgba(255,90,150,.6),0 2px 3px rgba(150,30,80,.45);animation:pureCinTextIn 1.2s .85s ease both}
+.pureCinSkip{position:absolute;bottom:28px;right:28px;z-index:2;border:1px solid rgba(255,255,255,.6);background:rgba(255,255,255,.25);color:#fff;padding:9px 18px;border-radius:999px;font-size:11px;letter-spacing:.14em;cursor:pointer;backdrop-filter:blur(8px);transition:color .2s,border-color .2s,background .2s;text-shadow:0 1px 4px rgba(150,30,80,.5)}
+.pureCinSkip:hover{background:rgba(255,255,255,.42);border-color:#fff}
 @keyframes pureCinFadeIn{0%{opacity:0;backdrop-filter:blur(20px)}100%{opacity:1;backdrop-filter:blur(0px)}}
 @keyframes pureCinTextIn{0%{opacity:0;transform:translateY(18px) scale(.94)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes pureCinSparkleSpin{0%,100%{transform:rotate(0deg) scale(1);opacity:1}50%{transform:rotate(180deg) scale(1.18);opacity:.7}}
 /* ─ 화면 흔들기 ─ */
 .app.screenShake{animation:screenShakeAnim .48s cubic-bezier(.36,.07,.19,.97) both}
 @keyframes screenShakeAnim{0%,100%{transform:translate(0,0) rotate(0deg)}8%{transform:translate(-6px,-4px) rotate(-.4deg)}18%{transform:translate(6px,4px) rotate(.4deg)}28%{transform:translate(-5px,3px) rotate(-.3deg)}38%{transform:translate(5px,-4px) rotate(.3deg)}48%{transform:translate(-3px,4px) rotate(-.2deg)}58%{transform:translate(3px,-3px) rotate(.2deg)}72%{transform:translate(-2px,2px) rotate(-.1deg)}84%{transform:translate(2px,-2px) rotate(.1deg)}}
