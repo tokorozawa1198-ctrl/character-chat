@@ -1370,6 +1370,13 @@ function chapterEndTransition(scenario: Scenario): ChapterTransition | null {
   const match = scenario.text.match(/(\d+장 종료)\.\s*\n+\s*다음 챕터 예고:\s*([^\n]+)/);
   return match ? { mode: "end", eyebrow: match[1], title: "다음 챕터 예고", subtitle: match[2] } : null;
 }
+function getCoverImage(storyRoute: StoryRoute, stats: Stats) {
+  if (storyRoute === "obsession") return "/cover_dark.png";
+  if (storyRoute === "pure") return "/cover_love.png";
+  if (stats.jealousy >= 500) return "/cover_jealous.png";
+  if (stats.affinity >= 400) return "/cover_soft.png";
+  return "/cover.png";
+}
 function getHomeCharacterImage(stats: Stats, storyRoute: StoryRoute) {
   const version = `?v=${SD_IMAGE_VERSION}`;
   if (storyRoute === "obsession") return `/sd_geunddeok_dark.png${version}`;
@@ -2283,7 +2290,7 @@ export default function Page() {
   }
 
   if (!started) {
-    return <main className="coverScreen"><style>{CSS}</style><img className="coverImg" src="/cover.png" alt="cover" onError={(e)=>{e.currentTarget.src="/oppa1.png"}}/><button className="coverStartBtn" onClick={()=>setStarted(true)}>시작하기</button></main>;
+    return <main className="coverScreen"><style>{CSS}</style><img className="coverImg" src={getCoverImage(storyRoute, stats)} alt="cover" onError={(e)=>{e.currentTarget.src="/oppa1.png"}}/><button className="coverStartBtn" onClick={()=>setStarted(true)}>시작하기</button></main>;
   }
 
   return (
