@@ -1292,13 +1292,35 @@ function cleanQuote(text: string) {
   if (s.length > 0 && QUOTE_CLOSE_CODES.has(s.charCodeAt(s.length - 1))) s = s.slice(0, -1);
   return s.trim();
 }
-function guessSpeaker(text: string): VNLine["speaker"] {
+function guessSpeaker(text: string, prevNarration?: string, nextNarration?: string): VNLine["speaker"] {
   if (/(전진협|근바섭|타조|유칼립투스나무|아로벤|금수|하매|쮋)/.test(text)) return "메시지" as VNLine["speaker"];
-  // 히든의 특징: 짧고 반응형·질문형 표현
-  if (/^(이름이요|쿠폰이요|그렇군요|맞죠|그건|그렇죠|진짜요|그래요|왜요|뭐가요|그럼요|아뇨|그럼|별로요|그러면|그래서|정말요|그냥요)[?!.]*$/.test(text.trim())) return "히든" as VNLine["speaker"];
-  // 근떡존 마커
-  if (/(주인님|선생님|히든님|저 |제가|저는|제 |나는)/.test(text)) return "근떡존" as VNLine["speaker"];
-  // 기본값: 근떡존 (시나리오 대사 대부분은 근떡존 것)
+
+  // 강한 근떡존 마커: 상대를 부르는 호칭 (히든은 근떡존을 "근떡존" 또는 이름으로 부름)
+  if (/(주인님|선생님|히든님)/.test(text)) return "근떡존" as VNLine["speaker"];
+  // 자기소개 류는 근떡존
+  if (/(근떡존이라고|저 근떡존|제 이름)/.test(text)) return "근떡존" as VNLine["speaker"];
+
+  // 문맥 기반 — 다음 나레이션 단서
+  if (nextNarration) {
+    // "근떡존은 ~", "그가 ~", "그는 ~" 으로 다음 줄이 시작 → 직전 대사는 히든
+    if (/^(근떡존|그가|그는|그)\b/.test(nextNarration)) return "히든" as VNLine["speaker"];
+    // "묻자/말하자/물었다/말했다" 단독 시작 → 직전은 히든의 질문/말
+    if (/^(묻자|물었다|말하자|말했다|덧붙였다|덧붙이자)\b/.test(nextNarration)) return "히든" as VNLine["speaker"];
+  }
+  // 이전 나레이션 단서 — "근떡존은/그가/그는 ~ 말했다/물었다/대답했다/입을 떼며" → 다음 따옴표는 근떡존
+  if (prevNarration) {
+    if (/(근떡존|그가|그는).*(말했다|물었다|대답했다|덧붙였다|중얼거렸다|입을 떼며|웃었다|받아쳤다)/.test(prevNarration)) return "근떡존" as VNLine["speaker"];
+  }
+
+  // 1인칭 표현 — 마커 없으면 근떡존 (자기 얘기를 길게 하는 건 보통 근떡존)
+  if (/(저\s|제가\s|저는\s|제\s|나는\s)/.test(text)) return "근떡존" as VNLine["speaker"];
+
+  // 짧은 반응/질문 류는 히든
+  if (/^(이름이요|쿠폰이요|그렇군요|맞죠|그건|그렇죠|진짜요|그래요|왜요|뭐가요|그럼요|아뇨|그럼|별로요|그러면|그래서|정말요|그냥요|네|예|아|음|그게|왜|뭐)[?!.…]*$/.test(text.trim())) return "히든" as VNLine["speaker"];
+  // 짧은 질문(20자 이하 + 물음표) 도 히든 쪽으로
+  if (text.trim().length <= 20 && /[?？]$/.test(text.trim())) return "히든" as VNLine["speaker"];
+
+  // 기본값: 근떡존
   return "근떡존" as VNLine["speaker"];
 }
 function parseVNLines(text: string): VNLine[] {
@@ -1307,7 +1329,9 @@ function parseVNLines(text: string): VNLine[] {
   };
   const paragraphs = stripChapterEndText(text).split(/\n/).map((x) => x.trim()).filter(Boolean);
   const lines: VNLine[] = [];
-  for (const paragraph of paragraphs) {
+  // 따옴표 단락의 인접 나레이션을 찾기 위해 인덱스 순회
+  for (let i = 0; i < paragraphs.length; i++) {
+    const paragraph = paragraphs[i];
     // Format 1: "근떡존: ..." / "나레이션: ..." 명시적 prefix
     const prefixMatch = paragraph.match(/^(나레이션|근떡존|히든|메시지)\s*:\s*([\s\S]+)$/);
     if (prefixMatch) {
@@ -1317,7 +1341,22 @@ function parseVNLines(text: string): VNLine[] {
     // Format 2: 산문 — 따옴표로 감싼 단락은 대사, 나머지는 나레이션
     const quoted = paragraph.length > 0 && QUOTE_OPEN_CODES.has(paragraph.charCodeAt(0)) && QUOTE_CLOSE_CODES.has(paragraph.charCodeAt(paragraph.length - 1));
     if (quoted) {
-      lines.push({ speaker: guessSpeaker(cleanQuote(paragraph)), text: cleanQuote(paragraph) });
+      // 인접 비-따옴표 나레이션 찾기
+      let prevNar: string | undefined;
+      for (let j = i - 1; j >= 0; j--) {
+        const pj = paragraphs[j];
+        const pjQuoted = pj.length > 0 && QUOTE_OPEN_CODES.has(pj.charCodeAt(0)) && QUOTE_CLOSE_CODES.has(pj.charCodeAt(pj.length - 1));
+        if (!pjQuoted && !/^(나레이션|근떡존|히든|메시지)\s*:/.test(pj)) { prevNar = pj; break; }
+        if (pjQuoted) break; // 다른 따옴표 만나면 멈춤
+      }
+      let nextNar: string | undefined;
+      for (let j = i + 1; j < paragraphs.length; j++) {
+        const pj = paragraphs[j];
+        const pjQuoted = pj.length > 0 && QUOTE_OPEN_CODES.has(pj.charCodeAt(0)) && QUOTE_CLOSE_CODES.has(pj.charCodeAt(pj.length - 1));
+        if (!pjQuoted && !/^(나레이션|근떡존|히든|메시지)\s*:/.test(pj)) { nextNar = pj; break; }
+        if (pjQuoted) break;
+      }
+      lines.push({ speaker: guessSpeaker(cleanQuote(paragraph), prevNar, nextNar), text: cleanQuote(paragraph) });
     } else if (paragraph) {
       lines.push({ speaker: "나레이션" as VNLine["speaker"], text: paragraph });
     }
