@@ -2870,6 +2870,38 @@ export default function Page() {
                 </div>
               </div>
               <div className="adminSection">
+                <h3 className="adminSectionTitle">🚽 방광 강제 조정</h3>
+                <div className="adminStatRow">
+                  <span className="adminStatLabel">방광</span>
+                  <input type="range" min={0} max={100} step={5} value={bladderLevel}
+                    onChange={(e) => {
+                      const v = Number(e.target.value);
+                      setBladderLevel(v);
+                      // level에 맞게 lastBladderRelief를 역산
+                      const elapsed = (v / 100) * BLADDER_FILL_MS;
+                      setLastBladderRelief(Date.now() - elapsed);
+                      if (v === 0) { setBladderMaxAt(null); setBladderPopupThreshold(75); setBladderPopup(false); }
+                      if (v >= 100 && !bladderMaxAt) setBladderMaxAt(Date.now());
+                    }} />
+                  <span className="adminStatVal">{bladderLevel}%</span>
+                  <div className="adminStatBtns">
+                    <button onClick={() => {
+                      setBladderLevel(0); setLastBladderRelief(Date.now());
+                      setBladderMaxAt(null); setBladderPopupThreshold(75); setBladderPopup(false);
+                    }}>초기화</button>
+                    <button onClick={() => {
+                      setBladderLevel(85);
+                      setLastBladderRelief(Date.now() - 0.85 * BLADDER_FILL_MS);
+                    }}>85%</button>
+                    <button onClick={() => {
+                      setBladderLevel(100);
+                      setLastBladderRelief(Date.now() - BLADDER_FILL_MS);
+                      setBladderMaxAt((prev) => prev ?? Date.now());
+                    }}>100%</button>
+                  </div>
+                </div>
+              </div>
+              <div className="adminSection">
                 <h3 className="adminSectionTitle">🗺 루트 강제 변경</h3>
                 <div className="adminRouteBtns">
                   {(["common","pure","obsession"] as StoryRoute[]).map((r) => (
