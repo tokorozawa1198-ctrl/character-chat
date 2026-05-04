@@ -1371,7 +1371,8 @@ function parseVNLines(text: string): VNLine[] {
   for (const line of lines) {
     const prev = merged[merged.length - 1];
     if (prev && prev.speaker === "나레이션" && line.speaker === "나레이션") {
-      const combined = prev.text + "\n\n" + line.text;
+      // 빈 줄(\n\n) 대신 단순 줄바꿈 하나만 — 시각적 간격이 과해지지 않게
+      const combined = prev.text + "\n" + line.text;
       const combinedLines = combined.split(/\n/).filter((s) => s.trim()).length;
       if (combined.length <= MERGE_MAX_CHARS && combinedLines <= MERGE_MAX_LINES) {
         prev.text = combined;
