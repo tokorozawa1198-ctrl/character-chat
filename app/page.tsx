@@ -1719,7 +1719,7 @@ export default function Page() {
   const [adminPwInput, setAdminPwInput] = useState("");
   const [adminTapCount, setAdminTapCount] = useState(0);
   const adminTapTimer = useRef<number | null>(null);
-  const ADMIN_PASSWORD = "geunddeok1004";
+  const ADMIN_PASSWORD = "123456";
   const [pendingPhoto, setPendingPhoto] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
