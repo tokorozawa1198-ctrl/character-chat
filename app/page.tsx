@@ -590,6 +590,8 @@ type Pet = {
   id: string;
   emoji: string;
   evolvedEmoji?: string; // Lv 5+ 진화
+  image?: string;        // 일러스트 경로 (없으면 이모지 fallback)
+  evolvedImage?: string; // 진화 일러스트
   name: string;
   evolvedName?: string;
   flavor: string;
@@ -603,6 +605,8 @@ const PETS: Pet[] = [
     id: "tteokjon_foot",
     emoji: "🦶",
     evolvedEmoji: "🦶✨",
+    image: "/pet_foot.png",
+    evolvedImage: "/pet_foot_evolved.png",
     name: "떡존이발",
     evolvedName: "신성한 발",
     flavor: "그냥 발인데 ㅈㄴ 따라옴. 왜 살아있는지 모름;",
@@ -615,6 +619,8 @@ const PETS: Pet[] = [
     id: "bladder_fairy",
     emoji: "🧚",
     evolvedEmoji: "🧚‍♀️✨",
+    image: "/pet_fairy.png",
+    evolvedImage: "/pet_fairy_evolved.png",
     name: "방광요정",
     evolvedName: "요도니아 강림체",
     flavor: "이름은 쉬임. 자기소개할때 ㅈㄴ 부끄러워함 ㅋ",
@@ -630,6 +636,8 @@ const PETS: Pet[] = [
     id: "tteokjon_poop",
     emoji: "💩",
     evolvedEmoji: "💩👑",
+    image: "/pet_poop.png",
+    evolvedImage: "/pet_poop_evolved.png",
     name: "떡존이똥",
     evolvedName: "황금똥",
     flavor: "ㄹㅇ 똥임. 만지면 호감 떨어질거같은데 안떨어짐 ㄹㅇ로",
@@ -645,6 +653,8 @@ const PETS: Pet[] = [
     id: "tteokjon_pee",
     emoji: "💦",
     evolvedEmoji: "🌊",
+    image: "/pet_pee.png",
+    evolvedImage: "/pet_pee_evolved.png",
     name: "떡존이오줌",
     evolvedName: "태평양 오줌",
     flavor: "ㄹㅇ 살아있음 ㅈㄴ 신비함. 따뜻함;;",
@@ -660,6 +670,8 @@ const PETS: Pet[] = [
     id: "tteokjon_toilet",
     emoji: "🚽",
     evolvedEmoji: "🚽👑",
+    image: "/pet_toilet.png",
+    evolvedImage: "/pet_toilet_evolved.png",
     name: "떡존이네변기",
     evolvedName: "요도니아 옥좌",
     flavor: "떡존이가 매일 앉던 그 변기임. ㄹㅇ 옥좌급 ㅗㅜㅑ",
@@ -3092,7 +3104,7 @@ export default function Page() {
       if (!pet.unlock.check(petUnlockState)) continue;
       // 신규 획득
       setOwnedPets((prev) => ({ ...prev, [pet.id]: { level: 1, affinity: 0, obtained: Date.now() } }));
-      setPetToast({ name: pet.name, emoji: pet.emoji, flavor: pet.flavor });
+      setPetToast({ name: pet.name, emoji: pet.image || pet.emoji, flavor: pet.flavor });
       window.setTimeout(() => setPetToast(null), 4500);
       // 첫 펫이면 자동 활성화
       if (Object.keys(ownedPets).length === 0) setActivePet(pet.id);
@@ -3726,15 +3738,29 @@ export default function Page() {
           </div>
           <small className="userLvExp">{userExp} / {expToNextLevel(userLevel)} EXP</small>
         </div>
-        {activePetObj && activePetData && (
-          <div className="petMini" onClick={() => setView("pets")}>
-            <span className="petMiniEmoji">{petLevel(activePetData.affinity) >= 5 && activePetObj.evolvedEmoji ? activePetObj.evolvedEmoji : activePetObj.emoji}</span>
-            <div className="petMiniBody">
-              <b>{petLevel(activePetData.affinity) >= 5 && activePetObj.evolvedName ? activePetObj.evolvedName : activePetObj.name}</b>
-              <small>Lv.{petLevel(activePetData.affinity)} · {activePetObj.description.split("(")[0].trim()}</small>
+        {activePetObj && activePetData && (() => {
+          const lvl = petLevel(activePetData.affinity);
+          const isEvolved = lvl >= 5;
+          const imgSrc = isEvolved && activePetObj.evolvedImage ? activePetObj.evolvedImage : activePetObj.image;
+          const fallbackEmoji = isEvolved && activePetObj.evolvedEmoji ? activePetObj.evolvedEmoji : activePetObj.emoji;
+          return (
+            <div className="petMini" onClick={() => setView("pets")}>
+              {imgSrc ? (
+                <img className="petMiniImg" src={imgSrc} alt={activePetObj.name} onError={(e) => {
+                  const el = e.currentTarget as HTMLImageElement;
+                  el.style.display = "none";
+                  const sibling = el.nextElementSibling as HTMLElement | null;
+                  if (sibling) sibling.style.display = "block";
+                }} />
+              ) : null}
+              <span className="petMiniEmoji" style={{ display: imgSrc ? "none" : "block" }}>{fallbackEmoji}</span>
+              <div className="petMiniBody">
+                <b>{isEvolved && activePetObj.evolvedName ? activePetObj.evolvedName : activePetObj.name}</b>
+                <small>Lv.{lvl} · {activePetObj.description.split("(")[0].trim()}</small>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
         <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["gacha","🎰 뽑기"],["pets","🐹 펫"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=>{
           const dailyClaimable = key === "quests" ? dailyState.missions.filter((m) => {
             if (m.claimed) return false;
@@ -3978,7 +4004,33 @@ export default function Page() {
                 const affPct = data ? Math.min(100, ((data.affinity % 100) / 100) * 100) : 0;
                 return (
                   <div key={pet.id} className={`petCard${owned ? " petOwned" : " petLocked"}${isActive ? " petActive" : ""}${evolved ? " petEvolved" : ""}`}>
-                    <div className="petEmoji">{owned ? (evolved && pet.evolvedEmoji ? pet.evolvedEmoji : pet.emoji) : "❓"}</div>
+                    {owned ? (
+                      <div className="petArtFrame">
+                        {(evolved && pet.evolvedImage) || pet.image ? (
+                          <img
+                            className="petArt"
+                            src={evolved && pet.evolvedImage ? pet.evolvedImage : pet.image!}
+                            alt={pet.name}
+                            onError={(e) => {
+                              const el = e.currentTarget as HTMLImageElement;
+                              if (evolved && pet.evolvedImage && !el.dataset.fallback) {
+                                el.dataset.fallback = "1";
+                                el.src = pet.image ?? "";
+                              } else {
+                                el.style.display = "none";
+                                const sibling = el.nextElementSibling as HTMLElement | null;
+                                if (sibling) sibling.style.display = "block";
+                              }
+                            }}
+                          />
+                        ) : null}
+                        <span className="petEmoji petEmojiFallback" style={{ display: pet.image ? "none" : "block" }}>
+                          {evolved && pet.evolvedEmoji ? pet.evolvedEmoji : pet.emoji}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="petEmoji petLockedEmoji">❓</div>
+                    )}
                     <div className="petName">{owned ? (evolved && pet.evolvedName ? pet.evolvedName : pet.name) : "??? 미해금"}</div>
                     <small className="petFlavor">{owned ? pet.flavor : `잠금: ${pet.unlock.hint}`}</small>
                     <div className="petEffect">{owned ? pet.description : "—"}</div>
@@ -4750,7 +4802,18 @@ export default function Page() {
           </div>
         )}
         {comboToast && <div className="cgUnlockToast comboToast"><div className="cgUnlockIcon">🔥</div><div><b>{comboToast}</b><span>보상 받았다능 ㅋ</span></div></div>}
-        {petToast && <div className="cgUnlockToast petToast"><div className="cgUnlockIcon">{petToast.emoji}</div><div><b>{petToast.name} 합류!</b><span>{petToast.flavor}</span><small>펫 메뉴에서 동반시키셈 ㄱㄱ</small></div></div>}
+        {petToast && (
+          <div className="cgUnlockToast petToast">
+            <div className="cgUnlockIcon">
+              {petToast.emoji?.startsWith("/") ? (
+                <img src={petToast.emoji} alt="" style={{ width: 36, height: 36, objectFit: "contain" }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
+              ) : (
+                petToast.emoji
+              )}
+            </div>
+            <div><b>{petToast.name} 합류!</b><span>{petToast.flavor}</span><small>펫 메뉴에서 동반시키셈 ㄱㄱ</small></div>
+          </div>
+        )}
         {gachaResult && (
           <div className="gachaOverlay" onClick={() => gachaResult.phase === "reveal" && setGachaResult(null)}>
             {gachaResult.phase === "rolling" && (
@@ -5150,6 +5213,12 @@ const CSS = `
 .petCard.petEvolved{background:linear-gradient(180deg,#fff7e8 0%,#fff 60%);border-left-color:#df842c}
 .petCard.petActive.petEvolved{border-color:#df842c;box-shadow:0 0 0 3px rgba(223,132,44,.2),0 8px 22px rgba(223,132,44,.22)}
 .petEmoji{font-size:54px;line-height:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.18))}
+.petLockedEmoji{opacity:.4}
+.petArtFrame{position:relative;width:100%;aspect-ratio:1/1;display:grid;place-items:center;background:radial-gradient(circle at center,#fff8ef 0%,#f0e2cc 100%);border-radius:14px;overflow:hidden;border:1px solid #e8d2b6}
+.petArt{width:100%;height:100%;object-fit:cover;filter:drop-shadow(0 4px 10px rgba(0,0,0,.18))}
+.petCard.petActive .petArtFrame{background:radial-gradient(circle at center,#f4fcf6 0%,#d5ebd9 100%);border-color:#7ba65a}
+.petCard.petEvolved .petArtFrame{background:radial-gradient(circle at center,#fff7d6 0%,#ffd97a 100%);border-color:#df842c;animation:petEvolvedFloat 2.6s ease-in-out infinite}
+.petMiniImg{width:30px;height:30px;border-radius:8px;object-fit:cover;background:rgba(255,255,255,.1);flex:none}
 .petCard.petEvolved .petEmoji{animation:petEvolvedFloat 2.6s ease-in-out infinite}
 @keyframes petEvolvedFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 .petName{font-size:15px;font-weight:1000;color:#2a1a14}
