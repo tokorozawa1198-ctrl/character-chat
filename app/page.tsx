@@ -7,6 +7,8 @@ import type {
   AfterScenarioCue,
   Choice,
   ChoiceCondition,
+  DailyMission,
+  DailyState,
   GalleryTab,
   MemoryNote,
   Message,
@@ -562,6 +564,169 @@ const QUESTS: Quest[] = [
     progress: (s) => ({ current: Math.min(4, Object.keys(s.unlockedEndings).length), target: 4 }),
     reward: { kind: "stat", stat: "affinity", amount: 200, label: "호감 +200, 모든 루트의 마음" },
     visible: (s) => Object.keys(s.unlockedEndings).length >= 1,
+  },
+];
+
+// ================================
+// 코인 / 데일리 미션 / 상점 시스템
+// ================================
+type DailyMissionTemplate = {
+  id: string;
+  title: string;
+  description: string;
+  emoji: string;
+  target: number;
+  rewardCoins: number;
+  field: "chatCount" | "giftCount" | "scenarioCount" | "checkinBool" | "bladderPeak";
+  visible?: (state: { stats: Stats; storyRoute: StoryRoute }) => boolean;
+};
+
+const DAILY_MISSION_TEMPLATES: DailyMissionTemplate[] = [
+  { id: "chat_5", title: "오늘 5번 채팅", description: "근떡존과 5번 카톡을 주고받기", emoji: "💬", target: 5, rewardCoins: 15, field: "chatCount" },
+  { id: "chat_10", title: "오늘 10번 채팅", description: "수다 더 떨어보기", emoji: "💬", target: 10, rewardCoins: 30, field: "chatCount" },
+  { id: "gift_1", title: "선물 1개 주기", description: "선물 메뉴에서 한 개 골라 보내기", emoji: "🎁", target: 1, rewardCoins: 20, field: "giftCount" },
+  { id: "checkin", title: "오늘 출석", description: "출석 체크 완료", emoji: "📅", target: 1, rewardCoins: 10, field: "checkinBool" },
+  { id: "scenario_1", title: "시나리오 1개 진행", description: "어떤 시나리오든 한 개 진입", emoji: "📖", target: 1, rewardCoins: 25, field: "scenarioCount" },
+  { id: "bladder_70", title: "방광 70% 견디기", description: "방광 게이지 70% 이상 도달", emoji: "🚽", target: 70, rewardCoins: 25, field: "bladderPeak" },
+  { id: "bladder_95", title: "방광 한계 챌린지", description: "방광 게이지 95% 이상 도달", emoji: "🚽", target: 95, rewardCoins: 50, field: "bladderPeak", visible: (s) => s.stats.bladderCharm > 0 },
+];
+
+function todayKey(d: Date = new Date()): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+function pickDailyMissions(date: string, eligibleIds: string[]): DailyMission[] {
+  // 날짜 기반 시드로 안정적으로 3개 선택
+  let seed = 0;
+  for (const c of date) seed = (seed * 31 + c.charCodeAt(0)) >>> 0;
+  const pool = [...eligibleIds];
+  const picked: string[] = [];
+  for (let i = 0; i < 3 && pool.length; i++) {
+    seed = (seed * 1103515245 + 12345) >>> 0;
+    const idx = seed % pool.length;
+    picked.push(pool.splice(idx, 1)[0]);
+  }
+  return picked.map((id) => {
+    const t = DAILY_MISSION_TEMPLATES.find((x) => x.id === id)!;
+    return { templateId: id, target: t.target, rewardCoins: t.rewardCoins, claimed: false };
+  });
+}
+function getDailyProgress(field: DailyMissionTemplate["field"], state: DailyState): number {
+  if (field === "checkinBool") return state.checkinDone ? 1 : 0;
+  if (field === "chatCount") return state.chatCount;
+  if (field === "giftCount") return state.giftCount;
+  if (field === "scenarioCount") return state.scenarioCount;
+  if (field === "bladderPeak") return state.bladderPeak;
+  return 0;
+}
+
+// ── 상점 ──
+type ShopItem = {
+  id: string;
+  name: string;
+  description: string;
+  emoji: string;
+  price: number;
+  category: "boost" | "gift" | "cosmetic" | "consumable";
+  effect:
+    | { kind: "stat"; stat: StatKey; amount: number }
+    | { kind: "coins_random"; min: number; max: number }
+    | { kind: "stat_random"; stat: StatKey; min: number; max: number }
+    | { kind: "consumable"; consumableId: string }
+    | { kind: "cosmetic_chat_bg"; bgId: string };
+  limit?: number; // 총 구매 제한 (없으면 무한)
+  visible?: (state: { stats: Stats; storyRoute: StoryRoute }) => boolean;
+};
+
+const SHOP_ITEMS: ShopItem[] = [
+  // 부스트
+  {
+    id: "affinity_boost_small",
+    name: "다정한 메시지",
+    description: "근떡존이 갑자기 다정해진다. 호감 +30",
+    emoji: "💌",
+    price: 50,
+    category: "boost",
+    effect: { kind: "stat", stat: "affinity", amount: 30 },
+  },
+  {
+    id: "affinity_boost_big",
+    name: "진심 어린 편지",
+    description: "장문의 진심 메시지. 호감 +100, 신뢰 +20",
+    emoji: "💝",
+    price: 200,
+    category: "boost",
+    effect: { kind: "stat", stat: "affinity", amount: 100 },
+  },
+  {
+    id: "trust_pack",
+    name: "약속의 시간",
+    description: "신뢰가 깊어지는 짧은 순간. 신뢰 +50",
+    emoji: "🤝",
+    price: 80,
+    category: "boost",
+    effect: { kind: "stat", stat: "trust", amount: 50 },
+  },
+  // 가챠
+  {
+    id: "mystery_box",
+    name: "선물 상자 (랜덤)",
+    description: "근떡존이 보낸 선물. 호감 랜덤 +10~80",
+    emoji: "📦",
+    price: 60,
+    category: "gift",
+    effect: { kind: "stat_random", stat: "affinity", min: 10, max: 80 },
+  },
+  {
+    id: "premium_box",
+    name: "프리미엄 선물 상자",
+    description: "고급 선물. 호감 랜덤 +50~200",
+    emoji: "🎁",
+    price: 250,
+    category: "gift",
+    effect: { kind: "stat_random", stat: "affinity", min: 50, max: 200 },
+  },
+  {
+    id: "coin_lottery",
+    name: "코인 행운 박스",
+    description: "재미로 사보기. 코인 랜덤 +20~150",
+    emoji: "🪙",
+    price: 80,
+    category: "gift",
+    effect: { kind: "coins_random", min: 20, max: 150 },
+  },
+  // 방광 루트
+  {
+    id: "bladder_amulet",
+    name: "K-방광 부적",
+    description: "방광매력의 가호. 방광매력 +25",
+    emoji: "🚽",
+    price: 150,
+    category: "boost",
+    effect: { kind: "stat", stat: "bladderCharm", amount: 25 },
+    visible: (s) => s.stats.bladderCharm > 0,
+  },
+  // 위험
+  {
+    id: "obsession_drop",
+    name: "한 모금의 진심",
+    description: "그가 더 깊이 빠진다. 집착 +60, 신뢰 -10",
+    emoji: "🌹",
+    price: 120,
+    category: "boost",
+    effect: { kind: "stat", stat: "obsession", amount: 60 },
+  },
+  // 일회성 화려한 효과
+  {
+    id: "jealousy_calm",
+    name: "달래주는 한 마디",
+    description: "질투가 가라앉는다. 질투 -100",
+    emoji: "🌿",
+    price: 100,
+    category: "consumable",
+    effect: { kind: "stat", stat: "jealousy", amount: -100 },
   },
 ];
 
@@ -1947,6 +2112,12 @@ export default function Page() {
   const [unlockedMilestones, setUnlockedMilestones] = useState<Record<string, boolean>>({});
   const [milestoneToast, setMilestoneToast] = useState<{ id: string; title: string } | null>(null);
   const [lastRandomMessage, setLastRandomMessage] = useState<number>(0);
+  const [coins, setCoins] = useState<number>(0);
+  const [dailyState, setDailyState] = useState<DailyState>({
+    date: todayKey(), chatCount: 0, giftCount: 0, scenarioCount: 0, checkinDone: false, bladderPeak: 0, missions: [],
+  });
+  const [shopHistory, setShopHistory] = useState<Record<string, number>>({});
+  const [shopToast, setShopToast] = useState<{ name: string; detail: string } | null>(null);
   const [slotTick, setSlotTick] = useState(0); // 슬롯 변경 시 리렌더 트리거
   const [seenEvents, setSeenEvents] = useState<Record<string, boolean>>({});
   const [storyRoute, setStoryRoute] = useState<StoryRoute>("common");
@@ -2044,6 +2215,7 @@ export default function Page() {
     { label: "대화하기", target: "chat" },
     { label: "시나리오", target: "scenarioMenu" },
     { label: "도전", target: "quests" },
+    { label: "🪙 상점", target: "shop" },
     { label: "갤러리", target: "gallery" },
     { label: "전진협", target: "events" },
     { label: "상태", target: "profile" },
@@ -2088,6 +2260,9 @@ export default function Page() {
         setCompletedQuests(saved.completedQuests ?? {});
         setUnlockedMilestones(saved.unlockedMilestones ?? {});
         setLastRandomMessage(saved.lastRandomMessage ?? 0);
+        setCoins(saved.coins ?? 0);
+        if (saved.dailyState) setDailyState(saved.dailyState);
+        setShopHistory(saved.shopHistory ?? {});
         setSeenEvents(saved.seenEvents ?? {});
         setStoryRoute(saved.storyRoute ?? "common");
         setMemoryNotes(saved.memoryNotes ?? []);
@@ -2144,10 +2319,13 @@ export default function Page() {
       completedQuests,
       unlockedMilestones,
       lastRandomMessage,
+      coins,
+      dailyState,
+      shopHistory,
     };
     save.messages = sanitizeMessages(save.messages);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
-  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage]);
+  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory]);
 
   // ─ 방광 채우기 타이머 ─
   useEffect(() => {
@@ -2441,6 +2619,7 @@ export default function Page() {
     // 방광 루트 시네마틱 트리거
     if (id === "bladder_ch5_01") setBladderEntryCinematic(true);
     if (id === "bladder_ch6_01") setBladderEnchantCinematic(true);
+    setDailyState((prev) => ({ ...prev, scenarioCount: prev.scenarioCount + 1 }));
     showChapterTransition(chapterStartTransition(id, scenario));
   }
   function ensureActionScenario(item: ActionItem) {
@@ -2490,6 +2669,9 @@ export default function Page() {
     setCheckInStreak(newStreak);
     setCheckInHistory((prev) => [...prev, now].slice(-30)); // 최근 30일만 보관
     setStats((s) => applyStats(s, reward.stat));
+    // 데일리: 출석 + 코인 보너스
+    setDailyState((prev) => ({ ...prev, checkinDone: true }));
+    setCoins((c) => c + 5);
     showStatDelta(reward.stat);
 
     if (checkInRewardTimer.current) window.clearTimeout(checkInRewardTimer.current);
@@ -2510,6 +2692,7 @@ export default function Page() {
     const nextStats = applyStats(stats, gift.stat);
     setStats(nextStats);
     showStatDelta(gift.stat);
+    setDailyState((prev) => ({ ...prev, giftCount: prev.giftCount + 1 }));
 
     const isObs = storyRoute === "obsession" || nextStats.obsession >= 700;
     const reactionText = (isObs && gift.reactionObs) ? gift.reactionObs : gift.reaction;
@@ -2599,6 +2782,74 @@ export default function Page() {
       }
     }
   }, [visibleQuests, completedQuests, questState]);
+  // ─ 데일리 자동 갱신 (날짜 변경 감지) ─
+  useEffect(() => {
+    const today = todayKey();
+    if (dailyState.date === today && dailyState.missions.length > 0) return;
+    const eligibleIds = DAILY_MISSION_TEMPLATES
+      .filter((t) => !t.visible || t.visible({ stats, storyRoute }))
+      .map((t) => t.id);
+    setDailyState((prev) => ({
+      date: today,
+      chatCount: prev.date === today ? prev.chatCount : 0,
+      giftCount: prev.date === today ? prev.giftCount : 0,
+      scenarioCount: prev.date === today ? prev.scenarioCount : 0,
+      checkinDone: prev.date === today ? prev.checkinDone : false,
+      bladderPeak: prev.date === today ? prev.bladderPeak : 0,
+      missions: pickDailyMissions(today, eligibleIds),
+    }));
+  }, [view]); // 뷰 전환 시마다 체크
+
+  // ─ 방광 게이지 최고 기록 추적 ─
+  useEffect(() => {
+    if (bladderLevel > dailyState.bladderPeak) {
+      setDailyState((prev) => ({ ...prev, bladderPeak: Math.max(prev.bladderPeak, bladderLevel) }));
+    }
+  }, [bladderLevel]);
+
+  // ─ 데일리 미션 보상 받기 ─
+  function claimDailyMission(idx: number) {
+    const m = dailyState.missions[idx];
+    if (!m || m.claimed) return;
+    const t = DAILY_MISSION_TEMPLATES.find((x) => x.id === m.templateId);
+    if (!t) return;
+    const cur = getDailyProgress(t.field, dailyState);
+    if (cur < m.target) return;
+    setDailyState((prev) => {
+      const next = [...prev.missions];
+      next[idx] = { ...next[idx], claimed: true };
+      return { ...prev, missions: next };
+    });
+    setCoins((c) => c + m.rewardCoins);
+    setShopToast({ name: `+${m.rewardCoins} 코인`, detail: t.title });
+    window.setTimeout(() => setShopToast(null), 2600);
+  }
+
+  // ─ 상점 구매 ─
+  function buyShopItem(item: ShopItem) {
+    if (coins < item.price) return;
+    if (item.limit && (shopHistory[item.id] ?? 0) >= item.limit) return;
+    setCoins((c) => c - item.price);
+    setShopHistory((h) => ({ ...h, [item.id]: (h[item.id] ?? 0) + 1 }));
+    let detail = "";
+    const e = item.effect;
+    if (e.kind === "stat") {
+      setStats((s) => ({ ...s, [e.stat]: clamp(s[e.stat] + e.amount) }));
+      const sign = e.amount >= 0 ? "+" : "";
+      detail = `${STAT_LABEL[e.stat] ?? e.stat} ${sign}${e.amount}`;
+    } else if (e.kind === "stat_random") {
+      const amount = Math.floor(Math.random() * (e.max - e.min + 1)) + e.min;
+      setStats((s) => ({ ...s, [e.stat]: clamp(s[e.stat] + amount) }));
+      detail = `${STAT_LABEL[e.stat] ?? e.stat} +${amount} (랜덤)`;
+    } else if (e.kind === "coins_random") {
+      const amount = Math.floor(Math.random() * (e.max - e.min + 1)) + e.min;
+      setCoins((c) => c + amount);
+      detail = `🪙 ${amount} 코인 획득`;
+    }
+    setShopToast({ name: item.name, detail });
+    window.setTimeout(() => setShopToast(null), 3200);
+  }
+
   // ─ 마일스톤 자동 트리거 ─
   useEffect(() => {
     for (const ms of MILESTONES) {
@@ -2615,6 +2866,8 @@ export default function Page() {
       if (ms.reward) {
         setStats((s) => ({ ...s, [ms.reward!.stat]: clamp(s[ms.reward!.stat] + ms.reward!.amount) }));
       }
+      // 마일스톤 도달 보너스 코인
+      setCoins((c) => c + 30);
       setMilestoneToast({ id: ms.id, title: ms.title });
       window.setTimeout(() => setMilestoneToast(null), 4200);
       break; // 한 틱에 한 개만
@@ -2643,9 +2896,11 @@ export default function Page() {
     if (r.kind === "stat") {
       setStats((s) => ({ ...s, [r.stat]: clamp(s[r.stat] + r.amount) }));
     }
+    // 퀘스트 클리어 보너스 코인
+    const coinBonus = quest.category === "secret" ? 200 : quest.category === "main" ? 100 : 50;
+    setCoins((c) => c + coinBonus);
     setCompletedQuests((prev) => ({ ...prev, [quest.id]: true }));
-    // 보상 메시지 토스트 재활용
-    setQuestToast({ id: quest.id, title: `보상 받음: ${quest.title}` });
+    setQuestToast({ id: quest.id, title: `보상 받음: ${quest.title} (+🪙${coinBonus})` });
     window.setTimeout(() => setQuestToast(null), 3000);
   }
   function handleMissionTap(target: TouchTarget) {
@@ -2698,6 +2953,7 @@ export default function Page() {
     setInput("");
     setPendingPhoto(null);
     setIsSending(true);
+    setDailyState((prev) => ({ ...prev, chatCount: prev.chatCount + 1 }));
     const displayText = text || "📷 사진";
     const nextStats = applyStats(stats, text.includes("질투") ? { jealousy: 2 } : text.includes("좋아") ? { affinity: 2 } : {});
     setStats(nextStats);
@@ -2864,6 +3120,9 @@ export default function Page() {
     setCompletedQuests({});
     setUnlockedMilestones({});
     setLastRandomMessage(0);
+    setCoins(0);
+    setDailyState({ date: todayKey(), chatCount: 0, giftCount: 0, scenarioCount: 0, checkinDone: false, bladderPeak: 0, missions: [] });
+    setShopHistory({});
     setSeenEvents({});
     setStoryRoute("common");
     setMemoryNotes([]);
@@ -2940,7 +3199,16 @@ export default function Page() {
           <div className="relBadge"><div className="relBadgeTop"><span className="relLvLabel">Lv.{relLevel.lv}</span><span className="relLvName">{relLevel.displayName}</span><span className="relLvNext">{relLevel.lv < 10 ? `${relLevel.progressPct}%` : "MAX"}</span></div><div className="relProgressTrack"><div className="relProgressFill" style={{ width: `${relLevel.lv < 10 ? relLevel.progressPct : 100}%` }} /></div></div>
           <div className="statsBox"><StatBar label="호감" value={stats.affinity}/><StatBar label="질투" value={stats.jealousy} danger={stats.jealousy >= 500}/><StatBar label="집착" value={stats.obsession} danger={stats.obsession >= 500}/><StatBar label="신뢰" value={stats.trust}/>{stats.bladderCharm > 0 && <StatBar label="🚽매력" value={stats.bladderCharm}/>}</div>
         </div>
-        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=><button key={key} className={`${view===key ? "active" : ""}${key==="checkin" && !isCheckedInToday(lastCheckIn) ? " navDot" : ""}${key==="quests" && claimableCount > 0 ? " navDot" : ""}${key==="admin" ? " adminNavBtn" : ""}`} onClick={()=>setView(key as AppView)}>{label}{key==="quests" && claimableCount > 0 && <span className="navBadge">{claimableCount}</span>}</button>)}</nav>
+        <div className="coinBar"><span className="coinIcon">🪙</span><span className="coinValue">{coins.toLocaleString()}</span></div>
+        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=>{
+          const dailyClaimable = key === "quests" ? dailyState.missions.filter((m) => {
+            if (m.claimed) return false;
+            const t = DAILY_MISSION_TEMPLATES.find((x) => x.id === m.templateId);
+            return t && getDailyProgress(t.field, dailyState) >= m.target;
+          }).length : 0;
+          const totalClaimable = (key === "quests" ? claimableCount + dailyClaimable : 0);
+          return <button key={key} className={`${view===key ? "active" : ""}${key==="checkin" && !isCheckedInToday(lastCheckIn) ? " navDot" : ""}${key==="quests" && totalClaimable > 0 ? " navDot" : ""}${key==="admin" ? " adminNavBtn" : ""}`} onClick={()=>setView(key as AppView)}>{label}{key==="quests" && totalClaimable > 0 && <span className="navBadge">{totalClaimable}</span>}</button>;
+        })}</nav>
       </aside>
       <section className="content">
         {currentScenario && <div className={`scenarioOverlay${vnDramatic ? " vnDramatic" : ""}`} style={{ "--bg-url": `url(${currentScenario.background ?? "/bg_room_night.png"})` } as React.CSSProperties}>
@@ -3038,7 +3306,42 @@ export default function Page() {
         })()}
         {view === "quests" && (
           <Panel title="도전 / 퀘스트">
-            <p className="questIntro">목표를 달성하면 보상을 받을 수 있어요. <strong>{claimableCount}개</strong> 받을 준비 완료.</p>
+            <p className="questIntro">목표를 달성하면 보상을 받을 수 있어요. 🪙 코인 잔액 <strong>{coins.toLocaleString()}</strong>.</p>
+            {/* 데일리 미션 */}
+            <h3 className="questSectionTitle">📅 오늘의 미션 <small>자정에 갱신</small></h3>
+            <div className="dailyGrid">
+              {dailyState.missions.map((m, idx) => {
+                const t = DAILY_MISSION_TEMPLATES.find((x) => x.id === m.templateId);
+                if (!t) return null;
+                const cur = getDailyProgress(t.field, dailyState);
+                const isComplete = cur >= m.target;
+                const pct = Math.min(100, (cur / m.target) * 100);
+                return (
+                  <div key={idx} className={`dailyCard${m.claimed ? " dailyClaimed" : isComplete ? " dailyReady" : ""}`}>
+                    <div className="dailyEmoji">{t.emoji}</div>
+                    <div className="dailyBody">
+                      <b className="dailyTitle">{t.title}</b>
+                      <small className="dailyDesc">{t.description}</small>
+                      <div className="dailyProgress">
+                        <div className="dailyBar"><div style={{ width: `${pct}%` }}/></div>
+                        <span>{Math.min(cur, m.target)}/{m.target}</span>
+                      </div>
+                    </div>
+                    <div className="dailyRight">
+                      <span className="dailyReward">🪙 {m.rewardCoins}</span>
+                      {m.claimed ? (
+                        <span className="dailyDoneBadge">완료</span>
+                      ) : isComplete ? (
+                        <button className="dailyClaimBtn" onClick={() => claimDailyMission(idx)}>받기</button>
+                      ) : (
+                        <span className="dailyTodo">진행중</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <h3 className="questSectionTitle">🎯 장기 도전 <small><strong>{claimableCount}</strong>개 보상 가능</small></h3>
             <div className="questGrid">
               {visibleQuests.map((q) => {
                 const p = q.progress(questState);
@@ -3080,6 +3383,40 @@ export default function Page() {
                         {isComplete ? "🎁 보상 받기" : "진행 중"}
                       </button>
                     )}
+                  </div>
+                );
+              })}
+            </div>
+          </Panel>
+        )}
+        {view === "shop" && (
+          <Panel title="상점">
+            <div className="shopHeader">
+              <span>🪙 잔액</span>
+              <strong className="shopBalance">{coins.toLocaleString()}</strong>
+            </div>
+            <p className="shopHint">코인은 데일리 미션·도전·출석으로 모을 수 있어요.</p>
+            <div className="shopGrid">
+              {SHOP_ITEMS.filter((it) => !it.visible || it.visible({ stats, storyRoute })).map((item) => {
+                const owned = shopHistory[item.id] ?? 0;
+                const limited = item.limit !== undefined;
+                const soldOut = limited && owned >= item.limit!;
+                const cantAfford = coins < item.price;
+                const disabled = soldOut || cantAfford;
+                const catKlass = item.category === "boost" ? "shopBoost" : item.category === "gift" ? "shopGift" : item.category === "consumable" ? "shopConsumable" : "shopCosmetic";
+                return (
+                  <div key={item.id} className={`shopCard ${catKlass}`}>
+                    <div className="shopEmoji">{item.emoji}</div>
+                    <div className="shopName">{item.name}</div>
+                    <div className="shopDesc">{item.description}</div>
+                    {owned > 0 && <small className="shopOwned">구매 {owned}회</small>}
+                    <button
+                      className="shopBuyBtn"
+                      disabled={disabled}
+                      onClick={() => buyShopItem(item)}
+                    >
+                      {soldOut ? "품절" : cantAfford ? `🪙 ${item.price} (부족)` : `🪙 ${item.price}`}
+                    </button>
                   </div>
                 );
               })}
@@ -3775,6 +4112,7 @@ export default function Page() {
         {cgUnlockToast && <div className="cgUnlockToast"><div className="cgUnlockIcon">🖼</div><div><b>CG 해금</b><span>「{cgUnlockToast.name}」</span><small>갤러리에 추가되었습니다.</small></div></div>}
         {questToast && <div className="cgUnlockToast questToast"><div className="cgUnlockIcon">🎯</div><div><b>퀘스트 달성!</b><span>「{questToast.title}」</span><small>도전 메뉴에서 보상을 받으세요.</small></div></div>}
         {milestoneToast && <div className="cgUnlockToast milestoneToast"><div className="cgUnlockIcon">💗</div><div><b>마일스톤 달성</b><span>「{milestoneToast.title}」</span><small>새 메시지가 도착했어요.</small></div></div>}
+        {shopToast && <div className="cgUnlockToast shopToast"><div className="cgUnlockIcon">🪙</div><div><b>{shopToast.name}</b><span>{shopToast.detail}</span></div></div>}
         {achievementToast && <div className="achToast"><div className="achToastIcon">{achievementToast.emoji}</div><div><b>업적 해금</b><span>「{achievementToast.title}」</span><small>{achievementToast.description}</small></div></div>}
         {bladderPopup && (
           <div className="bladderPopupOverlay">
@@ -3988,6 +4326,55 @@ const CSS = `
 .milestoneToast{background:linear-gradient(135deg,#3a1525,#5a2540) !important;border-color:rgba(255,140,180,.5) !important}
 .milestoneToast b{color:#ffb0d0}
 .milestoneToast span{color:#fff}
+.shopToast{background:linear-gradient(135deg,#2a1f0e,#4a3818) !important;border-color:rgba(255,210,100,.5) !important}
+.shopToast b{color:#ffd97a}
+.shopToast span{color:#fff}
+/* ─ 코인바 ─ */
+.coinBar{display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 14px;margin:0 0 12px;background:linear-gradient(135deg,#3a2510,#5a3a18);border:1px solid rgba(255,210,100,.3);border-radius:14px;color:#ffd97a;font-weight:1000}
+.coinIcon{font-size:18px;filter:drop-shadow(0 0 6px rgba(255,210,100,.6))}
+.coinValue{font-size:15px;letter-spacing:.04em}
+/* ─ 퀘스트 섹션 헤더 ─ */
+.questSectionTitle{margin:24px 0 12px;font-size:18px;color:#3a2017;display:flex;align-items:center;gap:8px}
+.questSectionTitle small{font-size:12px;color:#9a7c65;font-weight:700}
+.questSectionTitle strong{color:#df842c}
+/* ─ 데일리 미션 ─ */
+.dailyGrid{display:grid;gap:10px;margin-bottom:12px}
+.dailyCard{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 14px;background:#fff8ef;border:1px solid #e8c99e;border-radius:14px;transition:all .15s ease}
+.dailyCard.dailyReady{background:linear-gradient(135deg,#fff7d6,#ffe9a8);border-color:#d9a656;box-shadow:0 4px 14px rgba(217,166,86,.25);animation:dailyReadyPulse 2.4s ease-in-out infinite}
+.dailyCard.dailyClaimed{opacity:.5}
+.dailyEmoji{font-size:26px}
+.dailyBody{display:grid;gap:3px;min-width:0}
+.dailyTitle{font-size:14px;font-weight:1000;color:#2a1a14}
+.dailyDesc{font-size:11px;color:#7a5e4a}
+.dailyProgress{display:flex;align-items:center;gap:8px;margin-top:4px}
+.dailyBar{flex:1;height:5px;background:rgba(91,48,24,.12);border-radius:99px;overflow:hidden}
+.dailyBar div{height:100%;background:linear-gradient(90deg,#df842c,#e8993b);border-radius:99px;transition:width .3s ease}
+.dailyProgress span{font-size:10px;font-weight:900;color:#5a3520;min-width:38px;text-align:right}
+.dailyRight{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.dailyReward{font-size:12px;font-weight:900;color:#7b5318}
+.dailyClaimBtn{border:0;border-radius:10px;padding:6px 14px;background:linear-gradient(135deg,#e8993b,#df842c);color:#fff;font-weight:900;font-size:12px;cursor:pointer;box-shadow:0 4px 10px rgba(223,132,44,.3)}
+.dailyClaimBtn:hover{transform:translateY(-1px)}
+.dailyDoneBadge{font-size:10px;font-weight:900;padding:4px 10px;border-radius:99px;background:#a3c785;color:#fff}
+.dailyTodo{font-size:10px;font-weight:700;color:#9a7c65;padding:4px 10px}
+@keyframes dailyReadyPulse{0%,100%{box-shadow:0 4px 14px rgba(217,166,86,.25)}50%{box-shadow:0 6px 20px rgba(217,166,86,.5)}}
+/* ─ 상점 ─ */
+.shopHeader{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:14px 18px;background:linear-gradient(135deg,#3a2510,#5a3a18);border-radius:14px;color:#ffd97a;margin-bottom:8px;font-weight:900}
+.shopBalance{font-size:22px;letter-spacing:.04em}
+.shopHint{margin:0 0 18px;font-size:12px;color:#7a5e4a;font-style:italic}
+.shopGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.shopCard{display:grid;gap:8px;padding:18px 16px;background:#fff;border:1px solid #e6d2b8;border-radius:18px;text-align:center;position:relative;transition:transform .15s ease,box-shadow .2s ease}
+.shopCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.12)}
+.shopCard.shopBoost{border-top:4px solid #df842c}
+.shopCard.shopGift{border-top:4px solid #6e4592;background:linear-gradient(180deg,#faf5ff 0%,#fff 60%)}
+.shopCard.shopConsumable{border-top:4px solid #6c9a5a}
+.shopCard.shopCosmetic{border-top:4px solid #4a8aa8}
+.shopEmoji{font-size:42px;line-height:1}
+.shopName{font-size:15px;font-weight:1000;color:#2a1a14}
+.shopDesc{font-size:12px;color:#5a4338;line-height:1.45;min-height:36px}
+.shopOwned{font-size:10px;color:#7b5318;font-weight:700}
+.shopBuyBtn{margin-top:6px;border:0;border-radius:12px;padding:10px;background:linear-gradient(135deg,#3a2510,#5a3a18);color:#ffd97a;font-weight:1000;font-size:13px;cursor:pointer;letter-spacing:.04em;transition:all .2s}
+.shopBuyBtn:hover:not(:disabled){background:linear-gradient(135deg,#5a3a18,#7a5128);transform:translateY(-1px);box-shadow:0 6px 16px rgba(60,40,15,.3)}
+.shopBuyBtn:disabled{background:#d9c8b5;color:#8a7a6f;cursor:not-allowed}
 .secretRouteCard{position:relative;overflow:hidden;transition:transform .15s ease,box-shadow .2s ease}.secretRouteCard.secretUnlocked{background:linear-gradient(135deg,#fff7d6 0%,#ffe9a8 60%,#ffd17a 100%);border:1px solid #d9a656;color:#5a3d12;box-shadow:0 8px 24px rgba(217,166,86,.28)}.secretRouteCard.secretUnlocked:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(217,166,86,.4)}.secretRouteCard.secretUnlocked b{color:#3a2510}.secretRouteCard.secretUnlocked small{color:#7b5318}.secretRouteCard.secretLocked{background:repeating-linear-gradient(135deg,#2a201b 0px,#2a201b 14px,#22191a 14px,#22191a 28px);color:#7a6b62;border:1px dashed #5a4a40;cursor:not-allowed;opacity:.85}.secretRouteCard.secretLocked b{color:#8a7a6f;letter-spacing:.18em}.secretRouteCard.secretLocked small{color:#6b5b50;font-style:italic}.secretRouteCard.secretLocked:hover{transform:none;box-shadow:none}
 .saveSlotGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:18px}.saveSlotCard{background:#fff8ef;border:1px solid #e8c99e;border-radius:18px;padding:16px;display:grid;gap:12px;color:#3a2017;box-shadow:0 8px 22px rgba(91,48,24,.08);transition:transform .15s ease,box-shadow .2s ease}.saveSlotCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.saveSlotCard.ssEmpty{background:#f6efe5;border-style:dashed;border-color:#cdb89a;opacity:.85}.saveSlotCard.ssRoutePure{background:linear-gradient(180deg,#fff5f8 0%,#fce6ee 100%);border-color:#ecc4d6}.saveSlotCard.ssRouteObsession{background:linear-gradient(180deg,#2a1517 0%,#1a0d0e 100%);border-color:#5d2a30;color:#f4dadd}.saveSlotCard.ssRouteObsession .ssTime,.saveSlotCard.ssRouteObsession .ssPreview{color:#b89a9d}.saveSlotCard.ssRouteObsession .ssStats span{background:rgba(255,200,200,.08);color:#f4dadd}.saveSlotCard.ssRouteObsession .ssThumb{border-color:rgba(255,170,170,.2)}.ssHead{display:flex;align-items:center;justify-content:space-between;gap:8px}.ssNum{font-size:14px;font-weight:1000;letter-spacing:.04em;color:inherit}.ssRouteBadge{font-size:11px;font-weight:900;padding:4px 10px;border-radius:99px;background:rgba(91,48,24,.12);color:#7b4f2f}.ssRoutePure .ssRouteBadge{background:rgba(220,120,160,.18);color:#a14872}.ssRouteObsession .ssRouteBadge{background:rgba(220,80,80,.22);color:#ffaab2}.ssBody{display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:start}.ssThumb{width:84px;height:84px;border-radius:14px;object-fit:cover;border:1px solid rgba(91,48,24,.18);background:#ead7c7}.ssMeta{display:grid;gap:6px;min-width:0}.ssScene{margin:0;font-size:14px;font-weight:900;color:inherit;line-height:1.4}.ssPreview{margin:0;font-size:12px;font-style:italic;color:#7a5e4a;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.ssStats{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}.ssStats span{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:99px;background:rgba(91,48,24,.1);color:#5b3520;letter-spacing:.02em}.ssTime{color:#9a7c65;font-size:11px;font-weight:700;margin-top:2px}.ssEmptyBody{text-align:center;padding:24px 12px;color:#876953}.ssEmptyIcon{font-size:36px;display:block;margin-bottom:8px;opacity:.6}.ssEmptyBody p{margin:0 0 4px;font-size:14px;font-weight:900}.ssEmptyBody small{font-size:11px;color:#a78a72}.ssActions{display:flex;gap:6px}.ssActions button{flex:1;border:0;border-radius:12px;padding:10px 8px;font-size:13px;font-weight:900;cursor:pointer;transition:background .15s ease,transform .12s ease}.ssActions button:hover{transform:translateY(-1px)}.ssBtnLoad{background:#df842c;color:#fff}.ssBtnLoad:hover{background:#c8731f}.ssBtnSave{background:#3a2d29;color:#fff}.ssBtnSave:hover{background:#5a4338}.ssBtnDel{background:transparent;color:#c44;border:1px solid #c44 !important}.ssBtnDel:hover{background:rgba(196,68,68,.1)}
 .cgReaction{display:grid;grid-template-columns:86px minmax(0,1fr) auto;gap:14px;align-items:center;margin:0 0 18px;padding:14px;border-radius:20px;background:#fff8ef;border:1px solid #e8c99e;box-shadow:0 12px 32px rgba(91,48,24,.08)}.cgReaction>img{width:86px;height:86px;border-radius:18px;object-fit:cover;background:#ead7c7}.cgReactionBody{display:grid;gap:6px;min-width:0}.cgReactionBody p{margin:0;color:#4a342a;line-height:1.65;font-weight:800}.cgSourceCaption{color:#9a7c65;font-size:12px;font-weight:700}.cgReactionActions{display:flex;gap:6px;align-items:center}.cgReaction button{border:0;border-radius:999px;background:#3a2d29;color:white;padding:10px 14px;font-weight:900}.favBtn{background:#fff;color:#c44}.favBtn.favOn{background:#c44;color:#fff}.cgCard{position:relative;border:0;text-align:center;cursor:pointer;transition:transform .15s ease,box-shadow .2s ease}.cgCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.cgCardLocked{cursor:default;background:#1f1714}.cgCardLocked:hover{transform:none}.cgSilhouette{filter:brightness(.18) blur(6px) saturate(.5)}.cgLockedBadge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;color:rgba(255,210,150,.55);text-shadow:0 2px 12px rgba(0,0,0,.6);pointer-events:none}.cgFavMark{position:absolute;top:8px;right:10px;font-size:18px;color:#ff5577;text-shadow:0 2px 6px rgba(0,0,0,.45);pointer-events:none}.cgCardCaption{position:absolute;left:0;right:0;bottom:0;padding:6px 10px;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.74) 100%);color:#fff7e8;font-size:11px;font-weight:800;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;text-align:left}.galleryProgress{display:flex;align-items:center;gap:12px;margin:0 0 18px;padding:12px 16px;background:#fff8ef;border:1px solid #e8c99e;border-radius:14px;color:#5a3928}.galleryProgress span{font-size:12px;font-weight:900;letter-spacing:.06em;color:#7b4f2f}.galleryProgressBar{flex:1;min-width:80px;height:8px;background:rgba(91,48,24,.15);border-radius:99px;overflow:hidden}.galleryProgressBar div{height:100%;background:linear-gradient(90deg,#df842c,#e8993b);border-radius:99px;transition:width .35s ease}.galleryProgress strong{font-size:14px;color:#3a2017;font-weight:900}.tabs button.active{background:#df842c}.tabs button.bladderTab{background:linear-gradient(135deg,#d9a656,#b8843a);color:#fff;font-weight:1000}.tabs button.bladderTab.active{background:linear-gradient(135deg,#ffc94f,#d9a656);box-shadow:0 4px 12px rgba(217,166,86,.4)}.tabs button.bladderTab:hover{background:linear-gradient(135deg,#e8b563,#c89540)}
@@ -4370,8 +4757,12 @@ const CSS = `
 .app.screenShake{animation:screenShakeAnim .48s cubic-bezier(.36,.07,.19,.97) both}
 @keyframes screenShakeAnim{0%,100%{transform:translate(0,0) rotate(0deg)}8%{transform:translate(-6px,-4px) rotate(-.4deg)}18%{transform:translate(6px,4px) rotate(.4deg)}28%{transform:translate(-5px,3px) rotate(-.3deg)}38%{transform:translate(5px,-4px) rotate(.3deg)}48%{transform:translate(-3px,4px) rotate(-.2deg)}58%{transform:translate(3px,-3px) rotate(.2deg)}72%{transform:translate(-2px,2px) rotate(-.1deg)}84%{transform:translate(2px,-2px) rotate(.1deg)}}
 /* ─ 뷰 전환 페이드 ─ */
-.panel{animation:panelFadeIn .28s ease both}
-@keyframes panelFadeIn{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:translateY(0)}}
+.panel{animation:panelFadeIn .42s cubic-bezier(.2,.8,.3,1) both}
+@keyframes panelFadeIn{0%{opacity:0;transform:translateY(18px) scale(.985);filter:blur(4px)}55%{opacity:1;filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+.panel h2{animation:panelTitleSlide .55s .12s cubic-bezier(.2,.8,.3,1) both}
+@keyframes panelTitleSlide{0%{opacity:0;transform:translateX(-14px)}100%{opacity:1;transform:translateX(0)}}
+.homeView{animation:viewFadeIn .42s cubic-bezier(.2,.8,.3,1) both}
+@keyframes viewFadeIn{0%{opacity:0;transform:scale(.99)}100%{opacity:1;transform:scale(1)}}
 /* ─ 메시지 슬라이드인 ─ */
 .msgRow{animation:msgSlideIn .3s ease both}
 @keyframes msgSlideIn{0%{opacity:0;transform:translateY(12px)}100%{opacity:1;transform:translateY(0)}}

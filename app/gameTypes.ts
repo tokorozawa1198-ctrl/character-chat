@@ -1,7 +1,7 @@
 "use client";
 
 export type Role = "user" | "assistant" | "narration";
-export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests";
+export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests" | "shop";
 export type ScenarioKind = "normal" | "jealousy" | "obsession" | "confinement" | "yandere";
 export type ScenarioCategory = "main" | "action" | "special" | "after" | "side";
 export type StatKey = "affinity" | "jealousy" | "obsession" | "trust" | "bladderCharm";
@@ -106,4 +106,23 @@ export type SaveData = {
   completedQuests?: Record<string, boolean>; // 보상 받은 퀘스트
   unlockedMilestones?: Record<string, boolean>; // 도달한 호감 마일스톤
   lastRandomMessage?: number; // 마지막 깜짝 메시지 timestamp
+  coins?: number; // 코인 잔액
+  dailyState?: DailyState; // 데일리 미션 / 카운터
+  shopHistory?: Record<string, number>; // 상점 구매 횟수 (item_id -> count)
+  ownedConsumables?: Record<string, number>; // 보유 소모품 (id -> 개수)
+};
+export type DailyMission = {
+  templateId: string;
+  target: number;
+  rewardCoins: number;
+  claimed: boolean;
+};
+export type DailyState = {
+  date: string; // YYYY-MM-DD
+  chatCount: number;       // 오늘 보낸 카톡 메시지
+  giftCount: number;       // 오늘 보낸 선물
+  scenarioCount: number;   // 오늘 진입한 시나리오
+  checkinDone: boolean;
+  bladderPeak: number;     // 오늘 도달 최대 방광 게이지
+  missions: DailyMission[];
 };
