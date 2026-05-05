@@ -1696,6 +1696,8 @@ export default function Page() {
   const [bladderMaxAt, setBladderMaxAt] = useState<number | null>(null); // 100% 도달 시각
   const [obsessionCinematic, setObsessionCinematic] = useState(false);
   const [pureCinematic, setPureCinematic] = useState(false);
+  const [bladderEntryCinematic, setBladderEntryCinematic] = useState(false);
+  const [bladderEnchantCinematic, setBladderEnchantCinematic] = useState(false);
   // ── 관리자 모드 ──
   const [isAdminMode, setIsAdminMode] = useState(() => {
     try { return localStorage.getItem("adminMode") === "1"; } catch { return false; }
@@ -2136,6 +2138,9 @@ export default function Page() {
     setCurrentPortrait(image);
     setView("chat");
     if (scenario.kind !== "normal") triggerShake();
+    // 방광 루트 시네마틱 트리거
+    if (id === "bladder_ch5_01") setBladderEntryCinematic(true);
+    if (id === "bladder_ch6_01") setBladderEnchantCinematic(true);
     showChapterTransition(chapterStartTransition(id, scenario));
   }
   function ensureActionScenario(item: ActionItem) {
@@ -3397,6 +3402,38 @@ export default function Page() {
           <button className="obsCinSkip" onClick={(e) => { e.stopPropagation(); setObsessionCinematic(false); }}>SKIP ▶</button>
         </div>
       )}
+      {bladderEntryCinematic && (
+        <div className="bladderEntryCinematic" onClick={() => setBladderEntryCinematic(false)}>
+          <div className="bladderEntryBg"/>
+          <div className="bladderEntryRipple"/>
+          <div className="bladderEntryRipple bladderEntryRipple2"/>
+          <div className="bladderEntryRipple bladderEntryRipple3"/>
+          <div className="bladderCinText">
+            <span className="bladderCinEyebrow">??? &nbsp; · &nbsp; S · E · C · R · E · T &nbsp; · &nbsp; R · O · U · T · E</span>
+            <p className="bladderCinTitle"><span className="bladderEmoji">🚽</span>방광 루트 진입<span className="bladderEmoji">🚽</span></p>
+            <span className="bladderCinSub">— 잊혀진 화장실에서, 모든 것이 시작된다 —</span>
+          </div>
+          <button className="bladderCinSkip" onClick={(e)=>{e.stopPropagation();setBladderEntryCinematic(false)}}>SKIP ▶</button>
+        </div>
+      )}
+      {bladderEnchantCinematic && (
+        <div className="bladderEnchantCinematic" onClick={() => setBladderEnchantCinematic(false)}>
+          <div className="bladderEnchantBg"/>
+          <div className="bladderEnchantRainbow"/>
+          {Array.from({length: 24}).map((_,i) => <div key={i} className="bladderEnchantSparkle" style={{left:`${(i*53)%100}%`,top:`${(i*37)%100}%`,animationDelay:`${i*0.15}s`}}/>)}
+          <div className="bladderEnchantRays"/>
+          <div className="bladderEnchantText">
+            <span className="bladderEnchantEyebrow">✦ &nbsp; URETHRANYA &nbsp; ✦</span>
+            <p className="bladderEnchantStage1">강철방광</p>
+            <p className="bladderEnchantArrow">↓</p>
+            <p className="bladderEnchantStage2">백두방광</p>
+            <p className="bladderEnchantArrow">↓</p>
+            <p className="bladderEnchantStage3">🌊 태평양방광 🌊</p>
+            <span className="bladderEnchantSub">그대의 방광은, 인류를 구할 운명이다</span>
+          </div>
+          <button className="bladderCinSkip" onClick={(e)=>{e.stopPropagation();setBladderEnchantCinematic(false)}}>SKIP ▶</button>
+        </div>
+      )}
       {pureCinematic && (
         <div className="pureCinematic" onClick={() => setPureCinematic(false)}>
           <video
@@ -3810,6 +3847,45 @@ const CSS = `
 @keyframes pureCinFadeIn{0%{opacity:0;backdrop-filter:blur(20px)}100%{opacity:1;backdrop-filter:blur(0px)}}
 @keyframes pureCinTextIn{0%{opacity:0;transform:translateY(18px) scale(.94)}100%{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes pureCinSparkleSpin{0%,100%{transform:rotate(0deg) scale(1);opacity:1}50%{transform:rotate(180deg) scale(1.18);opacity:.7}}
+/* ─ 방광 진입 시네마틱 ─ */
+.bladderEntryCinematic{position:fixed;inset:0;z-index:999999;background:#0a0507;display:grid;place-items:center;cursor:pointer;overflow:hidden;animation:bladderCinFadeIn .6s ease forwards}
+.bladderEntryBg{position:absolute;inset:0;background:radial-gradient(ellipse at center,#3a1a20 0%,#1a0a10 45%,#000 100%);opacity:.95}
+.bladderEntryRipple{position:absolute;left:50%;top:50%;width:200px;height:200px;border:2px solid rgba(255,210,90,.45);border-radius:50%;transform:translate(-50%,-50%);animation:bladderRippleOut 2.4s ease-out infinite}
+.bladderEntryRipple2{animation-delay:.8s;border-color:rgba(255,150,80,.32)}
+.bladderEntryRipple3{animation-delay:1.6s;border-color:rgba(255,90,90,.25)}
+.bladderCinText{position:relative;z-index:1;text-align:center;pointer-events:none;display:grid;gap:18px;justify-items:center;padding:38px 56px;animation:bladderTextIn 1.4s .3s ease both}
+.bladderCinEyebrow{font-size:11px;font-weight:700;letter-spacing:.5em;color:#ffd28c;text-transform:uppercase;text-shadow:0 0 14px rgba(255,200,80,.7),0 0 26px rgba(255,150,50,.5)}
+.bladderCinTitle{margin:0;font-size:clamp(36px,7vw,72px);font-weight:1000;letter-spacing:.18em;color:#fff;text-shadow:0 0 18px rgba(255,200,90,1),0 0 38px rgba(255,150,40,.85),0 0 60px rgba(255,90,30,.6),0 3px 0 rgba(120,40,20,.6),0 6px 14px rgba(60,20,10,.5);display:inline-flex;align-items:center;gap:.4em;line-height:1.2}
+.bladderEmoji{font-size:.85em;animation:bladderEmojiBounce 1.4s ease-in-out infinite}
+.bladderCinSub{font-size:14px;font-weight:600;letter-spacing:.32em;color:#ffe4a8;text-shadow:0 0 12px rgba(255,180,90,.85),0 2px 3px rgba(80,30,10,.6)}
+.bladderCinSkip{position:absolute;bottom:28px;right:28px;z-index:2;border:1px solid rgba(255,210,140,.4);background:rgba(40,20,15,.5);color:#ffd9a0;padding:9px 18px;border-radius:999px;font-size:11px;letter-spacing:.14em;cursor:pointer;backdrop-filter:blur(8px)}
+.bladderCinSkip:hover{background:rgba(255,210,140,.18);color:#fff}
+@keyframes bladderCinFadeIn{0%{opacity:0;backdrop-filter:blur(20px)}100%{opacity:1;backdrop-filter:blur(0)}}
+@keyframes bladderRippleOut{0%{width:50px;height:50px;opacity:1}100%{width:1400px;height:1400px;opacity:0}}
+@keyframes bladderTextIn{0%{opacity:0;transform:translateY(28px) scale(.9)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes bladderEmojiBounce{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-12px) rotate(5deg)}}
+/* ─ 방광 인챈트 시네마틱 ─ */
+.bladderEnchantCinematic{position:fixed;inset:0;z-index:999999;background:#000;display:grid;place-items:center;cursor:pointer;overflow:hidden;animation:bladderCinFadeIn .8s ease forwards}
+.bladderEnchantBg{position:absolute;inset:0;background:radial-gradient(circle at center,#fff8d0 0%,#ffd95c 18%,#ff8c3a 38%,#5a2080 65%,#0d0420 100%);opacity:.92;animation:bladderEnchantPulse 4s ease-in-out infinite}
+.bladderEnchantRainbow{position:absolute;inset:-25%;background:conic-gradient(from 0deg,#ff5577,#ff9944,#ffdd33,#66dd55,#33aaff,#7755ff,#ff5577);opacity:.32;mix-blend-mode:screen;animation:bladderEnchantSpin 16s linear infinite;filter:blur(40px)}
+.bladderEnchantRays{position:absolute;inset:0;background:repeating-conic-gradient(from 0deg,rgba(255,255,200,.15) 0deg 4deg,transparent 4deg 12deg);animation:bladderEnchantSpin 24s linear infinite reverse;mix-blend-mode:screen;pointer-events:none}
+.bladderEnchantSparkle{position:absolute;width:8px;height:8px;background:radial-gradient(circle,#fff 0%,#fff7c0 40%,transparent 75%);border-radius:50%;animation:bladderSparkleTwinkle 2.4s ease-in-out infinite;box-shadow:0 0 16px 3px rgba(255,240,180,.7);pointer-events:none}
+.bladderEnchantText{position:relative;z-index:2;text-align:center;pointer-events:none;display:grid;gap:6px;justify-items:center;padding:32px 48px}
+.bladderEnchantEyebrow{font-size:13px;font-weight:900;letter-spacing:.55em;color:#fff;text-transform:uppercase;text-shadow:0 0 18px rgba(255,220,120,1),0 0 36px rgba(255,180,60,.8);animation:bladderTextIn 1s .2s ease both;margin-bottom:10px}
+.bladderEnchantStage1,.bladderEnchantStage2,.bladderEnchantStage3{margin:0;font-weight:1000;color:#fff;line-height:1.15}
+.bladderEnchantStage1{font-size:clamp(22px,3.5vw,38px);text-shadow:0 0 14px rgba(180,180,200,.9),0 3px 0 rgba(60,40,80,.6);animation:bladderStageIn 1s 1s ease both;letter-spacing:.16em}
+.bladderEnchantStage2{font-size:clamp(28px,4.5vw,52px);text-shadow:0 0 18px rgba(255,200,120,1),0 0 32px rgba(255,150,60,.7),0 3px 0 rgba(120,60,30,.6);animation:bladderStageIn 1s 2s ease both;letter-spacing:.16em}
+.bladderEnchantStage3{font-size:clamp(38px,6.5vw,80px);text-shadow:0 0 24px rgba(110,200,255,1),0 0 48px rgba(60,150,255,.85),0 0 80px rgba(255,255,255,.6),0 4px 0 rgba(20,60,120,.55);animation:bladderStageIn 1.2s 3s ease both, bladderFinalGlow 2.4s 4s ease-in-out infinite;letter-spacing:.18em}
+.bladderEnchantArrow{margin:0;font-size:32px;color:#ffd97a;text-shadow:0 0 14px rgba(255,200,80,.85);animation:bladderArrowFade .6s ease both}
+.bladderEnchantArrow:nth-of-type(2){animation-delay:1.6s}
+.bladderEnchantArrow:nth-of-type(4){animation-delay:2.6s}
+.bladderEnchantSub{font-size:15px;font-weight:700;letter-spacing:.22em;color:#fff5d0;text-shadow:0 0 14px rgba(255,200,90,.9),0 2px 4px rgba(60,30,10,.6);margin-top:18px;animation:bladderTextIn 1.2s 4.5s ease both}
+@keyframes bladderEnchantPulse{0%,100%{opacity:.92}50%{opacity:1}}
+@keyframes bladderEnchantSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes bladderSparkleTwinkle{0%,100%{opacity:0;transform:scale(.4)}50%{opacity:1;transform:scale(1.4)}}
+@keyframes bladderStageIn{0%{opacity:0;transform:translateY(20px) scale(.85)}55%{opacity:1;transform:translateY(-3px) scale(1.05)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes bladderArrowFade{0%{opacity:0}100%{opacity:1}}
+@keyframes bladderFinalGlow{0%,100%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.04);filter:brightness(1.18)}}
 /* ─ 화면 흔들기 ─ */
 .app.screenShake{animation:screenShakeAnim .48s cubic-bezier(.36,.07,.19,.97) both}
 @keyframes screenShakeAnim{0%,100%{transform:translate(0,0) rotate(0deg)}8%{transform:translate(-6px,-4px) rotate(-.4deg)}18%{transform:translate(6px,4px) rotate(.4deg)}28%{transform:translate(-5px,3px) rotate(-.3deg)}38%{transform:translate(5px,-4px) rotate(.3deg)}48%{transform:translate(-3px,4px) rotate(-.2deg)}58%{transform:translate(3px,-3px) rotate(.2deg)}72%{transform:translate(-2px,2px) rotate(-.1deg)}84%{transform:translate(2px,-2px) rotate(.1deg)}}
