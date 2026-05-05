@@ -1,7 +1,7 @@
 "use client";
 
 export type Role = "user" | "assistant" | "narration";
-export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests" | "shop" | "gacha" | "pets" | "adventure" | "sns" | "raid";
+export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests" | "shop" | "gacha" | "pets" | "adventure" | "sns" | "raid" | "fortune" | "journal" | "minigames";
 export type ScenarioKind = "normal" | "jealousy" | "obsession" | "confinement" | "yandere";
 export type ScenarioCategory = "main" | "action" | "special" | "after" | "side";
 export type StatKey = "affinity" | "jealousy" | "obsession" | "trust" | "bladderCharm";
@@ -134,6 +134,16 @@ export type SaveData = {
   raidHp?: number;
   raidCleared?: boolean;
   raidDamageDealt?: number;
+  // 신탁
+  lastFortuneDate?: string;
+  todayFortuneId?: string;
+  fortuneRerollsToday?: number;
+  // 다이어리 (저널)
+  journalEntries?: { id: string; date: string; templateId: string; liked: boolean }[];
+  lastJournalDate?: string;
+  // 미니게임
+  minigameClickerHigh?: number;
+  minigameWordHigh?: number;
 };
 export type DailyMission = {
   templateId: string;
