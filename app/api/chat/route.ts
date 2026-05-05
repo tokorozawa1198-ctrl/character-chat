@@ -276,6 +276,22 @@ function cleanOutput(value: unknown, max = 1200) {
     .slice(0, max);
 }
 
+// 나레이션 텍스트에서 마크다운 강조(*, **) 제거
+// 모델이 narration 필드에 *...* 로 감싸 보내는 경우, 그리고 우리 fallback 풀에 남아있던 별표도 정리
+function stripNarrationMarkers(text: string): string {
+  if (!text) return "";
+  let s = text.trim();
+  // 줄 단위로 ** 또는 * 으로 감싸진 경우 양 끝 제거 (반복적으로)
+  for (let i = 0; i < 4; i++) {
+    const before = s;
+    s = s.replace(/^\*+/, "").replace(/\*+$/, "").trim();
+    // 문장 안에 떠도는 단독 별표 제거 (단어 사이의 *, ** 등)
+    s = s.replace(/(\s|^)\*{1,3}(\s|$)/g, "$1$2");
+    if (s === before) break;
+  }
+  return s.trim();
+}
+
 // reply에서 나레이션 지문 패턴(*~한다*, (~한다)) 분리·제거
 // 반환: { reply: 정제된 카톡 멘트, extractedNarration: 추출된 지문 }
 function stripStageDirections(reply: string): { reply: string; extractedNarration: string } {
@@ -832,24 +848,24 @@ function buildBladderNarration(bladderLevel: number, recentNarrations: string[])
   let pool: string[];
   if (bladderLevel >= 95) {
     pool = [
-      "*근떡존이 입술을 꽉 깨물며 눈을 내리깔았다. 조금씩 떨리는 손이 허벅지를 꽉 쥐고 있다.*",
-      "*근떡존이 자꾸 자리를 고쳐 앉는다. 표정을 감추려 하지만 눈가가 촉촉해지고 있다.*",
-      "*근떡존의 목소리가 미세하게 흔들린다. 온몸이 긴장으로 굳어 있는 게 느껴진다.*",
-      "*근떡존이 무릎을 꽉 붙이고 몸을 앞으로 숙였다. 숨을 참는 소리가 가늘게 새어나온다.*",
+      "근떡존이 입술을 꽉 깨물며 눈을 내리깔았다. 조금씩 떨리는 손이 허벅지를 꽉 쥐고 있다.",
+      "근떡존이 자꾸 자리를 고쳐 앉는다. 표정을 감추려 하지만 눈가가 촉촉해지고 있다.",
+      "근떡존의 목소리가 미세하게 흔들린다. 온몸이 긴장으로 굳어 있는 게 느껴진다.",
+      "근떡존이 무릎을 꽉 붙이고 몸을 앞으로 숙였다. 숨을 참는 소리가 가늘게 새어나온다.",
     ];
   } else if (bladderLevel >= 85) {
     pool = [
-      "*근떡존이 다리를 꼬며 몸을 조금 비틀었다. 표정에 불편함이 역력하다.*",
-      "*근떡존이 잠깐 말을 멈추더니, 조용히 숨을 들이킨다.*",
-      "*근떡존의 손이 무릎 위에서 살짝 긴장해 있다. 집중하기 힘든 것 같다.*",
-      "*근떡존이 자리에서 살짝 몸을 움직이며 허벅지를 모았다. 빠르게 표정을 숨겼다.*",
+      "근떡존이 다리를 꼬며 몸을 조금 비틀었다. 표정에 불편함이 역력하다.",
+      "근떡존이 잠깐 말을 멈추더니, 조용히 숨을 들이킨다.",
+      "근떡존의 손이 무릎 위에서 살짝 긴장해 있다. 집중하기 힘든 것 같다.",
+      "근떡존이 자리에서 살짝 몸을 움직이며 허벅지를 모았다. 빠르게 표정을 숨겼다.",
     ];
   } else {
     pool = [
-      "*근떡존이 살짝 다리를 모았다가 다시 편다.*",
-      "*근떡존이 잠깐 미간을 찡그렸다가 이내 다시 편다.*",
-      "*근떡존이 무의식중에 몸을 살짝 움직인다.*",
-      "*근떡존이 대화 중 잠깐 시선을 내리깔았다 다시 올린다.*",
+      "근떡존이 살짝 다리를 모았다가 다시 편다.",
+      "근떡존이 잠깐 미간을 찡그렸다가 이내 다시 편다.",
+      "근떡존이 무의식중에 몸을 살짝 움직인다.",
+      "근떡존이 대화 중 잠깐 시선을 내리깔았다 다시 올린다.",
     ];
   }
 
@@ -1013,6 +1029,7 @@ ${instruction}
 - 감정이 복잡하거나 강한 장면에서는 심리 나레이션을 적극적으로 쓴다.
   반대로 가볍고 담백한 채팅에서는 빈 문자열로 둔다. 매 대화마다 쓰지 않는다.
 - 같은 표현을 반복하지 않는다. 직전 나레이션과 다른 결로 써라.
+- ⚠️ narration 필드 안에 마크다운 별표(*, **)를 절대 쓰지 마라. 평범한 산문으로 적는다. "*근떡존은 ~했다.*" 가 아니라 "근떡존은 ~했다." 로 쓴다.
 - reply는 근떡존이 실제로 카톡에 입력해 보내는 메시지 본문만 쓴다.
 - reply에 "*근떡존이 ~한다*", "(웃는다)", "근떡존이 고개를 끄덕인다." 같은 3인칭 지문/행동 묘사는 절대 넣지 않는다. 그런 묘사가 필요하면 narration에만 쓴다.
 - reply는 한국어 1인칭 대사여야 한다. "저", "주인님", "선생님" 같은 화자/청자 호칭이 자연스럽게 나오는 멘트.
@@ -1057,14 +1074,14 @@ ${instruction}
       (completion.choices?.[0]?.message as any)?.reasoning_content ||
       "";
     const parsed = parseModelJson(raw);
-    let narration = cleanOutput(parsed.narration, 500);
+    let narration = stripNarrationMarkers(cleanOutput(parsed.narration, 500));
     let reply = cleanOutput(parsed.reply, 1000) || cleanOutput(raw, 1000);
 
     // reply에서 *근떡존이 ~한다* 같은 지문 분리. 나레이션 비어있으면 그쪽으로 흡수.
     const stripped = stripStageDirections(reply);
     reply = stripped.reply;
     if (!narration && stripped.extractedNarration) {
-      narration = stripped.extractedNarration.slice(0, 500);
+      narration = stripNarrationMarkers(stripped.extractedNarration).slice(0, 500);
     }
 
     // 나레이션이 직전 나레이션과 동일/유사하면 버림
