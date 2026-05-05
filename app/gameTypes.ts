@@ -1,7 +1,7 @@
 "use client";
 
 export type Role = "user" | "assistant" | "narration";
-export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests" | "shop" | "gacha";
+export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests" | "shop" | "gacha" | "pets";
 export type ScenarioKind = "normal" | "jealousy" | "obsession" | "confinement" | "yandere";
 export type ScenarioCategory = "main" | "action" | "special" | "after" | "side";
 export type StatKey = "affinity" | "jealousy" | "obsession" | "trust" | "bladderCharm";
@@ -118,6 +118,9 @@ export type SaveData = {
   comboCount?: number; // 채팅 콤보
   lastComboTime?: number; // 마지막 채팅 timestamp
   comboMilestonesReached?: Record<number, boolean>; // 도달한 콤보 마일스톤
+  ownedPets?: Record<string, { level: number; affinity: number; obtained: number }>;
+  activePet?: string | null;
+  totalGachaPulls?: number;
 };
 export type DailyMission = {
   templateId: string;

@@ -576,6 +576,133 @@ const QUESTS: Quest[] = [
 ];
 
 // ================================
+// 펫 시스템 (병맛 + 방광 테마)
+// ================================
+type PetEffect = "exp" | "coin" | "affinity" | "luck" | "bladder" | "all";
+type PetUnlockState = {
+  seenEvents: Record<string, boolean>;
+  stats: Stats;
+  storyRoute: StoryRoute;
+  totalGachaPulls: number;
+  unlockedEndings: Record<string, boolean>;
+};
+type Pet = {
+  id: string;
+  emoji: string;
+  evolvedEmoji?: string; // Lv 5+ 진화
+  name: string;
+  evolvedName?: string;
+  flavor: string;
+  effect: PetEffect;
+  bonusPerLevel: number; // 레벨당 보너스 (예: 0.05 = 5%)
+  description: string;
+  unlock: { hint: string; check: (s: PetUnlockState) => boolean };
+};
+const PETS: Pet[] = [
+  {
+    id: "hamster",
+    emoji: "🐹",
+    evolvedEmoji: "🐹👑",
+    name: "떡존이의 햄스터",
+    evolvedName: "햄스터 보스",
+    flavor: "이름은 햄찌래 ㅋ 떡존이가 키우다 너한테 줌",
+    effect: "exp",
+    bonusPerLevel: 0.05,
+    description: "EXP 획득 +5%/Lv (최대 +50%)",
+    unlock: { hint: "처음부터 보유", check: () => true },
+  },
+  {
+    id: "bladder_fairy",
+    emoji: "🧚",
+    evolvedEmoji: "🧚‍♀️✨",
+    name: "방광 요정",
+    evolvedName: "요도니아 강림체",
+    flavor: "이름은 쉬임. 자기소개할때 ㅈㄴ 부끄러워함",
+    effect: "luck",
+    bonusPerLevel: 0.04,
+    description: "가챠 SSR/SR 확률 +4%/Lv",
+    unlock: {
+      hint: "방광 루트 6장 진입",
+      check: (s) => Boolean(s.seenEvents["bladder_ch6_01"]),
+    },
+  },
+  {
+    id: "urethra_slime",
+    emoji: "💦",
+    evolvedEmoji: "💎",
+    name: "요도 슬라임",
+    evolvedName: "다이아 요도",
+    flavor: "ㅈㄴ 미끌거림 만지지 마셈",
+    effect: "coin",
+    bonusPerLevel: 0.06,
+    description: "코인 획득 +6%/Lv (최대 +60%)",
+    unlock: {
+      hint: "가챠 30회 누적",
+      check: (s) => s.totalGachaPulls >= 30,
+    },
+  },
+  {
+    id: "lost_sock",
+    emoji: "🧦",
+    evolvedEmoji: "🧦💕",
+    name: "떡존이 잃어버린 양말",
+    evolvedName: "사랑의 양말",
+    flavor: "이게 왜 살아있냐고 묻지 마셈 ㅈㅂ",
+    effect: "affinity",
+    bonusPerLevel: 0.05,
+    description: "호감 보너스 +5%/Lv",
+    unlock: {
+      hint: "시나리오 30회 진입",
+      check: (s) => Object.keys(s.seenEvents).length >= 30,
+    },
+  },
+  {
+    id: "toilet_spirit",
+    emoji: "🚽",
+    evolvedEmoji: "🚽👑",
+    name: "변기 영혼",
+    evolvedName: "황금 변기왕",
+    flavor: "ㄹㅇ 변기에서 깨어남. 옥좌가 그리운가봄",
+    effect: "bladder",
+    bonusPerLevel: 0.08,
+    description: "방광매력 획득 +8%/Lv",
+    unlock: {
+      hint: "방광매력 200 도달",
+      check: (s) => s.stats.bladderCharm >= 200,
+    },
+  },
+  {
+    id: "mini_urethranya",
+    emoji: "👑",
+    evolvedEmoji: "👑✨",
+    name: "미니 요도니아",
+    evolvedName: "요도니아 본체",
+    flavor: "ㄹㅇ 신임. 너 ㅈㄴ 운좋네 ㅋ",
+    effect: "all",
+    bonusPerLevel: 0.03,
+    description: "모든 보너스 +3%/Lv (전설)",
+    unlock: {
+      hint: "엔딩 1개 클리어",
+      check: (s) => Object.keys(s.unlockedEndings).length >= 1,
+    },
+  },
+];
+
+// 펫 친밀도 → 레벨 변환
+function petLevel(affinity: number): number {
+  // 100 affinity per level, max 10
+  return Math.min(10, Math.floor(affinity / 100) + 1);
+}
+
+// 펫 효과 계산
+function getPetMultiplier(activePet: Pet | null, petData: { affinity: number } | undefined, kind: PetEffect): number {
+  if (!activePet || !petData) return 1;
+  if (activePet.effect !== kind && activePet.effect !== "all") return 1;
+  const lvl = petLevel(petData.affinity);
+  return 1 + lvl * activePet.bonusPerLevel;
+}
+
+// ================================
 // 가챠 / 룰렛 시스템 (병맛 톤)
 // ================================
 type GachaTier = "SSR" | "SR" | "R" | "N" | "C";
@@ -2276,6 +2403,11 @@ export default function Page() {
   const [comboMilestonesReached, setComboMilestonesReached] = useState<Record<number, boolean>>({});
   const [comboToast, setComboToast] = useState<string | null>(null);
   const [comboBreak, setComboBreak] = useState<boolean>(false);
+  // 펫
+  const [ownedPets, setOwnedPets] = useState<Record<string, { level: number; affinity: number; obtained: number }>>({});
+  const [activePet, setActivePet] = useState<string | null>(null);
+  const [totalGachaPulls, setTotalGachaPulls] = useState<number>(0);
+  const [petToast, setPetToast] = useState<{ name: string; emoji: string; flavor: string } | null>(null);
   const [slotTick, setSlotTick] = useState(0); // 슬롯 변경 시 리렌더 트리거
   const [seenEvents, setSeenEvents] = useState<Record<string, boolean>>({});
   const [storyRoute, setStoryRoute] = useState<StoryRoute>("common");
@@ -2375,6 +2507,7 @@ export default function Page() {
     { label: "도전", target: "quests" },
     { label: "🪙 상점", target: "shop" },
     { label: "🎰 뽑기", target: "gacha" },
+    { label: "🐹 펫", target: "pets" },
     { label: "갤러리", target: "gallery" },
     { label: "전진협", target: "events" },
     { label: "상태", target: "profile" },
@@ -2429,6 +2562,9 @@ export default function Page() {
         setComboCount(saved.comboCount ?? 0);
         setLastComboTime(saved.lastComboTime ?? 0);
         setComboMilestonesReached(saved.comboMilestonesReached ?? {});
+        setOwnedPets(saved.ownedPets ?? {});
+        setActivePet(saved.activePet ?? null);
+        setTotalGachaPulls(saved.totalGachaPulls ?? 0);
         setSeenEvents(saved.seenEvents ?? {});
         setStoryRoute(saved.storyRoute ?? "common");
         setMemoryNotes(saved.memoryNotes ?? []);
@@ -2495,10 +2631,13 @@ export default function Page() {
       comboCount,
       lastComboTime,
       comboMilestonesReached,
+      ownedPets,
+      activePet,
+      totalGachaPulls,
     };
     save.messages = sanitizeMessages(save.messages);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
-  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory, userLevel, userExp, lastFreeGacha, gachaTickets, comboCount, lastComboTime, comboMilestonesReached]);
+  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory, userLevel, userExp, lastFreeGacha, gachaTickets, comboCount, lastComboTime, comboMilestonesReached, ownedPets, activePet, totalGachaPulls]);
 
   // ─ 방광 채우기 타이머 ─
   useEffect(() => {
@@ -2958,20 +3097,97 @@ export default function Page() {
       }
     }
   }, [visibleQuests, completedQuests, questState]);
+  // ─ 펫 자동 해금 감지 ─
+  const petUnlockState: PetUnlockState = useMemo(() => ({
+    seenEvents, stats, storyRoute, totalGachaPulls, unlockedEndings,
+  }), [seenEvents, stats, storyRoute, totalGachaPulls, unlockedEndings]);
+  useEffect(() => {
+    for (const pet of PETS) {
+      if (ownedPets[pet.id]) continue;
+      if (!pet.unlock.check(petUnlockState)) continue;
+      // 신규 획득
+      setOwnedPets((prev) => ({ ...prev, [pet.id]: { level: 1, affinity: 0, obtained: Date.now() } }));
+      setPetToast({ name: pet.name, emoji: pet.emoji, flavor: pet.flavor });
+      window.setTimeout(() => setPetToast(null), 4500);
+      // 첫 펫이면 자동 활성화
+      if (Object.keys(ownedPets).length === 0) setActivePet(pet.id);
+      break;
+    }
+  }, [petUnlockState]);
+
+  const activePetObj = activePet ? PETS.find((p) => p.id === activePet) ?? null : null;
+  const activePetData = activePet ? ownedPets[activePet] : undefined;
+  function petMul(kind: PetEffect): number {
+    return getPetMultiplier(activePetObj, activePetData, kind);
+  }
+
+  function feedPet(petId: string, foodCoins: number, affinityGain: number) {
+    if (coins < foodCoins) return;
+    setCoins((c) => c - foodCoins);
+    setOwnedPets((prev) => {
+      const cur = prev[petId];
+      if (!cur) return prev;
+      const newAff = cur.affinity + affinityGain;
+      const newLvl = petLevel(newAff);
+      return { ...prev, [petId]: { ...cur, affinity: newAff, level: newLvl } };
+    });
+  }
+
   // ─ 가챠 결과에 효과 적용 ─
   function applyGachaItem(item: GachaItem) {
     const e = item.effect;
+    const coinMul = getPetMultiplier(activePetObj, activePetData, "coin") * getPetMultiplier(activePetObj, activePetData, "all");
+    const affMul = getPetMultiplier(activePetObj, activePetData, "affinity") * getPetMultiplier(activePetObj, activePetData, "all");
+    const bladMul = getPetMultiplier(activePetObj, activePetData, "bladder") * getPetMultiplier(activePetObj, activePetData, "all");
     if (e.kind === "stat") {
-      setStats((s) => ({ ...s, [e.stat]: clamp(s[e.stat] + e.amount) }));
+      let amt = e.amount;
+      if (e.stat === "affinity") amt = Math.round(amt * affMul);
+      if (e.stat === "bladderCharm") amt = Math.round(amt * bladMul);
+      setStats((s) => ({ ...s, [e.stat]: clamp(s[e.stat] + amt) }));
     } else if (e.kind === "coins") {
-      setCoins((c) => c + e.amount);
+      setCoins((c) => c + Math.round(e.amount * coinMul));
     } else if (e.kind === "coins_random") {
       const a = Math.floor(Math.random() * (e.max - e.min + 1)) + e.min;
-      setCoins((c) => c + a);
+      setCoins((c) => c + Math.round(a * coinMul));
     } else if (e.kind === "ticket") {
       setGachaTickets((t) => t + e.amount);
     }
+    // 펫 친밀도 +5 (가챠 한번 = 펫 친해짐)
+    if (activePet && ownedPets[activePet]) {
+      setOwnedPets((prev) => {
+        const cur = prev[activePet];
+        if (!cur) return prev;
+        const newAff = cur.affinity + 5;
+        return { ...prev, [activePet]: { ...cur, affinity: newAff, level: petLevel(newAff) } };
+      });
+    }
   }
+  // 펫 luck 적용된 가챠 굴리기
+  function rollGachaWithLuck(): GachaItem {
+    const luck = getPetMultiplier(activePetObj, activePetData, "luck") - 1; // 0 ~ 0.4
+    const allMul = getPetMultiplier(activePetObj, activePetData, "all") - 1;
+    const boost = luck + allMul; // 합산
+    if (boost > 0) {
+      const r = Math.random();
+      let acc = 0;
+      const rates: Record<GachaTier, number> = {
+        SSR: GACHA_TIER_RATES.SSR + boost * 0.5,
+        SR:  GACHA_TIER_RATES.SR  + boost * 0.5,
+        R:   GACHA_TIER_RATES.R,
+        N:   GACHA_TIER_RATES.N,
+        C:   Math.max(0.05, GACHA_TIER_RATES.C - boost), // C에서 깎음
+      };
+      let tier: GachaTier = "C";
+      for (const t of ["SSR","SR","R","N","C"] as GachaTier[]) {
+        acc += rates[t];
+        if (r < acc) { tier = t; break; }
+      }
+      const pool = GACHA_POOL.filter((x) => x.tier === tier);
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+    return rollGacha();
+  }
+
   // ─ 가챠 한 번 뽑기 ─
   function pullGacha(mode: "free" | "ticket" | "single" | "ten") {
     if (gachaResult) return; // 이미 뽑는 중
@@ -2979,35 +3195,39 @@ export default function Page() {
     if (mode === "free") {
       if (now - lastFreeGacha < GACHA_FREE_COOLDOWN) return;
       setLastFreeGacha(now);
-      const item = rollGacha();
+      const item = rollGachaWithLuck();
       applyGachaItem(item);
+      setTotalGachaPulls((n) => n + 1);
       setGachaResult({ items: [item], index: 0, phase: "rolling" });
       window.setTimeout(() => setGachaResult({ items: [item], index: 0, phase: "reveal" }), 800);
     } else if (mode === "ticket") {
       if (gachaTickets <= 0) return;
       setGachaTickets((t) => t - 1);
-      const item = rollGacha();
+      const item = rollGachaWithLuck();
       applyGachaItem(item);
+      setTotalGachaPulls((n) => n + 1);
       setGachaResult({ items: [item], index: 0, phase: "rolling" });
       window.setTimeout(() => setGachaResult({ items: [item], index: 0, phase: "reveal" }), 800);
     } else if (mode === "single") {
       if (coins < GACHA_PRICE) return;
       setCoins((c) => c - GACHA_PRICE);
-      const item = rollGacha();
+      const item = rollGachaWithLuck();
       applyGachaItem(item);
+      setTotalGachaPulls((n) => n + 1);
       setGachaResult({ items: [item], index: 0, phase: "rolling" });
       window.setTimeout(() => setGachaResult({ items: [item], index: 0, phase: "reveal" }), 800);
     } else if (mode === "ten") {
       const TEN_PRICE = GACHA_PRICE * 9; // 10연차는 1+1
       if (coins < TEN_PRICE) return;
       setCoins((c) => c - TEN_PRICE);
-      const items = Array.from({ length: 10 }, () => rollGacha());
+      const items = Array.from({ length: 10 }, () => rollGachaWithLuck());
       // SR 보장: 모두 N/C면 한 개를 SR로 강제
       if (!items.some((x) => x.tier === "SSR" || x.tier === "SR" || x.tier === "R")) {
         const srPool = GACHA_POOL.filter((x) => x.tier === "SR");
         items[Math.floor(Math.random() * 10)] = srPool[Math.floor(Math.random() * srPool.length)];
       }
       items.forEach(applyGachaItem);
+      setTotalGachaPulls((n) => n + 10);
       setGachaResult({ items, index: 0, phase: "rolling" });
       window.setTimeout(() => setGachaResult({ items, index: 0, phase: "reveal" }), 800);
     }
@@ -3041,8 +3261,11 @@ export default function Page() {
   }
 
   // ─ EXP 획득 + 레벨업 처리 ─
-  function gainExp(amount: number) {
-    if (amount <= 0) return;
+  function gainExp(amountRaw: number) {
+    if (amountRaw <= 0) return;
+    // 펫 EXP 보너스 적용
+    const expMul = getPetMultiplier(activePetObj, activePetData, "exp") * getPetMultiplier(activePetObj, activePetData, "all");
+    const amount = Math.round(amountRaw * expMul);
     // 작은 EXP 플로터 표시
     setExpFloater({ id: Date.now(), amount });
     window.setTimeout(() => setExpFloater(null), 1400);
@@ -3243,6 +3466,15 @@ export default function Page() {
     setDailyState((prev) => ({ ...prev, chatCount: prev.chatCount + 1 }));
     gainExp(5);
     pumpCombo();
+    // 활성 펫 친밀도 +1 (채팅마다)
+    if (activePet && ownedPets[activePet]) {
+      setOwnedPets((prev) => {
+        const cur = prev[activePet];
+        if (!cur) return prev;
+        const newAff = cur.affinity + 1;
+        return { ...prev, [activePet]: { ...cur, affinity: newAff, level: petLevel(newAff) } };
+      });
+    }
     const displayText = text || "📷 사진";
     const nextStats = applyStats(stats, text.includes("질투") ? { jealousy: 2 } : text.includes("좋아") ? { affinity: 2 } : {});
     setStats(nextStats);
@@ -3419,6 +3651,9 @@ export default function Page() {
     setComboCount(0);
     setLastComboTime(0);
     setComboMilestonesReached({});
+    setOwnedPets({});
+    setActivePet(null);
+    setTotalGachaPulls(0);
     setSeenEvents({});
     setStoryRoute("common");
     setMemoryNotes([]);
@@ -3506,7 +3741,16 @@ export default function Page() {
           </div>
           <small className="userLvExp">{userExp} / {expToNextLevel(userLevel)} EXP</small>
         </div>
-        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["gacha","🎰 뽑기"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=>{
+        {activePetObj && activePetData && (
+          <div className="petMini" onClick={() => setView("pets")}>
+            <span className="petMiniEmoji">{petLevel(activePetData.affinity) >= 5 && activePetObj.evolvedEmoji ? activePetObj.evolvedEmoji : activePetObj.emoji}</span>
+            <div className="petMiniBody">
+              <b>{petLevel(activePetData.affinity) >= 5 && activePetObj.evolvedName ? activePetObj.evolvedName : activePetObj.name}</b>
+              <small>Lv.{petLevel(activePetData.affinity)} · {activePetObj.description.split("(")[0].trim()}</small>
+            </div>
+          </div>
+        )}
+        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["gacha","🎰 뽑기"],["pets","🐹 펫"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=>{
           const dailyClaimable = key === "quests" ? dailyState.missions.filter((m) => {
             if (m.claimed) return false;
             const t = DAILY_MISSION_TEMPLATES.find((x) => x.id === m.templateId);
@@ -3729,6 +3973,49 @@ export default function Page() {
                     >
                       {soldOut ? "품절" : cantAfford ? `🪙 ${item.price} (부족)` : `🪙 ${item.price}`}
                     </button>
+                  </div>
+                );
+              })}
+            </div>
+          </Panel>
+        )}
+        {view === "pets" && (
+          <Panel title="펫 동반자 🐹">
+            <p className="petsIntro">펫 1마리 활성화하면 보너스 받음. 채팅하거나 가챠 돌리면 친밀도 오름 ㅋ</p>
+            <div className="petsGrid">
+              {PETS.map((pet) => {
+                const data = ownedPets[pet.id];
+                const owned = !!data;
+                const lvl = data ? petLevel(data.affinity) : 0;
+                const evolved = lvl >= 5;
+                const isActive = activePet === pet.id;
+                const affNext = lvl < 10 ? lvl * 100 : 1000;
+                const affPct = data ? Math.min(100, ((data.affinity % 100) / 100) * 100) : 0;
+                return (
+                  <div key={pet.id} className={`petCard${owned ? " petOwned" : " petLocked"}${isActive ? " petActive" : ""}${evolved ? " petEvolved" : ""}`}>
+                    <div className="petEmoji">{owned ? (evolved && pet.evolvedEmoji ? pet.evolvedEmoji : pet.emoji) : "❓"}</div>
+                    <div className="petName">{owned ? (evolved && pet.evolvedName ? pet.evolvedName : pet.name) : "??? 미해금"}</div>
+                    <small className="petFlavor">{owned ? pet.flavor : `잠금: ${pet.unlock.hint}`}</small>
+                    <div className="petEffect">{owned ? pet.description : "—"}</div>
+                    {owned && (
+                      <>
+                        <div className="petLvLine">
+                          <span className="petLvBadge">Lv.{lvl}</span>
+                          <span className="petAff">❤️ {Math.min(data!.affinity, 1000)} / 1000</span>
+                        </div>
+                        <div className="petAffBar"><div style={{ width: `${affPct}%` }}/></div>
+                        <div className="petActions">
+                          <button
+                            className={`petActiveBtn${isActive ? " petIsActive" : ""}`}
+                            onClick={() => setActivePet(isActive ? null : pet.id)}
+                          >
+                            {isActive ? "✓ 동반중" : "동반시키기"}
+                          </button>
+                          <button className="petFeedBtn" disabled={coins < 30 || lvl >= 10} onClick={() => feedPet(pet.id, 30, 10)}>🪙30 +친10</button>
+                          <button className="petFeedBigBtn" disabled={coins < 100 || lvl >= 10} onClick={() => feedPet(pet.id, 100, 40)}>🪙100 +친40</button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 );
               })}
@@ -4478,6 +4765,7 @@ export default function Page() {
           </div>
         )}
         {comboToast && <div className="cgUnlockToast comboToast"><div className="cgUnlockIcon">🔥</div><div><b>{comboToast}</b><span>보상 받았다능 ㅋ</span></div></div>}
+        {petToast && <div className="cgUnlockToast petToast"><div className="cgUnlockIcon">{petToast.emoji}</div><div><b>{petToast.name} 합류!</b><span>{petToast.flavor}</span><small>펫 메뉴에서 동반시키셈 ㄱㄱ</small></div></div>}
         {gachaResult && (
           <div className="gachaOverlay" onClick={() => gachaResult.phase === "reveal" && setGachaResult(null)}>
             {gachaResult.phase === "rolling" && (
@@ -4857,6 +5145,43 @@ const CSS = `
 @keyframes comboBreak{0%{transform:scale(1) rotate(0);opacity:1}30%{transform:scale(1.2) rotate(-8deg);background:#999}100%{transform:scale(0.6) rotate(20deg) translateY(40px);opacity:0}}
 .comboToast{background:linear-gradient(135deg,#3a1015,#5a2025) !important;border-color:rgba(255,90,80,.5) !important}
 .comboToast b{color:#ff8888;font-size:14px}
+.petToast{background:linear-gradient(135deg,#1a3025,#2a4a3a) !important;border-color:rgba(140,220,160,.5) !important}
+.petToast b{color:#a8eac0}
+.petToast small{color:#9bc8a5}
+/* ─ 펫 시스템 ─ */
+.petMini{display:flex;align-items:center;gap:9px;padding:9px 11px;margin:0 0 12px;background:linear-gradient(135deg,#1a2a1a,#243d24);border:1px solid rgba(140,220,160,.22);border-radius:14px;color:#a8eac0;cursor:pointer;transition:transform .15s ease,box-shadow .2s ease}
+.petMini:hover{transform:translateY(-1px);box-shadow:0 6px 14px rgba(40,80,50,.4)}
+.petMiniEmoji{font-size:26px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+.petMiniBody{display:grid;gap:1px;min-width:0;flex:1}
+.petMiniBody b{font-size:12px;color:#fff;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.petMiniBody small{font-size:10px;color:#a8eac0;font-weight:700}
+.petsIntro{margin:0 0 14px;padding:12px 14px;background:#fff8ef;border:1px solid #e8c99e;border-radius:12px;color:#5a3d12;font-weight:700;font-size:13px}
+.petsGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.petCard{padding:18px 16px;background:#fff;border:1px solid #e6d2b8;border-radius:18px;display:grid;gap:8px;justify-items:center;text-align:center;position:relative;transition:transform .15s ease,box-shadow .2s ease}
+.petCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.12)}
+.petCard.petLocked{background:repeating-linear-gradient(135deg,#f5ede0 0px,#f5ede0 12px,#ebe1d0 12px,#ebe1d0 24px);opacity:.7}
+.petCard.petOwned{border-left:4px solid #7ba65a}
+.petCard.petActive{border:2px solid #4a8a5e;background:linear-gradient(180deg,#f4fcf6 0%,#fff 60%);box-shadow:0 0 0 3px rgba(74,138,94,.18),0 8px 22px rgba(74,138,94,.18)}
+.petCard.petEvolved{background:linear-gradient(180deg,#fff7e8 0%,#fff 60%);border-left-color:#df842c}
+.petCard.petActive.petEvolved{border-color:#df842c;box-shadow:0 0 0 3px rgba(223,132,44,.2),0 8px 22px rgba(223,132,44,.22)}
+.petEmoji{font-size:54px;line-height:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.18))}
+.petCard.petEvolved .petEmoji{animation:petEvolvedFloat 2.6s ease-in-out infinite}
+@keyframes petEvolvedFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.petName{font-size:15px;font-weight:1000;color:#2a1a14}
+.petFlavor{font-size:11px;color:#7a5e4a;font-style:italic;line-height:1.4;min-height:30px}
+.petEffect{font-size:12px;color:#3a2017;font-weight:900;padding:6px 10px;background:rgba(123,166,90,.14);border-radius:10px}
+.petLvLine{display:flex;justify-content:space-between;width:100%;align-items:center}
+.petLvBadge{font-size:11px;font-weight:1000;color:#3a2017;background:linear-gradient(135deg,#a3c785,#7ba65a);padding:2px 8px;border-radius:6px}
+.petAff{font-size:11px;color:#7a5e4a;font-weight:700}
+.petAffBar{width:100%;height:5px;background:rgba(91,48,24,.12);border-radius:99px;overflow:hidden}
+.petAffBar div{height:100%;background:linear-gradient(90deg,#ff8aa3,#ff5577);border-radius:99px;transition:width .35s ease}
+.petActions{display:grid;grid-template-columns:1fr 1fr;gap:5px;width:100%;margin-top:5px}
+.petActiveBtn{grid-column:1/3;border:0;border-radius:10px;padding:9px;background:#3a2d29;color:#fff;font-weight:1000;font-size:12px;cursor:pointer}
+.petActiveBtn.petIsActive{background:linear-gradient(135deg,#4a8a5e,#3a6a48)}
+.petActiveBtn:hover{transform:translateY(-1px)}
+.petFeedBtn,.petFeedBigBtn{border:0;border-radius:8px;padding:7px 5px;background:#fff5d6;color:#5a3d12;font-weight:900;font-size:10px;cursor:pointer;border:1px solid #d9a656}
+.petFeedBigBtn{background:linear-gradient(135deg,#ffd97a,#e8993b);color:#fff}
+.petFeedBtn:disabled,.petFeedBigBtn:disabled{opacity:.4;cursor:not-allowed}
 .secretRouteCard{position:relative;overflow:hidden;transition:transform .15s ease,box-shadow .2s ease}.secretRouteCard.secretUnlocked{background:linear-gradient(135deg,#fff7d6 0%,#ffe9a8 60%,#ffd17a 100%);border:1px solid #d9a656;color:#5a3d12;box-shadow:0 8px 24px rgba(217,166,86,.28)}.secretRouteCard.secretUnlocked:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(217,166,86,.4)}.secretRouteCard.secretUnlocked b{color:#3a2510}.secretRouteCard.secretUnlocked small{color:#7b5318}.secretRouteCard.secretLocked{background:repeating-linear-gradient(135deg,#2a201b 0px,#2a201b 14px,#22191a 14px,#22191a 28px);color:#7a6b62;border:1px dashed #5a4a40;cursor:not-allowed;opacity:.85}.secretRouteCard.secretLocked b{color:#8a7a6f;letter-spacing:.18em}.secretRouteCard.secretLocked small{color:#6b5b50;font-style:italic}.secretRouteCard.secretLocked:hover{transform:none;box-shadow:none}
 .saveSlotGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:18px}.saveSlotCard{background:#fff8ef;border:1px solid #e8c99e;border-radius:18px;padding:16px;display:grid;gap:12px;color:#3a2017;box-shadow:0 8px 22px rgba(91,48,24,.08);transition:transform .15s ease,box-shadow .2s ease}.saveSlotCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.saveSlotCard.ssEmpty{background:#f6efe5;border-style:dashed;border-color:#cdb89a;opacity:.85}.saveSlotCard.ssRoutePure{background:linear-gradient(180deg,#fff5f8 0%,#fce6ee 100%);border-color:#ecc4d6}.saveSlotCard.ssRouteObsession{background:linear-gradient(180deg,#2a1517 0%,#1a0d0e 100%);border-color:#5d2a30;color:#f4dadd}.saveSlotCard.ssRouteObsession .ssTime,.saveSlotCard.ssRouteObsession .ssPreview{color:#b89a9d}.saveSlotCard.ssRouteObsession .ssStats span{background:rgba(255,200,200,.08);color:#f4dadd}.saveSlotCard.ssRouteObsession .ssThumb{border-color:rgba(255,170,170,.2)}.ssHead{display:flex;align-items:center;justify-content:space-between;gap:8px}.ssNum{font-size:14px;font-weight:1000;letter-spacing:.04em;color:inherit}.ssRouteBadge{font-size:11px;font-weight:900;padding:4px 10px;border-radius:99px;background:rgba(91,48,24,.12);color:#7b4f2f}.ssRoutePure .ssRouteBadge{background:rgba(220,120,160,.18);color:#a14872}.ssRouteObsession .ssRouteBadge{background:rgba(220,80,80,.22);color:#ffaab2}.ssBody{display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:start}.ssThumb{width:84px;height:84px;border-radius:14px;object-fit:cover;border:1px solid rgba(91,48,24,.18);background:#ead7c7}.ssMeta{display:grid;gap:6px;min-width:0}.ssScene{margin:0;font-size:14px;font-weight:900;color:inherit;line-height:1.4}.ssPreview{margin:0;font-size:12px;font-style:italic;color:#7a5e4a;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.ssStats{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}.ssStats span{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:99px;background:rgba(91,48,24,.1);color:#5b3520;letter-spacing:.02em}.ssTime{color:#9a7c65;font-size:11px;font-weight:700;margin-top:2px}.ssEmptyBody{text-align:center;padding:24px 12px;color:#876953}.ssEmptyIcon{font-size:36px;display:block;margin-bottom:8px;opacity:.6}.ssEmptyBody p{margin:0 0 4px;font-size:14px;font-weight:900}.ssEmptyBody small{font-size:11px;color:#a78a72}.ssActions{display:flex;gap:6px}.ssActions button{flex:1;border:0;border-radius:12px;padding:10px 8px;font-size:13px;font-weight:900;cursor:pointer;transition:background .15s ease,transform .12s ease}.ssActions button:hover{transform:translateY(-1px)}.ssBtnLoad{background:#df842c;color:#fff}.ssBtnLoad:hover{background:#c8731f}.ssBtnSave{background:#3a2d29;color:#fff}.ssBtnSave:hover{background:#5a4338}.ssBtnDel{background:transparent;color:#c44;border:1px solid #c44 !important}.ssBtnDel:hover{background:rgba(196,68,68,.1)}
 .cgReaction{display:grid;grid-template-columns:86px minmax(0,1fr) auto;gap:14px;align-items:center;margin:0 0 18px;padding:14px;border-radius:20px;background:#fff8ef;border:1px solid #e8c99e;box-shadow:0 12px 32px rgba(91,48,24,.08)}.cgReaction>img{width:86px;height:86px;border-radius:18px;object-fit:cover;background:#ead7c7}.cgReactionBody{display:grid;gap:6px;min-width:0}.cgReactionBody p{margin:0;color:#4a342a;line-height:1.65;font-weight:800}.cgSourceCaption{color:#9a7c65;font-size:12px;font-weight:700}.cgReactionActions{display:flex;gap:6px;align-items:center}.cgReaction button{border:0;border-radius:999px;background:#3a2d29;color:white;padding:10px 14px;font-weight:900}.favBtn{background:#fff;color:#c44}.favBtn.favOn{background:#c44;color:#fff}.cgCard{position:relative;border:0;text-align:center;cursor:pointer;transition:transform .15s ease,box-shadow .2s ease}.cgCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.cgCardLocked{cursor:default;background:#1f1714}.cgCardLocked:hover{transform:none}.cgSilhouette{filter:brightness(.18) blur(6px) saturate(.5)}.cgLockedBadge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;color:rgba(255,210,150,.55);text-shadow:0 2px 12px rgba(0,0,0,.6);pointer-events:none}.cgFavMark{position:absolute;top:8px;right:10px;font-size:18px;color:#ff5577;text-shadow:0 2px 6px rgba(0,0,0,.45);pointer-events:none}.cgCardCaption{position:absolute;left:0;right:0;bottom:0;padding:6px 10px;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.74) 100%);color:#fff7e8;font-size:11px;font-weight:800;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;text-align:left}.galleryProgress{display:flex;align-items:center;gap:12px;margin:0 0 18px;padding:12px 16px;background:#fff8ef;border:1px solid #e8c99e;border-radius:14px;color:#5a3928}.galleryProgress span{font-size:12px;font-weight:900;letter-spacing:.06em;color:#7b4f2f}.galleryProgressBar{flex:1;min-width:80px;height:8px;background:rgba(91,48,24,.15);border-radius:99px;overflow:hidden}.galleryProgressBar div{height:100%;background:linear-gradient(90deg,#df842c,#e8993b);border-radius:99px;transition:width .35s ease}.galleryProgress strong{font-size:14px;color:#3a2017;font-weight:900}.tabs button.active{background:#df842c}.tabs button.bladderTab{background:linear-gradient(135deg,#d9a656,#b8843a);color:#fff;font-weight:1000}.tabs button.bladderTab.active{background:linear-gradient(135deg,#ffc94f,#d9a656);box-shadow:0 4px 12px rgba(217,166,86,.4)}.tabs button.bladderTab:hover{background:linear-gradient(135deg,#e8b563,#c89540)}
