@@ -1570,11 +1570,15 @@ function getCoverImage(storyRoute: StoryRoute, stats: Stats) {
 }
 function getHomeCharacterImage(stats: Stats, storyRoute: StoryRoute) {
   const version = `?v=${SD_IMAGE_VERSION}`;
+  // 강한 감정 스파이크는 루트보다 우선 — 즉각적인 시각 피드백
+  if (stats.obsession >= 600) return `/sd_geunddeok_obsession.png${version}`;
+  if (stats.jealousy >= 300) return `/sd_geunddeok_pout.png${version}`;
+  // 루트 기본 분위기
   if (storyRoute === "obsession") return `/sd_geunddeok_dark.png${version}`;
   if (storyRoute === "pure") return `/sd_geunddeok_happy.png${version}`;
-  if (stats.obsession >= 700) return `/sd_geunddeok_obsession.png${version}`;
-  if (stats.jealousy >= 550) return `/sd_geunddeok_pout.png${version}`;
-  if (stats.affinity >= 550) return `/sd_geunddeok_smile.png${version}`;
+  // 호감 단계별
+  if (stats.affinity >= 500) return `/sd_geunddeok_smile.png${version}`;
+  if (stats.affinity >= 250) return `/sd_geunddeok_happy.png${version}`;
   return `/sd_geunddeok_idle.png${version}`;
 }
 function getHomeReactionPool(stats: Stats, storyRoute: StoryRoute) {
