@@ -13119,7 +13119,7 @@ bladder_ch6_03: {
 근떡존은 천천히 입을 열었다.`,
   choices: [
     { label: "받겠다고 한다", text: "받겠습니다.",
-      stat: { trust: 10 }, next: "bladder_ch6_04" },
+      stat: {  trust: 10 }, next: "bladder_ch6_04" },
     { label: "선생님 한 번만 만나고 결정하겠다고 한다", text: "선생님 한번만 보고 결정하면 안 돼요?",
       stat: { affinity: 10 }, next: "bladder_ch6_04" },
     { label: "그냥 받는다 (아무 생각 없음)", text: "네.",
@@ -13519,11 +13519,11 @@ bladder_ch7_02: {
 방광 루트 7장 첫 부분 종료.`,
   choices: [
     { label: "방광매력 +1을 확인한다", text: "(방광매력이 1 올랐다.)",
-      next: "bladder_ch7_03" },
+      stat: { bladderCharm: 1 }, next: "bladder_ch7_03" },
     { label: "선생님 표정을 한 번 더 본다", text: "(선생님의 표정을 다시 본다)",
-      stat: { affinity: 3 }, next: "bladder_ch7_03" },
+      stat: { affinity: 3, bladderCharm: 2 }, next: "bladder_ch7_03" },
     { label: "트림을 한 번 더 한다", text: "(트림으로 분위기 환기 시도)",
-      next: "bladder_ch7_03" },
+      stat: { bladderCharm: 3 }, next: "bladder_ch7_03" },
   ],
 },
 
@@ -13642,11 +13642,11 @@ K방광이라는 해시태그가 어느새 트렌드 1위에 올라가 있었다
 그 말이 농담이 아닐 수도 있다는 것을, 근떡존은 그제야 어렴풋이 깨닫기 시작했다.`,
   choices: [
     { label: "강릉부터 가야겠다고 한다", text: "선생님. 저 갈 데가 생긴 것 같아요.",
-      stat: { affinity: 3 }, next: "bladder_ch7_04" },
+      stat: { bladderCharm: 5, affinity: 3 }, next: "bladder_ch7_04" },
     { label: "이게 뭔 일이냐고 어이없어한다", text: "이거 진짜 뭐예요...",
-      stat: { trust: 2 }, next: "bladder_ch7_04" },
+      stat: { trust: 2, bladderCharm: 3 }, next: "bladder_ch7_04" },
     { label: "선생님이 자기를 너무 진심으로 본다고 느낀다", text: "선생님, 표정이 좀 이상하세요.",
-      stat: { affinity: 2 }, next: "bladder_ch7_04" },
+      stat: { affinity: 2, bladderCharm: 4 }, next: "bladder_ch7_04" },
   ],
 },
 
@@ -13779,11 +13779,11 @@ K-방광 굿즈가 시중에 풀렸다.
 다음 챕터 예고: 8장 — 지구를 구하는 오줌.`,
   choices: [
     { label: "선생님이랑 강릉 가자고 한다", text: "선생님. 강릉 같이 가요. 도와드릴 게 있어서요.",
-      stat: { affinity: 8 }, end: true, next: "bladder_ch8_01" },
+      stat: { affinity: 8, bladderCharm: 5 }, end: true, next: "bladder_ch8_01" },
     { label: "굳이 너가 가야 하냐는 말 못 들은 척한다", text: "(선생님이 \"굳이 네가?\"라고 했지만 못 들은 척한다)",
-      stat: { trust: 3 }, end: true, next: "bladder_ch8_01" },
+      stat: { trust: 3, bladderCharm: 3 }, end: true, next: "bladder_ch8_01" },
     { label: "내가 같이 갈게라고 선생님이 따라온다", text: "(선생님이 \"내가 같이 갈게\"라고 한다)",
-      stat: { affinity: 10 }, end: true, next: "bladder_ch8_01" },
+      stat: { affinity: 10, bladderCharm: 7 }, end: true, next: "bladder_ch8_01" },
   ],
 },
 
@@ -13924,11 +13924,11 @@ bladder_ch8_01: {
 존엄성이 다시 조금 회복되는 것 같았다.`,
   choices: [
     { label: "다음은 어디로 가냐고 묻는다", text: "다음은 어디로 갈까요?",
-      stat: { affinity: 5 }, next: "bladder_ch8_02" },
+      stat: { affinity: 5, bladderCharm: 5 }, next: "bladder_ch8_02" },
     { label: "강릉 시민들에게 손을 흔든다", text: "(K-방광이라고 외치는 시민들에게 손을 흔든다)",
-      stat: { trust: 3 }, next: "bladder_ch8_02" },
+      stat: { trust: 3, bladderCharm: 7 }, next: "bladder_ch8_02" },
     { label: "선생님 칭찬을 한 번 더 듣고 싶어한다", text: "선생님 한 번만 더 잘했다고 해주세요.",
-      stat: { affinity: 8 }, next: "bladder_ch8_02" },
+      stat: { affinity: 8, bladderCharm: 5 }, next: "bladder_ch8_02" },
   ],
 },
 
@@ -14053,11 +14053,11 @@ bladder_ch8_02: {
 부속품 취급에서, 천천히 본체로 옮겨가고 있는 것 같기도 했다.`,
   choices: [
     { label: "다음은 사하라라고 한다", text: "다음은 사하라네요.",
-      stat: { affinity: 5 }, next: "bladder_ch8_03" },
+      stat: { affinity: 5, bladderCharm: 5 }, next: "bladder_ch8_03" },
     { label: "캥거루한테 손을 흔든다", text: "(캥거루 박수에 손을 흔든다)",
-      stat: { affinity: 3 }, next: "bladder_ch8_03" },
+      stat: { affinity: 3, bladderCharm: 7 }, next: "bladder_ch8_03" },
     { label: "본체로 인정받기 시작했다고 느낀다", text: "(드디어 부속품에서 본체로 승급)",
-      stat: { affinity: 7 }, next: "bladder_ch8_03" },
+      stat: { affinity: 7, bladderCharm: 3 }, next: "bladder_ch8_03" },
   ],
 },
 
@@ -14136,11 +14136,11 @@ K-방광은 이미 인류 차원의 사건이었다.
 존나 행복했기 때문이었다.`,
   choices: [
     { label: "들었지만 모른 척한다", text: "(못 들은 척하고 분사 계속)",
-      stat: { affinity: 5 }, next: "bladder_ch8_04" },
+      stat: { affinity: 5, bladderCharm: 3 }, next: "bladder_ch8_04" },
     { label: "방금 뭐라고 했냐고 되묻는다", text: "방금 뭐라고요?",
-      stat: { affinity: 8 }, next: "bladder_ch8_04" },
+      stat: { affinity: 8, bladderCharm: 5 }, next: "bladder_ch8_04" },
     { label: "선생님 손을 잡는다", text: "(분사하면서 선생님 손을 잡는다)",
-      stat: { affinity: 10 }, next: "bladder_ch8_04" },
+      stat: { affinity: 10, bladderCharm: 5 }, next: "bladder_ch8_04" },
   ],
 },
 
@@ -14320,11 +14320,11 @@ CFO.
 다음 챕터 예고: 9장 — 나스닥의 방광왕.`,
   choices: [
     { label: "투자 1억 받겠다고 한다", text: "감사합니다. 1억 잘 쓸게요.",
-      stat: { affinity: 5 }, end: true, next: "bladder_ch9_01" },
+      stat: { affinity: 5, bladderCharm: 5 }, end: true, next: "bladder_ch9_01" },
     { label: "세상이 너 덕분이라는 말 듣는다", text: "(선생님이 \"세상이 너 덕분이야\"라고 한다)",
-      stat: { affinity: 10 }, end: true, next: "bladder_ch9_01" },
+      stat: { affinity: 10, bladderCharm: 7 }, end: true, next: "bladder_ch9_01" },
     { label: "CFO 좋다고 한다", text: "선생님이 CFO 해주시면 든든하죠.",
-      stat: { affinity: 8 }, end: true, next: "bladder_ch9_01" },
+      stat: { affinity: 8, bladderCharm: 5 }, end: true, next: "bladder_ch9_01" },
   ],
 },
 
@@ -14411,11 +14411,11 @@ bladder_ch9_01: {
 근떡존도 따라 웃었다.`,
   choices: [
     { label: "선생님 덕분이라고 한다", text: "다 선생님 덕분이에요.",
-      stat: { affinity: 10 }, next: "bladder_ch9_02" },
+      stat: { affinity: 10, bladderCharm: 5 }, next: "bladder_ch9_02" },
     { label: "긴장된다고 솔직하게 말한다", text: "근데 솔직히 떨려요.",
-      stat: { trust: 5 }, next: "bladder_ch9_02" },
+      stat: { trust: 5, bladderCharm: 3 }, next: "bladder_ch9_02" },
     { label: "방울이도 같이 가야 한다고 한다", text: "방울이도 같이 가야겠죠?",
-      stat: { affinity: 5 }, next: "bladder_ch9_02" },
+      stat: { affinity: 5, bladderCharm: 7 }, next: "bladder_ch9_02" },
   ],
 },
 
@@ -14554,11 +14554,11 @@ UN 산하 ESG 협력 기업으로 지정됐다. 노벨 평화상 후보로 거�
 그리고 이 사랑은, 점점 더 커지고 있었다.`,
   choices: [
     { label: "그 25%를 50%까지 올리겠다고 다짐한다", text: "(언젠가 50% 넘게 만들어야지)",
-      stat: { affinity: 10 }, next: "bladder_ch9_03" },
+      stat: { affinity: 10, bladderCharm: 0 }, next: "bladder_ch9_03" },
     { label: "방광을 더 사랑해도 된다고 한다", text: "75%여도 괜찮아요.",
-      stat: { affinity: 5 }, next: "bladder_ch9_03" },
+      stat: { affinity: 5, bladderCharm: 5 }, next: "bladder_ch9_03" },
     { label: "그래도 같이 운명이라는 게 좋다고 한다", text: "운명이라고 해주신 거 좋네요.",
-      stat: { affinity: 15 }, next: "bladder_ch9_03" },
+      stat: { affinity: 15, bladderCharm: 3 }, next: "bladder_ch9_03" },
   ],
 },
 
@@ -14673,11 +14673,11 @@ bladder_ch9_03: {
 존나 사랑스러웠다.`,
   choices: [
     { label: "선생님 손을 잡는다", text: "(전 세계 카메라 앞에서 선생님 손을 잡는다)",
-      stat: { affinity: 15 }, next: "bladder_ch9_04" },
+      stat: { affinity: 15, bladderCharm: 5 }, next: "bladder_ch9_04" },
     { label: "선생님께 감사 인사를 한다", text: "선생님. 감사합니다.",
       stat: { affinity: 10, trust: 10 }, next: "bladder_ch9_04" },
     { label: "선생님을 끌어안는다", text: "(전 세계 카메라 앞에서 선생님을 안는다)",
-      stat: { affinity: 20 }, next: "bladder_ch9_04" },
+      stat: { affinity: 20, bladderCharm: 0 }, next: "bladder_ch9_04" },
   ],
 },
 
@@ -14840,7 +14840,7 @@ bladder_ch9_04: {
 【K-방광 트루엔딩 — 인류와 사랑, 둘 다 구한 남자】`,
   choices: [
     { label: "방광 루트를 마친다", text: "(선생님 손을 한 번 더 꽉 잡는다)",
-      stat: { affinity: 999 }, end: true },
+      stat: { affinity: 999, bladderCharm: 999 }, end: true },
   ],
 },
 

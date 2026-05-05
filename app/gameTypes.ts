@@ -4,14 +4,14 @@ export type Role = "user" | "assistant" | "narration";
 export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap";
 export type ScenarioKind = "normal" | "jealousy" | "obsession" | "confinement" | "yandere";
 export type ScenarioCategory = "main" | "action" | "special" | "after" | "side";
-export type StatKey = "affinity" | "jealousy" | "obsession" | "trust";
+export type StatKey = "affinity" | "jealousy" | "obsession" | "trust" | "bladderCharm";
 export type GalleryTab = "all" | "normal" | "jealousy" | "obsession" | "confinement" | "yandere" | "action";
 export type EndingRoute = "none" | "pure" | "obsession" | "confinement" | "jealousy" | "bad";
 export type EndingKey = "pure" | "obsession" | "confinement" | "jealousy" | "bad";
 export type OutfitKey = "black_tanktop" | "hoodie" | "gym" | "convenience_store" | "winter_coat" | "party_shirt" | "obsession_shirt";
 
 export type Message = { id: string; role: Role; content: string; time: string; image?: string };
-export type Stats = { affinity: number; jealousy: number; obsession: number; trust: number };
+export type Stats = { affinity: number; jealousy: number; obsession: number; trust: number; bladderCharm: number };
 export type StatDelta = Partial<Record<StatKey, number>>;
 export type StoryRoute = "common" | "pure" | "obsession";
 export type MemoryNote = {
