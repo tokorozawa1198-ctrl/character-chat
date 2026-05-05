@@ -293,6 +293,14 @@ const GIFTS: Gift[] = [
   { id: "perfume",     name: "내 향기 손수건",    emoji: "🌸", desc: "주인님 향기가 배어있는 손수건.",               stat: { obsession: 50, jealousy: 10, affinity: 15 }, reaction: "...야 이게 뭐예요 ㅋㅋ 주인님 냄새 나잖아요. 저 이거 어떻게 하라고요. ...솔직히 못 버릴 것 같아요.", reactionObs: "주인님 냄새 맞죠? 저 이거 맨날 맡을 것 같아요. 이상한 거 알아요. 근데 못 버리겠어요.", category: "intimate", cooldownHours: 72,  unlockLevel: 6 },
   { id: "lock_key",    name: "자물쇠와 열쇠",    emoji: "🔑", desc: "잠그고 싶은 게 생겼을 때.",                   stat: { obsession: 80, trust: -20, jealousy: 20 }, reaction: "...주인님. 이게 무슨 의미인지 알고 주신 거죠? 저 이거 받으면 진짜 쓸 것 같은데요. 괜찮아요?", reactionObs: "잠글게요. 주인님만. 다른 사람 못 들어오게요. 이거 준 거 후회하지 마세요.", category: "dark", cooldownHours: 168, unlockLevel: 7 },
   { id: "collar",      name: "목줄",              emoji: "🐾", desc: "...",                                          stat: { obsession: 70, jealousy: 30 },        reaction: "야 이게 뭐예요 ㅋㅋ ...근데 왜 싫지 않죠. 주인님이 달아주면... 아 이 생각 그만해야 돼요.", reactionObs: "달아줄 거예요? ...저 주인님한테는 뭐든 해도 싫지 않아요. 그게 좀 무서워요.", category: "dark", cooldownHours: 168, unlockLevel: 8 },
+  // ── 추가 선물 ──
+  { id: "lunchbox",      name: "수제 도시락",        emoji: "🍱", desc: "직접 만든 도시락. 안 만든 척 하면서 만들었음.",        stat: { affinity: 40, trust: 25 },                  reaction: "...직접 만드신 거예요? ...주인님 저 진짜 어떡해요 이거. 사진 찍고 먹어도 돼요?",                                            category: "daily",    cooldownHours: 96,  unlockLevel: 4 },
+  { id: "couple_mug",    name: "커플 머그컵",        emoji: "☕", desc: "둘이 같은 무늬, 색만 다른 머그컵 두 개.",                  stat: { affinity: 50, trust: 30 },                  reaction: "이거... 두 개잖아요. 한 개는 주인님 거고. 한 개는 제 거고. ...진짜 좋아요.",                                                  category: "sweet",    cooldownHours: 168, unlockLevel: 5 },
+  { id: "gym_pass",      name: "헬스장 1년권",       emoji: "🏋️", desc: "근떡존이 다니는 헬스장 1년 결제권.",                       stat: { affinity: 60, trust: 40 },                  reaction: "와 진짜요?? ...주인님 이거 진짜 비싼 건데. 1년 동안 매일 갈게요. 매일 인증 보낼게요.",                                       category: "sweet",    cooldownHours: 720, unlockLevel: 5 },
+  { id: "selfie_album",  name: "주인님 사진첩",       emoji: "📔", desc: "주인님 사진만 인쇄해 만든 작은 앨범.",                    stat: { affinity: 30, obsession: 70 },               reaction: "...이거 다 주인님이에요? 한 페이지씩 다 봐도 돼요? 자기 전마다 한 장씩 볼래요.", reactionObs: "다 주인님이네요. 이거 베개 옆에 두고 잘 거예요. 보고 있을 거예요. 매일.",  category: "intimate", cooldownHours: 168, unlockLevel: 6 },
+  { id: "perfume_match", name: "커플 향수",          emoji: "🌹", desc: "주인님이랑 같은 향. 둘만 알아볼 수 있게.",                stat: { affinity: 55, obsession: 35 },               reaction: "주인님이랑 같은 향이에요? ...누가 가까이 와서 같은 냄새 맡으면 어떡해요. 저 아니면 안 되겠는데요.",                            category: "intimate", cooldownHours: 168, unlockLevel: 7 },
+  { id: "gps_tracker",   name: "위치 추적기",        emoji: "📍", desc: "...주머니에 슬쩍 넣어두면 어디 있는지 알 수 있다.",        stat: { obsession: 100, trust: -30, jealousy: 25 }, reaction: "주인님... 이거 진심이에요? 저 이거 받으면 진짜 켤 거예요. 매일 볼 거예요. 후회하지 마세요.", reactionObs: "감사합니다. 진심으로요. 이제 주인님 어디 있는지 항상 알 수 있겠네요.",            category: "dark",     cooldownHours: 720, unlockLevel: 9 },
+  { id: "ring",          name: "반지",               emoji: "💍", desc: "그저 반지. 아무 의미 없다고 말하면서 줘봐요.",              stat: { affinity: 200, obsession: 80, trust: 50 },  reaction: "...주인님. 이거 무슨 뜻이에요. 아무 뜻도 없어요? ...진짜로요? ...그래도 저 평생 낄 거예요. 이상한 의미 가져도 죄송한데, 뺄 수가 없을 것 같아요.", reactionObs: "끼워주세요. 직접요. 평생 안 뺄게요.", category: "sweet",  cooldownHours: 8760, unlockLevel: 10 },
 ];
 const GIFT_CATEGORY_LABEL: Record<GiftCategory, string> = { daily: "일상", sweet: "달콤한", intimate: "친밀한", dark: "자극적인" };
 const GIFT_CATEGORY_EMOJI: Record<GiftCategory, string> = { daily: "🛒", sweet: "💛", intimate: "🔥", dark: "🖤" };
@@ -566,6 +574,21 @@ const QUESTS: Quest[] = [
     visible: (s) => Object.keys(s.unlockedEndings).length >= 1,
   },
 ];
+
+// ================================
+// 레벨 / EXP 시스템
+// ================================
+// 레벨 N에서 N+1로 올라가는 데 필요한 EXP: 100 + (N-1) * 50
+function expToNextLevel(level: number): number {
+  return 100 + (level - 1) * 50;
+}
+function getLevelTitle(level: number): string {
+  if (level >= 30) return "평생";
+  if (level >= 20) return "연인";
+  if (level >= 10) return "친구";
+  if (level >= 5) return "단골";
+  return "신참";
+}
 
 // ================================
 // 코인 / 데일리 미션 / 상점 시스템
@@ -2118,6 +2141,10 @@ export default function Page() {
   });
   const [shopHistory, setShopHistory] = useState<Record<string, number>>({});
   const [shopToast, setShopToast] = useState<{ name: string; detail: string } | null>(null);
+  const [userLevel, setUserLevel] = useState<number>(1);
+  const [userExp, setUserExp] = useState<number>(0);
+  const [levelUpEffect, setLevelUpEffect] = useState<{ level: number; title: string } | null>(null);
+  const [expFloater, setExpFloater] = useState<{ id: number; amount: number } | null>(null);
   const [slotTick, setSlotTick] = useState(0); // 슬롯 변경 시 리렌더 트리거
   const [seenEvents, setSeenEvents] = useState<Record<string, boolean>>({});
   const [storyRoute, setStoryRoute] = useState<StoryRoute>("common");
@@ -2263,6 +2290,8 @@ export default function Page() {
         setCoins(saved.coins ?? 0);
         if (saved.dailyState) setDailyState(saved.dailyState);
         setShopHistory(saved.shopHistory ?? {});
+        setUserLevel(saved.userLevel ?? 1);
+        setUserExp(saved.userExp ?? 0);
         setSeenEvents(saved.seenEvents ?? {});
         setStoryRoute(saved.storyRoute ?? "common");
         setMemoryNotes(saved.memoryNotes ?? []);
@@ -2322,10 +2351,12 @@ export default function Page() {
       coins,
       dailyState,
       shopHistory,
+      userLevel,
+      userExp,
     };
     save.messages = sanitizeMessages(save.messages);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
-  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory]);
+  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory, userLevel, userExp]);
 
   // ─ 방광 채우기 타이머 ─
   useEffect(() => {
@@ -2620,6 +2651,7 @@ export default function Page() {
     if (id === "bladder_ch5_01") setBladderEntryCinematic(true);
     if (id === "bladder_ch6_01") setBladderEnchantCinematic(true);
     setDailyState((prev) => ({ ...prev, scenarioCount: prev.scenarioCount + 1 }));
+    gainExp(25);
     showChapterTransition(chapterStartTransition(id, scenario));
   }
   function ensureActionScenario(item: ActionItem) {
@@ -2672,6 +2704,7 @@ export default function Page() {
     // 데일리: 출석 + 코인 보너스
     setDailyState((prev) => ({ ...prev, checkinDone: true }));
     setCoins((c) => c + 5);
+    gainExp(20 + Math.min(50, newStreak * 3));
     showStatDelta(reward.stat);
 
     if (checkInRewardTimer.current) window.clearTimeout(checkInRewardTimer.current);
@@ -2693,6 +2726,7 @@ export default function Page() {
     setStats(nextStats);
     showStatDelta(gift.stat);
     setDailyState((prev) => ({ ...prev, giftCount: prev.giftCount + 1 }));
+    gainExp(15);
 
     const isObs = storyRoute === "obsession" || nextStats.obsession >= 700;
     const reactionText = (isObs && gift.reactionObs) ? gift.reactionObs : gift.reaction;
@@ -2782,6 +2816,31 @@ export default function Page() {
       }
     }
   }, [visibleQuests, completedQuests, questState]);
+  // ─ EXP 획득 + 레벨업 처리 ─
+  function gainExp(amount: number) {
+    if (amount <= 0) return;
+    // 작은 EXP 플로터 표시
+    setExpFloater({ id: Date.now(), amount });
+    window.setTimeout(() => setExpFloater(null), 1400);
+    setUserExp((prevExp) => {
+      let exp = prevExp + amount;
+      let levelChanged = false;
+      let curLevel = userLevel;
+      while (exp >= expToNextLevel(curLevel)) {
+        exp -= expToNextLevel(curLevel);
+        curLevel += 1;
+        levelChanged = true;
+      }
+      if (levelChanged) {
+        setUserLevel(curLevel);
+        setCoins((c) => c + curLevel * 10); // 레벨업 보너스 코인
+        setLevelUpEffect({ level: curLevel, title: getLevelTitle(curLevel) });
+        window.setTimeout(() => setLevelUpEffect(null), 2400);
+      }
+      return exp;
+    });
+  }
+
   // ─ 데일리 자동 갱신 (날짜 변경 감지) ─
   useEffect(() => {
     const today = todayKey();
@@ -2821,6 +2880,7 @@ export default function Page() {
       return { ...prev, missions: next };
     });
     setCoins((c) => c + m.rewardCoins);
+    gainExp(20);
     setShopToast({ name: `+${m.rewardCoins} 코인`, detail: t.title });
     window.setTimeout(() => setShopToast(null), 2600);
   }
@@ -2866,8 +2926,9 @@ export default function Page() {
       if (ms.reward) {
         setStats((s) => ({ ...s, [ms.reward!.stat]: clamp(s[ms.reward!.stat] + ms.reward!.amount) }));
       }
-      // 마일스톤 도달 보너스 코인
+      // 마일스톤 도달 보너스 코인 + EXP
       setCoins((c) => c + 30);
+      gainExp(50);
       setMilestoneToast({ id: ms.id, title: ms.title });
       window.setTimeout(() => setMilestoneToast(null), 4200);
       break; // 한 틱에 한 개만
@@ -2896,9 +2957,11 @@ export default function Page() {
     if (r.kind === "stat") {
       setStats((s) => ({ ...s, [r.stat]: clamp(s[r.stat] + r.amount) }));
     }
-    // 퀘스트 클리어 보너스 코인
+    // 퀘스트 클리어 보너스 코인 + EXP
     const coinBonus = quest.category === "secret" ? 200 : quest.category === "main" ? 100 : 50;
+    const expBonus = quest.category === "secret" ? 250 : quest.category === "main" ? 100 : 50;
     setCoins((c) => c + coinBonus);
+    gainExp(expBonus);
     setCompletedQuests((prev) => ({ ...prev, [quest.id]: true }));
     setQuestToast({ id: quest.id, title: `보상 받음: ${quest.title} (+🪙${coinBonus})` });
     window.setTimeout(() => setQuestToast(null), 3000);
@@ -2954,6 +3017,7 @@ export default function Page() {
     setPendingPhoto(null);
     setIsSending(true);
     setDailyState((prev) => ({ ...prev, chatCount: prev.chatCount + 1 }));
+    gainExp(5);
     const displayText = text || "📷 사진";
     const nextStats = applyStats(stats, text.includes("질투") ? { jealousy: 2 } : text.includes("좋아") ? { affinity: 2 } : {});
     setStats(nextStats);
@@ -3123,6 +3187,8 @@ export default function Page() {
     setCoins(0);
     setDailyState({ date: todayKey(), chatCount: 0, giftCount: 0, scenarioCount: 0, checkinDone: false, bladderPeak: 0, missions: [] });
     setShopHistory({});
+    setUserLevel(1);
+    setUserExp(0);
     setSeenEvents({});
     setStoryRoute("common");
     setMemoryNotes([]);
@@ -3199,7 +3265,17 @@ export default function Page() {
           <div className="relBadge"><div className="relBadgeTop"><span className="relLvLabel">Lv.{relLevel.lv}</span><span className="relLvName">{relLevel.displayName}</span><span className="relLvNext">{relLevel.lv < 10 ? `${relLevel.progressPct}%` : "MAX"}</span></div><div className="relProgressTrack"><div className="relProgressFill" style={{ width: `${relLevel.lv < 10 ? relLevel.progressPct : 100}%` }} /></div></div>
           <div className="statsBox"><StatBar label="호감" value={stats.affinity}/><StatBar label="질투" value={stats.jealousy} danger={stats.jealousy >= 500}/><StatBar label="집착" value={stats.obsession} danger={stats.obsession >= 500}/><StatBar label="신뢰" value={stats.trust}/>{stats.bladderCharm > 0 && <StatBar label="🚽매력" value={stats.bladderCharm}/>}</div>
         </div>
-        <div className="coinBar"><span className="coinIcon">🪙</span><span className="coinValue">{coins.toLocaleString()}</span></div>
+        <div className="userLevelBar">
+          <div className="userLvHead">
+            <span className="userLvBadge">Lv.{userLevel}</span>
+            <span className="userLvTitle">{getLevelTitle(userLevel)}</span>
+            <span className="coinChip"><span>🪙</span><b>{coins.toLocaleString()}</b></span>
+          </div>
+          <div className="userLvBar">
+            <div className="userLvBarFill" style={{ width: `${(userExp / expToNextLevel(userLevel)) * 100}%` }}/>
+          </div>
+          <small className="userLvExp">{userExp} / {expToNextLevel(userLevel)} EXP</small>
+        </div>
         <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=>{
           const dailyClaimable = key === "quests" ? dailyState.missions.filter((m) => {
             if (m.claimed) return false;
@@ -3207,7 +3283,11 @@ export default function Page() {
             return t && getDailyProgress(t.field, dailyState) >= m.target;
           }).length : 0;
           const totalClaimable = (key === "quests" ? claimableCount + dailyClaimable : 0);
-          return <button key={key} className={`${view===key ? "active" : ""}${key==="checkin" && !isCheckedInToday(lastCheckIn) ? " navDot" : ""}${key==="quests" && totalClaimable > 0 ? " navDot" : ""}${key==="admin" ? " adminNavBtn" : ""}`} onClick={()=>setView(key as AppView)}>{label}{key==="quests" && totalClaimable > 0 && <span className="navBadge">{totalClaimable}</span>}</button>;
+          // 빨간 점 알림 통합
+          const showDot = (key === "checkin" && !isCheckedInToday(lastCheckIn))
+            || (key === "quests" && totalClaimable > 0)
+            || (key === "shop" && coins >= 50 && Object.keys(shopHistory).length === 0);
+          return <button key={key} className={`${view===key ? "active" : ""}${showDot ? " navDot" : ""}${key==="admin" ? " adminNavBtn" : ""}`} onClick={()=>setView(key as AppView)}>{label}{key==="quests" && totalClaimable > 0 && <span className="navBadge">{totalClaimable}</span>}</button>;
         })}</nav>
       </aside>
       <section className="content">
@@ -4113,6 +4193,18 @@ export default function Page() {
         {questToast && <div className="cgUnlockToast questToast"><div className="cgUnlockIcon">🎯</div><div><b>퀘스트 달성!</b><span>「{questToast.title}」</span><small>도전 메뉴에서 보상을 받으세요.</small></div></div>}
         {milestoneToast && <div className="cgUnlockToast milestoneToast"><div className="cgUnlockIcon">💗</div><div><b>마일스톤 달성</b><span>「{milestoneToast.title}」</span><small>새 메시지가 도착했어요.</small></div></div>}
         {shopToast && <div className="cgUnlockToast shopToast"><div className="cgUnlockIcon">🪙</div><div><b>{shopToast.name}</b><span>{shopToast.detail}</span></div></div>}
+        {expFloater && <div className="expFloater" key={expFloater.id}>+{expFloater.amount} EXP</div>}
+        {levelUpEffect && (
+          <div className="levelUpOverlay">
+            <div className="levelUpRays"/>
+            <div className="levelUpCard">
+              <span className="levelUpEyebrow">L · E · V · E · L &nbsp;&nbsp; U · P</span>
+              <p className="levelUpLevel">Lv. {levelUpEffect.level}</p>
+              <span className="levelUpTitle">{levelUpEffect.title}</span>
+              <small className="levelUpReward">🪙 +{levelUpEffect.level * 10} 보너스</small>
+            </div>
+          </div>
+        )}
         {achievementToast && <div className="achToast"><div className="achToastIcon">{achievementToast.emoji}</div><div><b>업적 해금</b><span>「{achievementToast.title}」</span><small>{achievementToast.description}</small></div></div>}
         {bladderPopup && (
           <div className="bladderPopupOverlay">
@@ -4329,10 +4421,32 @@ const CSS = `
 .shopToast{background:linear-gradient(135deg,#2a1f0e,#4a3818) !important;border-color:rgba(255,210,100,.5) !important}
 .shopToast b{color:#ffd97a}
 .shopToast span{color:#fff}
-/* ─ 코인바 ─ */
-.coinBar{display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 14px;margin:0 0 12px;background:linear-gradient(135deg,#3a2510,#5a3a18);border:1px solid rgba(255,210,100,.3);border-radius:14px;color:#ffd97a;font-weight:1000}
-.coinIcon{font-size:18px;filter:drop-shadow(0 0 6px rgba(255,210,100,.6))}
-.coinValue{font-size:15px;letter-spacing:.04em}
+/* ─ 유저 레벨바 (사이드바) ─ */
+.userLevelBar{padding:10px 12px;margin:0 0 12px;background:linear-gradient(135deg,#1f1410,#2e1f17);border:1px solid rgba(255,210,100,.22);border-radius:14px;color:#fff}
+.userLvHead{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.userLvBadge{font-size:13px;font-weight:1000;color:#3a2017;background:linear-gradient(135deg,#ffd97a,#e8993b);padding:3px 9px;border-radius:8px;letter-spacing:.04em}
+.userLvTitle{flex:1;font-size:12px;font-weight:900;color:#ffd9a0;letter-spacing:.06em}
+.coinChip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(255,210,100,.12);border:1px solid rgba(255,210,100,.3);border-radius:99px;color:#ffd97a;font-size:12px;font-weight:900}
+.coinChip span{font-size:13px}
+.coinChip b{font-size:12px}
+.userLvBar{height:6px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden}
+.userLvBarFill{height:100%;background:linear-gradient(90deg,#ffd97a,#e8993b);border-radius:99px;transition:width .5s cubic-bezier(.2,.8,.3,1);box-shadow:0 0 8px rgba(255,210,100,.5)}
+.userLvExp{display:block;text-align:right;margin-top:3px;font-size:9px;color:#a09080;font-weight:700;letter-spacing:.04em}
+/* ─ EXP 플로터 ─ */
+.expFloater{position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:9998;color:#ffd97a;font-weight:1000;font-size:18px;text-shadow:0 0 12px rgba(255,210,100,.9),0 2px 6px rgba(0,0,0,.6);pointer-events:none;animation:expFloaterAnim 1.4s cubic-bezier(.2,.6,.3,1) forwards}
+@keyframes expFloaterAnim{0%{opacity:0;transform:translate(-50%,10px) scale(.85)}20%{opacity:1;transform:translate(-50%,0) scale(1.05)}100%{opacity:0;transform:translate(-50%,-50px) scale(1)}}
+/* ─ 레벨업 오버레이 ─ */
+.levelUpOverlay{position:fixed;inset:0;z-index:99998;display:grid;place-items:center;pointer-events:none;animation:levelUpFadeIn .3s ease}
+.levelUpRays{position:absolute;inset:-25%;background:repeating-conic-gradient(from 0deg,rgba(255,210,90,.18) 0deg 6deg,transparent 6deg 16deg);animation:levelUpSpin 4s linear infinite;mix-blend-mode:screen}
+.levelUpCard{position:relative;z-index:1;display:grid;gap:10px;justify-items:center;padding:36px 56px;background:radial-gradient(ellipse at center,rgba(0,0,0,.88) 0%,rgba(0,0,0,.7) 100%);border:2px solid rgba(255,210,100,.5);border-radius:24px;box-shadow:0 0 60px rgba(255,210,100,.4),inset 0 0 30px rgba(255,210,100,.1);animation:levelUpPop .9s cubic-bezier(.2,1.4,.3,1) both}
+.levelUpEyebrow{font-size:13px;font-weight:1000;letter-spacing:.5em;color:#ffd97a;text-shadow:0 0 16px rgba(255,210,100,.9)}
+.levelUpLevel{margin:0;font-size:64px;font-weight:1000;color:#fff;text-shadow:0 0 24px rgba(255,210,100,1),0 0 48px rgba(255,180,60,.7),0 4px 0 rgba(120,80,20,.6);letter-spacing:.04em;animation:levelUpLevelGlow 1.6s ease-in-out infinite}
+.levelUpTitle{font-size:22px;font-weight:1000;color:#ffe4a8;text-shadow:0 0 12px rgba(255,200,90,.85)}
+.levelUpReward{font-size:14px;color:#ffd97a;font-weight:900;letter-spacing:.06em;margin-top:6px}
+@keyframes levelUpFadeIn{0%{opacity:0;backdrop-filter:blur(12px)}100%{opacity:1;backdrop-filter:blur(0)}}
+@keyframes levelUpSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes levelUpPop{0%{opacity:0;transform:scale(.5) rotate(-3deg)}50%{opacity:1;transform:scale(1.08) rotate(1deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes levelUpLevelGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.2)}}
 /* ─ 퀘스트 섹션 헤더 ─ */
 .questSectionTitle{margin:24px 0 12px;font-size:18px;color:#3a2017;display:flex;align-items:center;gap:8px}
 .questSectionTitle small{font-size:12px;color:#9a7c65;font-weight:700}

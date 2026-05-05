@@ -110,6 +110,8 @@ export type SaveData = {
   dailyState?: DailyState; // 데일리 미션 / 카운터
   shopHistory?: Record<string, number>; // 상점 구매 횟수 (item_id -> count)
   ownedConsumables?: Record<string, number>; // 보유 소모품 (id -> 개수)
+  userLevel?: number; // 유저 레벨
+  userExp?: number;   // 현재 레벨 내 누적 EXP
 };
 export type DailyMission = {
   templateId: string;
