@@ -476,6 +476,96 @@ function getUnlockedOutfits(
   return unlocked;
 }
 // ================================
+// 퀘스트 / 도전 시스템
+// ================================
+type QuestState = {
+  seenEvents: Record<string, boolean>;
+  unlockedCGs: Record<string, boolean>;
+  stats: Stats;
+  storyRoute: StoryRoute;
+  checkInStreak: number;
+  unlockedEndings: Record<string, boolean>;
+};
+type QuestReward =
+  | { kind: "stat"; stat: StatKey; amount: number; label: string }
+  | { kind: "message"; text: string }
+  | { kind: "outfit"; label: string }
+  | { kind: "cg"; label: string };
+type Quest = {
+  id: string;
+  title: string;
+  description: string;
+  emoji: string;
+  category: "main" | "side" | "bladder" | "secret";
+  progress: (state: QuestState) => { current: number; target: number };
+  reward: QuestReward;
+  hint?: string;
+  visible?: (state: QuestState) => boolean; // 비공개 퀘스트는 조건 충족 시 등장
+};
+
+const QUESTS: Quest[] = [
+  {
+    id: "first_night",
+    title: "첫 만남의 밤",
+    description: "1장을 끝까지 진행해 근떡존과의 첫 밤을 마무리하세요.",
+    emoji: "🌃",
+    category: "main",
+    progress: (s) => ({ current: s.seenEvents["main_ch1_09"] ? 1 : 0, target: 1 }),
+    reward: { kind: "stat", stat: "affinity", amount: 30, label: "호감 +30" },
+  },
+  {
+    id: "cg_collector",
+    title: "CG 컬렉터",
+    description: "갤러리에 CG 20장을 해금하세요.",
+    emoji: "🖼",
+    category: "side",
+    progress: (s) => ({ current: Math.min(20, Object.keys(s.unlockedCGs).length), target: 20 }),
+    reward: { kind: "stat", stat: "affinity", amount: 50, label: "호감 +50" },
+  },
+  {
+    id: "checkin_champion",
+    title: "출석 챔피언",
+    description: "7일 연속 출석 달성. 매일 그가 기다립니다.",
+    emoji: "📅",
+    category: "side",
+    progress: (s) => ({ current: Math.min(7, s.checkInStreak), target: 7 }),
+    reward: { kind: "stat", stat: "trust", amount: 30, label: "신뢰 +30" },
+  },
+  {
+    id: "route_explorer",
+    title: "갈림길의 끝",
+    description: "어떤 엔딩이든 한 개를 클리어하세요. 비밀이 열립니다.",
+    emoji: "🔑",
+    category: "main",
+    progress: (s) => ({ current: Math.min(1, Object.keys(s.unlockedEndings).length), target: 1 }),
+    reward: { kind: "message", text: "🚽 ??? 비밀 루트가 해금되었습니다." },
+    hint: "엔딩을 보면 시나리오 메뉴에 새 항목이 등장해요.",
+  },
+  {
+    id: "bladder_charm_master",
+    title: "K-방광의 시작",
+    description: "방광매력 100을 달성해 K-방광 슈트를 손에 넣으세요.",
+    emoji: "🚽",
+    category: "bladder",
+    progress: (s) => ({ current: Math.min(100, s.stats.bladderCharm), target: 100 }),
+    reward: { kind: "outfit", label: "K-방광 슈트 자동 해금" },
+    hint: "방광 루트 7장 이후 선택지로 채워집니다.",
+    visible: (s) => Boolean(s.seenEvents["bladder_ch5_01"]) || s.stats.bladderCharm > 0,
+  },
+  // 비밀 퀘스트
+  {
+    id: "all_endings",
+    title: "모든 결말의 수집가",
+    description: "4개의 엔딩을 모두 보세요.",
+    emoji: "👑",
+    category: "secret",
+    progress: (s) => ({ current: Math.min(4, Object.keys(s.unlockedEndings).length), target: 4 }),
+    reward: { kind: "stat", stat: "affinity", amount: 200, label: "호감 +200, 모든 루트의 마음" },
+    visible: (s) => Object.keys(s.unlockedEndings).length >= 1,
+  },
+];
+
+// ================================
 // 일기 / 독백 카드 시스템
 // ================================
 type DiaryEntry = {
@@ -1687,6 +1777,8 @@ export default function Page() {
   const [unlockedCGs, setUnlockedCGs] = useState<Record<string, boolean>>({});
   const [cgFavorites, setCgFavorites] = useState<Record<string, boolean>>({});
   const [unlockedEndings, setUnlockedEndings] = useState<Record<string, boolean>>({});
+  const [completedQuests, setCompletedQuests] = useState<Record<string, boolean>>({});
+  const [questToast, setQuestToast] = useState<{ id: string; title: string } | null>(null);
   const [slotTick, setSlotTick] = useState(0); // 슬롯 변경 시 리렌더 트리거
   const [seenEvents, setSeenEvents] = useState<Record<string, boolean>>({});
   const [storyRoute, setStoryRoute] = useState<StoryRoute>("common");
@@ -1783,6 +1875,7 @@ export default function Page() {
   const homeButtons: { label: string; target: AppView }[] = [
     { label: "대화하기", target: "chat" },
     { label: "시나리오", target: "scenarioMenu" },
+    { label: "도전", target: "quests" },
     { label: "갤러리", target: "gallery" },
     { label: "전진협", target: "events" },
     { label: "상태", target: "profile" },
@@ -1824,6 +1917,7 @@ export default function Page() {
         setUnlockedCGs(saved.unlockedCGs ?? {});
         setCgFavorites(saved.cgFavorites ?? {});
         setUnlockedEndings(saved.endingFlags ?? {});
+        setCompletedQuests(saved.completedQuests ?? {});
         setSeenEvents(saved.seenEvents ?? {});
         setStoryRoute(saved.storyRoute ?? "common");
         setMemoryNotes(saved.memoryNotes ?? []);
@@ -1877,10 +1971,11 @@ export default function Page() {
       bladderPopupThreshold,
       cgFavorites,
       endingFlags: unlockedEndings,
+      completedQuests,
     };
     save.messages = sanitizeMessages(save.messages);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
-  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings]);
+  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests]);
 
   // ─ 방광 채우기 타이머 ─
   useEffect(() => {
@@ -2305,6 +2400,46 @@ export default function Page() {
     setUnlockedEndings((prev) => ({ ...prev, [key]: true }));
     endingCardTimer.current = window.setTimeout(() => setEndingCard(null), 5200);
   }
+  // 퀘스트 진행 상태 계산
+  const questState: QuestState = useMemo(() => ({
+    seenEvents, unlockedCGs, stats, storyRoute, checkInStreak, unlockedEndings,
+  }), [seenEvents, unlockedCGs, stats, storyRoute, checkInStreak, unlockedEndings]);
+  const visibleQuests = useMemo(() => QUESTS.filter((q) => !q.visible || q.visible(questState)), [questState]);
+  const claimableCount = useMemo(() => visibleQuests.filter((q) => {
+    if (completedQuests[q.id]) return false;
+    const p = q.progress(questState);
+    return p.current >= p.target;
+  }).length, [visibleQuests, completedQuests, questState]);
+  // 새로 달성한 퀘스트 자동 토스트
+  useEffect(() => {
+    for (const q of visibleQuests) {
+      if (completedQuests[q.id]) continue;
+      const p = q.progress(questState);
+      if (p.current >= p.target) {
+        // 토스트는 한 번만, 실제 완료 처리는 사용자가 보상받기 클릭
+        const toastKey = `_toast_${q.id}`;
+        if (typeof window !== "undefined" && !(window as any)[toastKey]) {
+          (window as any)[toastKey] = true;
+          setQuestToast({ id: q.id, title: q.title });
+          window.setTimeout(() => setQuestToast(null), 3800);
+          break;
+        }
+      }
+    }
+  }, [visibleQuests, completedQuests, questState]);
+  function claimQuestReward(quest: Quest) {
+    if (completedQuests[quest.id]) return;
+    const p = quest.progress(questState);
+    if (p.current < p.target) return;
+    const r = quest.reward;
+    if (r.kind === "stat") {
+      setStats((s) => ({ ...s, [r.stat]: clamp(s[r.stat] + r.amount) }));
+    }
+    setCompletedQuests((prev) => ({ ...prev, [quest.id]: true }));
+    // 보상 메시지 토스트 재활용
+    setQuestToast({ id: quest.id, title: `보상 받음: ${quest.title}` });
+    window.setTimeout(() => setQuestToast(null), 3000);
+  }
   function handleMissionTap(target: TouchTarget) {
     if (!currentScenario) return;
     const nextStats = applyStats(stats, target.stat);
@@ -2518,6 +2653,7 @@ export default function Page() {
     setUnlockedCGs({});
     setUnlockedEndings({});
     setCgFavorites({});
+    setCompletedQuests({});
     setSeenEvents({});
     setStoryRoute("common");
     setMemoryNotes([]);
@@ -2594,7 +2730,7 @@ export default function Page() {
           <div className="relBadge"><div className="relBadgeTop"><span className="relLvLabel">Lv.{relLevel.lv}</span><span className="relLvName">{relLevel.displayName}</span><span className="relLvNext">{relLevel.lv < 10 ? `${relLevel.progressPct}%` : "MAX"}</span></div><div className="relProgressTrack"><div className="relProgressFill" style={{ width: `${relLevel.lv < 10 ? relLevel.progressPct : 100}%` }} /></div></div>
           <div className="statsBox"><StatBar label="호감" value={stats.affinity}/><StatBar label="질투" value={stats.jealousy} danger={stats.jealousy >= 500}/><StatBar label="집착" value={stats.obsession} danger={stats.obsession >= 500}/><StatBar label="신뢰" value={stats.trust}/>{stats.bladderCharm > 0 && <StatBar label="🚽매력" value={stats.bladderCharm}/>}</div>
         </div>
-        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=><button key={key} className={`${view===key ? "active" : ""}${key==="checkin" && !isCheckedInToday(lastCheckIn) ? " navDot" : ""}${key==="admin" ? " adminNavBtn" : ""}`} onClick={()=>setView(key as AppView)}>{label}</button>)}</nav>
+        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=><button key={key} className={`${view===key ? "active" : ""}${key==="checkin" && !isCheckedInToday(lastCheckIn) ? " navDot" : ""}${key==="quests" && claimableCount > 0 ? " navDot" : ""}${key==="admin" ? " adminNavBtn" : ""}`} onClick={()=>setView(key as AppView)}>{label}{key==="quests" && claimableCount > 0 && <span className="navBadge">{claimableCount}</span>}</button>)}</nav>
       </aside>
       <section className="content">
         {currentScenario && <div className={`scenarioOverlay${vnDramatic ? " vnDramatic" : ""}`} style={{ "--bg-url": `url(${currentScenario.background ?? "/bg_room_night.png"})` } as React.CSSProperties}>
@@ -2690,6 +2826,56 @@ export default function Page() {
             </Panel>
           );
         })()}
+        {view === "quests" && (
+          <Panel title="도전 / 퀘스트">
+            <p className="questIntro">목표를 달성하면 보상을 받을 수 있어요. <strong>{claimableCount}개</strong> 받을 준비 완료.</p>
+            <div className="questGrid">
+              {visibleQuests.map((q) => {
+                const p = q.progress(questState);
+                const isComplete = p.current >= p.target;
+                const isClaimed = !!completedQuests[q.id];
+                const pct = Math.min(100, (p.current / p.target) * 100);
+                const catKlass = q.category === "main" ? "qcMain" : q.category === "bladder" ? "qcBladder" : q.category === "secret" ? "qcSecret" : "qcSide";
+                return (
+                  <div key={q.id} className={`questCard ${catKlass}${isClaimed ? " questClaimed" : isComplete ? " questReady" : ""}`}>
+                    <div className="questHead">
+                      <span className="questEmoji">{q.emoji}</span>
+                      <div className="questHeadText">
+                        <b className="questTitle">{q.title}</b>
+                        <small className="questCategory">{q.category === "main" ? "메인 도전" : q.category === "bladder" ? "🚽 방광 도전" : q.category === "secret" ? "✦ 비밀 도전" : "사이드 도전"}</small>
+                      </div>
+                      {isClaimed && <span className="questClaimedBadge">완료</span>}
+                    </div>
+                    <p className="questDesc">{q.description}</p>
+                    {q.hint && !isComplete && <small className="questHint">💡 {q.hint}</small>}
+                    <div className="questProgress">
+                      <div className="questProgressBar"><div style={{ width: `${pct}%` }}/></div>
+                      <span className="questProgressText">{p.current} / {p.target}</span>
+                    </div>
+                    <div className="questReward">
+                      <small>보상</small>
+                      <span>
+                        {q.reward.kind === "stat" && q.reward.label}
+                        {q.reward.kind === "message" && q.reward.text}
+                        {q.reward.kind === "outfit" && q.reward.label}
+                        {q.reward.kind === "cg" && q.reward.label}
+                      </span>
+                    </div>
+                    {!isClaimed && (
+                      <button
+                        className={`questClaimBtn${isComplete ? " questClaimReady" : ""}`}
+                        disabled={!isComplete}
+                        onClick={() => claimQuestReward(q)}
+                      >
+                        {isComplete ? "🎁 보상 받기" : "진행 중"}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </Panel>
+        )}
         {view === "profile" && <Panel title="상태"><div className="profilePanel"><div className="profileOverview"><div className="profileIllustration"><img key={currentPortrait} className="portraitCrossfade" src={currentPortrait || getHomeCharacterImage(stats, storyRoute)} alt={`${profile.name} 초상`} onError={(e)=>{e.currentTarget.src="/oppa1.png"}}/></div><div className="profileSummary"><h3>{profile.name}</h3><p className="profileTag">Lv.{relLevel.lv} · {relLevel.displayName}</p><div className="profileStatsLine"><span>{routeLabel}</span><span>{currentChapter}장 진행</span>{currentScenario ? <span>{currentScenario.title}</span> : null}</div><div className="profileDetails"><span>나이 {profile.age}</span><span>키 {profile.height}</span><span>{profile.location}</span></div><div className="statusCards"><div className="statusCard"><strong>호감</strong><span>{stats.affinity}%</span><small>{getStatMood("affinity", stats.affinity)}</small></div><div className="statusCard"><strong>질투</strong><span>{stats.jealousy}%</span><small>{getStatMood("jealousy", stats.jealousy)}</small></div><div className="statusCard"><strong>집착</strong><span>{stats.obsession}%</span><small>{getStatMood("obsession", stats.obsession)}</small></div><div className="statusCard"><strong>신뢰</strong><span>{stats.trust}%</span><small>{getStatMood("trust", stats.trust)}</small></div>{stats.bladderCharm > 0 && <div className="statusCard bladderCharmCard"><strong>🚽 방광매력</strong><span>{stats.bladderCharm}</span><small>{stats.bladderCharm >= 800 ? "태평양방광 — 전 세계가 매료됨" : stats.bladderCharm >= 400 ? "K-방광 — 선생님이 진심으로 듬직해함" : stats.bladderCharm >= 100 ? "방광이 매력 포인트가 되기 시작함" : "선생님이 살짝 신경 쓰이기 시작"}</small></div>}</div><div className="statusNote"><b>{emotionState.label}</b><span>{emotionState.detail}</span><small>{getCurrentStatusText(stats, storyRoute)}</small></div></div></div><div className="memoryPanel"><div><strong>관계 기억 노트</strong><small>{memoryNotes.length}개 저장됨</small></div>{memoryNotes.length ? memoryNotes.slice(-8).reverse().map((note)=><p key={note.id}><b>{note.chapter}장</b>{note.text}</p>) : <p>아직 근떡존이 오래 붙잡고 있을 만한 기억은 없어요.</p>}</div><div className="profileTextBlock"><p>{profile.bio}</p><p>{profile.personality}</p></div><div className="profileMeta"><div><strong>좋아하는 것</strong><p>{profile.likes.join(" · ")}</p></div><div><strong>취미</strong><p>{profile.hobbies.join(" · ")}</p></div><div><strong>키워드</strong><p>{profile.tags.join(" · ")}</p></div></div></div></Panel>}
         {view === "gallery" && (
           <Panel title="CG 갤러리">
@@ -3377,6 +3563,7 @@ export default function Page() {
         {showTutorial && <div className="tutorialOverlay"><section className="tutorialCard"><div>첫 플레이 안내 <span>{tutorialStep + 1} / {tutorialCards.length}</span></div><h2>{currentTutorial.title}</h2><p>{currentTutorial.body}</p><footer><button onClick={closeTutorial}>건너뛰기</button>{tutorialStep < tutorialCards.length - 1 ? <button onClick={()=>setTutorialStep((v)=>v+1)}>다음</button> : <button onClick={closeTutorial}>시작하기</button>}</footer></section></div>}
         {chapterTransition && <div className={`chapterTransition ${chapterTransition.mode}`}><section><span>{chapterTransition.eyebrow}</span><h2>{chapterTransition.title}</h2>{chapterTransition.subtitle && <p>{chapterTransition.subtitle}</p>}</section></div>}
         {cgUnlockToast && <div className="cgUnlockToast"><div className="cgUnlockIcon">🖼</div><div><b>CG 해금</b><span>「{cgUnlockToast.name}」</span><small>갤러리에 추가되었습니다.</small></div></div>}
+        {questToast && <div className="cgUnlockToast questToast"><div className="cgUnlockIcon">🎯</div><div><b>퀘스트 달성!</b><span>「{questToast.title}」</span><small>도전 메뉴에서 보상을 받으세요.</small></div></div>}
         {achievementToast && <div className="achToast"><div className="achToastIcon">{achievementToast.emoji}</div><div><b>업적 해금</b><span>「{achievementToast.title}」</span><small>{achievementToast.description}</small></div></div>}
         {bladderPopup && (
           <div className="bladderPopupOverlay">
@@ -3552,6 +3739,41 @@ const CSS = `
 .vnChoices button.lockedChoice{opacity:.48;cursor:not-allowed;background:#1e1714;border:1px solid rgba(255,255,255,.10);color:#7a6560;position:relative;display:grid;gap:4px}.vnChoices button.lockedChoice::before{content:"🔒";position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.7}.condBadge{display:block;font-size:10px;font-weight:900;letter-spacing:.08em;color:#d0a060;opacity:.8;text-transform:uppercase}.lockedMsg{margin:0 0 10px;padding:12px 16px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,200,120,.18);color:#c9a88a;font-size:14px;font-style:italic;text-align:center;animation:fadeLockedMsg .3s ease}
 .emotionBox{display:grid;gap:6px;margin:0 0 14px;padding:13px 14px;border-radius:16px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.1)}.emotionBox span{font-size:16px;font-weight:1000;color:#ffd59b}.emotionBox small{font-size:12px;line-height:1.45;color:#e8d8c8}.emotionBox.danger span{color:#ff8b8b}.emotionBox.warn span{color:#ffbd73}.emotionBox.soft span{color:#aee3b5}.emotionBox.warm span{color:#ffd07a}.statusNote{display:grid;gap:7px}.statusNote b{font-size:18px;color:#7b4f2f}.statusNote span,.statusNote small{line-height:1.6}.memoryPanel{display:grid;gap:10px;background:#fffaf4;border:1px solid #e8d2b6;border-radius:20px;padding:20px}.memoryPanel>div{display:flex;justify-content:space-between;gap:10px;align-items:center}.memoryPanel strong{font-size:18px;color:#5b3828}.memoryPanel small{color:#9a7c65}.memoryPanel p{margin:0;padding:12px 14px;border-radius:14px;background:#fff;border:1px solid rgba(216,184,148,.55);color:#4a342a;line-height:1.7}.memoryPanel p b{display:inline-flex;margin-right:8px;color:#d98131}
 .statusCard.bladderCharmCard{background:linear-gradient(135deg,#fff7d6 0%,#ffe9a8 100%);border-color:#d9a656;color:#5a3d12}.statusCard.bladderCharmCard strong{color:#7b5318}.statusCard.bladderCharmCard span{color:#3a2510;font-weight:1000}.statusCard.bladderCharmCard small{color:#7b5318}
+/* ─ 퀘스트 패널 ─ */
+.questIntro{margin:0 0 18px;padding:14px 16px;background:#fff8ef;border:1px solid #e8c99e;border-radius:14px;color:#5a3d12;font-size:14px;font-weight:700}
+.questIntro strong{color:#df842c;font-weight:1000}
+.questGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.questCard{background:#fff;border:1px solid #e6d2b8;border-radius:18px;padding:18px;display:grid;gap:10px;transition:transform .15s ease,box-shadow .2s ease;position:relative;overflow:hidden}
+.questCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.1)}
+.questCard.qcMain{border-left:4px solid #df842c}
+.questCard.qcSide{border-left:4px solid #8b7162}
+.questCard.qcBladder{border-left:4px solid #d9a656;background:linear-gradient(135deg,#fffbf0 0%,#fff5d6 100%)}
+.questCard.qcSecret{border-left:4px solid #6e4592;background:linear-gradient(135deg,#faf5ff 0%,#ede0f7 100%)}
+.questCard.questReady{box-shadow:0 0 0 2px #f0c060,0 8px 22px rgba(240,192,96,.32);animation:questReadyPulse 2.4s ease-in-out infinite}
+.questCard.questClaimed{opacity:.55}
+.questHead{display:flex;align-items:center;gap:12px}
+.questEmoji{font-size:32px;line-height:1}
+.questHeadText{flex:1;display:grid;gap:2px;min-width:0}
+.questTitle{font-size:16px;color:#2a1a14;font-weight:1000}
+.questCategory{font-size:11px;color:#9a7c65;font-weight:700;letter-spacing:.04em}
+.questClaimedBadge{font-size:11px;font-weight:900;padding:4px 10px;border-radius:99px;background:#a3c785;color:#fff}
+.questDesc{margin:0;color:#4a342a;line-height:1.55;font-size:14px}
+.questHint{color:#7b5318;font-style:italic;font-size:12px;line-height:1.5}
+.questProgress{display:flex;align-items:center;gap:10px}
+.questProgressBar{flex:1;height:8px;background:rgba(91,48,24,.12);border-radius:99px;overflow:hidden}
+.questProgressBar div{height:100%;background:linear-gradient(90deg,#df842c,#e8993b);border-radius:99px;transition:width .35s ease}
+.questCard.qcBladder .questProgressBar div{background:linear-gradient(90deg,#d9a656,#ffd07a)}
+.questCard.qcSecret .questProgressBar div{background:linear-gradient(90deg,#6e4592,#a880c8)}
+.questProgressText{font-size:12px;font-weight:900;color:#3a2017;min-width:60px;text-align:right}
+.questReward{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(223,132,44,.08);border-radius:12px}
+.questReward small{font-size:11px;color:#7b4f2f;font-weight:900;letter-spacing:.04em}
+.questReward span{font-size:13px;color:#3a2017;font-weight:700}
+.questClaimBtn{border:0;border-radius:14px;padding:12px;background:#e0d4c5;color:#7a6957;font-weight:900;font-size:14px;cursor:not-allowed;transition:all .2s}
+.questClaimBtn.questClaimReady{background:linear-gradient(135deg,#e8993b,#df842c);color:#fff;cursor:pointer;box-shadow:0 8px 18px rgba(223,132,44,.3)}
+.questClaimBtn.questClaimReady:hover{transform:translateY(-1px);background:linear-gradient(135deg,#f1a850,#e58a2f)}
+@keyframes questReadyPulse{0%,100%{box-shadow:0 0 0 2px #f0c060,0 8px 22px rgba(240,192,96,.32)}50%{box-shadow:0 0 0 3px #ffd47a,0 12px 28px rgba(240,192,96,.5)}}
+.nav button .navBadge{display:inline-block;margin-left:6px;background:#f0c060;color:#3a2017;font-size:10px;font-weight:1000;padding:1px 6px;border-radius:99px;vertical-align:middle}
+.questToast{background:linear-gradient(135deg,#3a2510,#5a3a18) !important;border-color:rgba(240,192,96,.5) !important}
 .secretRouteCard{position:relative;overflow:hidden;transition:transform .15s ease,box-shadow .2s ease}.secretRouteCard.secretUnlocked{background:linear-gradient(135deg,#fff7d6 0%,#ffe9a8 60%,#ffd17a 100%);border:1px solid #d9a656;color:#5a3d12;box-shadow:0 8px 24px rgba(217,166,86,.28)}.secretRouteCard.secretUnlocked:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(217,166,86,.4)}.secretRouteCard.secretUnlocked b{color:#3a2510}.secretRouteCard.secretUnlocked small{color:#7b5318}.secretRouteCard.secretLocked{background:repeating-linear-gradient(135deg,#2a201b 0px,#2a201b 14px,#22191a 14px,#22191a 28px);color:#7a6b62;border:1px dashed #5a4a40;cursor:not-allowed;opacity:.85}.secretRouteCard.secretLocked b{color:#8a7a6f;letter-spacing:.18em}.secretRouteCard.secretLocked small{color:#6b5b50;font-style:italic}.secretRouteCard.secretLocked:hover{transform:none;box-shadow:none}
 .saveSlotGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:18px}.saveSlotCard{background:#fff8ef;border:1px solid #e8c99e;border-radius:18px;padding:16px;display:grid;gap:12px;color:#3a2017;box-shadow:0 8px 22px rgba(91,48,24,.08);transition:transform .15s ease,box-shadow .2s ease}.saveSlotCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.saveSlotCard.ssEmpty{background:#f6efe5;border-style:dashed;border-color:#cdb89a;opacity:.85}.saveSlotCard.ssRoutePure{background:linear-gradient(180deg,#fff5f8 0%,#fce6ee 100%);border-color:#ecc4d6}.saveSlotCard.ssRouteObsession{background:linear-gradient(180deg,#2a1517 0%,#1a0d0e 100%);border-color:#5d2a30;color:#f4dadd}.saveSlotCard.ssRouteObsession .ssTime,.saveSlotCard.ssRouteObsession .ssPreview{color:#b89a9d}.saveSlotCard.ssRouteObsession .ssStats span{background:rgba(255,200,200,.08);color:#f4dadd}.saveSlotCard.ssRouteObsession .ssThumb{border-color:rgba(255,170,170,.2)}.ssHead{display:flex;align-items:center;justify-content:space-between;gap:8px}.ssNum{font-size:14px;font-weight:1000;letter-spacing:.04em;color:inherit}.ssRouteBadge{font-size:11px;font-weight:900;padding:4px 10px;border-radius:99px;background:rgba(91,48,24,.12);color:#7b4f2f}.ssRoutePure .ssRouteBadge{background:rgba(220,120,160,.18);color:#a14872}.ssRouteObsession .ssRouteBadge{background:rgba(220,80,80,.22);color:#ffaab2}.ssBody{display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:start}.ssThumb{width:84px;height:84px;border-radius:14px;object-fit:cover;border:1px solid rgba(91,48,24,.18);background:#ead7c7}.ssMeta{display:grid;gap:6px;min-width:0}.ssScene{margin:0;font-size:14px;font-weight:900;color:inherit;line-height:1.4}.ssPreview{margin:0;font-size:12px;font-style:italic;color:#7a5e4a;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.ssStats{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}.ssStats span{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:99px;background:rgba(91,48,24,.1);color:#5b3520;letter-spacing:.02em}.ssTime{color:#9a7c65;font-size:11px;font-weight:700;margin-top:2px}.ssEmptyBody{text-align:center;padding:24px 12px;color:#876953}.ssEmptyIcon{font-size:36px;display:block;margin-bottom:8px;opacity:.6}.ssEmptyBody p{margin:0 0 4px;font-size:14px;font-weight:900}.ssEmptyBody small{font-size:11px;color:#a78a72}.ssActions{display:flex;gap:6px}.ssActions button{flex:1;border:0;border-radius:12px;padding:10px 8px;font-size:13px;font-weight:900;cursor:pointer;transition:background .15s ease,transform .12s ease}.ssActions button:hover{transform:translateY(-1px)}.ssBtnLoad{background:#df842c;color:#fff}.ssBtnLoad:hover{background:#c8731f}.ssBtnSave{background:#3a2d29;color:#fff}.ssBtnSave:hover{background:#5a4338}.ssBtnDel{background:transparent;color:#c44;border:1px solid #c44 !important}.ssBtnDel:hover{background:rgba(196,68,68,.1)}
 .cgReaction{display:grid;grid-template-columns:86px minmax(0,1fr) auto;gap:14px;align-items:center;margin:0 0 18px;padding:14px;border-radius:20px;background:#fff8ef;border:1px solid #e8c99e;box-shadow:0 12px 32px rgba(91,48,24,.08)}.cgReaction>img{width:86px;height:86px;border-radius:18px;object-fit:cover;background:#ead7c7}.cgReactionBody{display:grid;gap:6px;min-width:0}.cgReactionBody p{margin:0;color:#4a342a;line-height:1.65;font-weight:800}.cgSourceCaption{color:#9a7c65;font-size:12px;font-weight:700}.cgReactionActions{display:flex;gap:6px;align-items:center}.cgReaction button{border:0;border-radius:999px;background:#3a2d29;color:white;padding:10px 14px;font-weight:900}.favBtn{background:#fff;color:#c44}.favBtn.favOn{background:#c44;color:#fff}.cgCard{position:relative;border:0;text-align:center;cursor:pointer;transition:transform .15s ease,box-shadow .2s ease}.cgCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.cgCardLocked{cursor:default;background:#1f1714}.cgCardLocked:hover{transform:none}.cgSilhouette{filter:brightness(.18) blur(6px) saturate(.5)}.cgLockedBadge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;color:rgba(255,210,150,.55);text-shadow:0 2px 12px rgba(0,0,0,.6);pointer-events:none}.cgFavMark{position:absolute;top:8px;right:10px;font-size:18px;color:#ff5577;text-shadow:0 2px 6px rgba(0,0,0,.45);pointer-events:none}.cgCardCaption{position:absolute;left:0;right:0;bottom:0;padding:6px 10px;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.74) 100%);color:#fff7e8;font-size:11px;font-weight:800;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;text-align:left}.galleryProgress{display:flex;align-items:center;gap:12px;margin:0 0 18px;padding:12px 16px;background:#fff8ef;border:1px solid #e8c99e;border-radius:14px;color:#5a3928}.galleryProgress span{font-size:12px;font-weight:900;letter-spacing:.06em;color:#7b4f2f}.galleryProgressBar{flex:1;min-width:80px;height:8px;background:rgba(91,48,24,.15);border-radius:99px;overflow:hidden}.galleryProgressBar div{height:100%;background:linear-gradient(90deg,#df842c,#e8993b);border-radius:99px;transition:width .35s ease}.galleryProgress strong{font-size:14px;color:#3a2017;font-weight:900}.tabs button.active{background:#df842c}.tabs button.bladderTab{background:linear-gradient(135deg,#d9a656,#b8843a);color:#fff;font-weight:1000}.tabs button.bladderTab.active{background:linear-gradient(135deg,#ffc94f,#d9a656);box-shadow:0 4px 12px rgba(217,166,86,.4)}.tabs button.bladderTab:hover{background:linear-gradient(135deg,#e8b563,#c89540)}

@@ -1,7 +1,7 @@
 "use client";
 
 export type Role = "user" | "assistant" | "narration";
-export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap";
+export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests";
 export type ScenarioKind = "normal" | "jealousy" | "obsession" | "confinement" | "yandere";
 export type ScenarioCategory = "main" | "action" | "special" | "after" | "side";
 export type StatKey = "affinity" | "jealousy" | "obsession" | "trust" | "bladderCharm";
@@ -103,4 +103,5 @@ export type SaveData = {
   lastBladderRelief?: number;    // 마지막 화장실 허락 timestamp
   bladderPopupThreshold?: number; // 마지막 팝업을 띄운 % 임계값
   cgFavorites?: Record<string, boolean>; // CG 즐겨찾기
+  completedQuests?: Record<string, boolean>; // 보상 받은 퀘스트
 };
