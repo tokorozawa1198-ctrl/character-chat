@@ -1,7 +1,7 @@
 "use client";
 
 export type Role = "user" | "assistant" | "narration";
-export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests" | "shop" | "gacha" | "pets" | "adventure" | "sns" | "raid" | "fortune" | "journal" | "minigames";
+export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests" | "shop" | "gacha" | "pets" | "adventure" | "sns" | "raid" | "fortune" | "journal" | "minigames" | "katalk";
 export type ScenarioKind = "normal" | "jealousy" | "obsession" | "confinement" | "yandere";
 export type ScenarioCategory = "main" | "action" | "special" | "after" | "side";
 export type StatKey = "affinity" | "jealousy" | "obsession" | "trust" | "bladderCharm";
@@ -144,6 +144,18 @@ export type SaveData = {
   // 미니게임
   minigameClickerHigh?: number;
   minigameWordHigh?: number;
+  // 전진협 친구 시스템
+  friendChats?: Record<string, FriendChatMessage[]>;
+  groupChat?: FriendChatMessage[];
+  friendLastSeen?: Record<string, number>;
+  friendLastSpawn?: Record<string, number>;
+  groupLastSpawn?: number;
+};
+export type FriendChatMessage = {
+  id: string;
+  speaker: string; // friend id, "user", or "tteokjon"
+  text: string;
+  time: number;
 };
 export type DailyMission = {
   templateId: string;

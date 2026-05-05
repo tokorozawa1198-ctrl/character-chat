@@ -9,6 +9,7 @@ import type {
   ChoiceCondition,
   DailyMission,
   DailyState,
+  FriendChatMessage,
   GalleryTab,
   MemoryNote,
   Message,
@@ -573,6 +574,108 @@ const QUESTS: Quest[] = [
     reward: { kind: "stat", stat: "affinity", amount: 200, label: "호감 +200, 모든 루트의 마음" },
     visible: (s) => Object.keys(s.unlockedEndings).length >= 1,
   },
+];
+
+// ================================
+// 전진협 친구 시스템
+// ================================
+type FriendId = "jjyut" | "eucalyptus" | "ostrich" | "geumsu" | "aroben";
+type Friend = {
+  id: FriendId;
+  name: string;
+  emoji: string;
+  age: number;
+  oneliner: string;       // 자기소개 한 줄 (병맛)
+  speech: string;         // 말투 가이드
+  hostility: number;      // -2 (응원) ~ +2 (적대)
+  flavor: string;         // 짧은 설명
+};
+const FRIENDS: Friend[] = [
+  { id: "jjyut",      name: "쮋",          emoji: "🥺", age: 36, oneliner: "착한척 존나하는 남미새",                             speech: "기본 존댓말, 빡돌면 반말",       hostility: 0,  flavor: "조력자인척 하지만 떡존이 노림. 도촬 좋아함" },
+  { id: "eucalyptus", name: "유칼립투스나무", emoji: "🌿", age: 25, oneliner: "사건 터지길 바라는 간사한 새끼",                  speech: "간사한 톤",                       hostility: 1,  flavor: "히든 행동 죄다 떡존이한테 일러바침" },
+  { id: "ostrich",    name: "타조",         emoji: "🐦", age: 27, oneliner: "도파민 중독자. 끼고싶어 환장",                    speech: "얄미운 한마디",                   hostility: 0,  flavor: "썰풀이 강요. 사건터지면 좋아함" },
+  { id: "geumsu",     name: "금수",         emoji: "🦊", age: 42, oneliner: "음흉. 박순형 추종자",                              speech: "~효 ~능 어미 집착",                hostility: 2,  flavor: "히든을 사이코패스로 봄. 박순형 트위터만 봄" },
+  { id: "aroben",     name: "아로벤",       emoji: "💋", age: 38, oneliner: "지구급 남미새. 떡존이 가슴 탐함",                  speech: "천박한 무수리체",                 hostility: 1,  flavor: "떡존이 몸만 노림. 진심은 관심없음" },
+];
+
+type FriendMsgTrigger = {
+  storyRoute?: StoryRoute;
+  minStat?: Partial<Stats>;
+  maxStat?: Partial<Stats>;
+  timeOfDay?: "morning" | "afternoon" | "evening" | "night";
+};
+type FriendMsgTpl = {
+  id: string;
+  friendId: FriendId;
+  text: string;
+  triggers?: FriendMsgTrigger;
+};
+const FRIEND_MSGS: FriendMsgTpl[] = [
+  // ── 쮋 (착한척 남미새, 떡존이 노림) ──
+  { id: "jj_1",  friendId: "jjyut", text: "선생님~ 어디 계세요? 갑자기 궁금해서요 ㅎㅎ" },
+  { id: "jj_2",  friendId: "jjyut", text: "선생님... 떡존이 좋아하시잖아요. 솔직히 저도 좀 좋아해요 ㅎㅎ 비밀이에요" },
+  { id: "jj_3",  friendId: "jjyut", text: "님 도촬좀요. 사진 한장만요. 네?" },
+  { id: "jj_4",  friendId: "jjyut", text: "냄새나는 큰 남자... 저도 그런 거 좋아해요. 떡존이 같은 ㅎㅎ" },
+  { id: "jj_5",  friendId: "jjyut", text: "선생님 옵 안 찾으세요? 저는 매일 찾는데요 ㅋ" },
+  { id: "jj_6",  friendId: "jjyut", text: "떡존이 오늘 헬스장 갔다온 거 아세요? 사진 봤어요 ㅎㅎ 비밀이에요" },
+  // 빡돌면 반말 (호감 너무 높을 때 = 떡존이 빼앗는 위협)
+  { id: "jj_a1", friendId: "jjyut", text: "ㅋㅋ 선생님 진짜 떡존이 너무 가지려고 하시는 거 아니에요? 좀 양보 좀 ㅋ", triggers: { minStat: { affinity: 600 } } },
+  { id: "jj_a2", friendId: "jjyut", text: "야 그만 좀 해라 ㅋㅋㅋ 떡존이 너만 좋아하는 거 아니다", triggers: { minStat: { affinity: 800 } } },
+  // ── 유칼립투스나무 (일러바치기) ──
+  { id: "eu_1",  friendId: "eucalyptus", text: "히히 선생님... 떡존님께 보여드릴게 있어요. 선생님이 어제 다른 사람이랑 뭐 했는지" },
+  { id: "eu_2",  friendId: "eucalyptus", text: "어제 선생님 카페에서 누구랑 있었어요? 떡존님 모르시는 거 같던데" },
+  { id: "eu_3",  friendId: "eucalyptus", text: "ㅎㅎ 사건 또 안 터지나? 심심하네요 진짜" },
+  { id: "eu_4",  friendId: "eucalyptus", text: "선생님 옵 또 찾으셨죠? ㅋ 떡존님께 안 알려드릴게요... 일단은요" },
+  { id: "eu_5",  friendId: "eucalyptus", text: "남자들 먹버하는 형, 또 옵찾는 듯ㅋ 안 들킬 거 같아요?" },
+  { id: "eu_6",  friendId: "eucalyptus", text: "떡존님이 알면 우는 거 보고 싶어요 ㅎㅎ 그게 좀 재밌잖아요" },
+  // ── 타조 (중계 / 도파민) ──
+  { id: "os_1",  friendId: "ostrich", text: "님 빨리 썰풀어주세요. 떡존이랑 어디까지 갔어요?" },
+  { id: "os_2",  friendId: "ostrich", text: "ㅋㅋㅋ 떡존이가 그러는데 선생님 좋아한대요. 더 자세히 알려드릴까요? 코인 100" },
+  { id: "os_3",  friendId: "ostrich", text: "오 이거 재밌어 ㅋㅋㅋ 더 ㄱㄱ 더 보여줘봐요" },
+  { id: "os_4",  friendId: "ostrich", text: "둘이 왜이래 ㅋㅋ 빨리 사고 좀 쳐주세요. 심심하다고요" },
+  { id: "os_5",  friendId: "ostrich", text: "오늘 떡존이 셀카 100장 찍었대요 ㅋㅋ 다 선생님 줄려고요. 부럽다 진짜" },
+  { id: "os_6",  friendId: "ostrich", text: "님 못생긴거 좀 자랑해보셈 ㅋ 우리 갠톡 하셈 ㄹㅇ" },
+  // ── 금수 (~효~능, 박순형 매니아) ──
+  { id: "gs_1",  friendId: "geumsu", text: "안녕하세효. 오늘도 살아있어능?" },
+  { id: "gs_2",  friendId: "geumsu", text: "선생님... 능력 없었으면 진짜 양아치인 거 아세효? 떡존이 가엾게 여기는 거 알고 계세효?" },
+  { id: "gs_3",  friendId: "geumsu", text: "순형이가 너무좋아능. 트위터 봤어능? 새 글 떴어능" },
+  { id: "gs_4",  friendId: "geumsu", text: "선생님은 사이코패스 같아능. 떡존이 챙기는 거 보면 알 수 있어능" },
+  { id: "gs_5",  friendId: "geumsu", text: "오늘 순형이 트위터에 새 글 올라왔어능. 선생님은 모르겠죠 그런 감성을능" },
+  { id: "gs_6",  friendId: "geumsu", text: "떡존이 너무 가엾어능. 선생님 같은 사람 만나서능" },
+  { id: "gs_7",  friendId: "geumsu", text: "전진협 단톡 분위기 좀 보세요 능. 선생님 제외하고 다들 좋아해능 순형이를" },
+  // ── 아로벤 (천박 무수리, 떡존이 몸만 노림) ──
+  { id: "ar_1",  friendId: "aroben", text: "야이년아 떡존이 진짜 몸 좋더라 ㅗㅜㅑ" },
+  { id: "ar_2",  friendId: "aroben", text: "가슴만지게해줘 ㅈㅂ. 한번만이라도" },
+  { id: "ar_3",  friendId: "aroben", text: "또 옵찾아? ㅋ 부럽다 진짜. 나도 떡존이같은애좀 줘봐" },
+  { id: "ar_4",  friendId: "aroben", text: "떡존이 가슴 한번 만져보고 싶다능 ㅗㅜㅑ 양보좀ㅠㅠ" },
+  { id: "ar_5",  friendId: "aroben", text: "남자 진짜 너무좋아 ㅠㅠ 너는 부르카 부럽다" },
+  { id: "ar_6",  friendId: "aroben", text: "떡존이 진심 따위 관심없고 그냥 몸이나 한번 보면 좋겠어 ㅋ" },
+  { id: "ar_7",  friendId: "aroben", text: "ㅋㅋㅋ 떡존이 너 같은애한테 묶이는거 아까운데?" },
+];
+
+// ── 단톡 합성 메시지 ──
+const GROUP_MSG_POOL: { speaker: "tteokjon" | FriendId; text: string }[] = [
+  { speaker: "tteokjon",   text: "다들 오늘 뭐하세요?" },
+  { speaker: "ostrich",    text: "ㅋㅋ 떡존이 또 시작이네 인사부터 함" },
+  { speaker: "jjyut",      text: "떡존님~ 저는 항상 시간 비어있어요 ㅎㅎ" },
+  { speaker: "geumsu",     text: "오늘도 순형이 트위터 보면서 살고있어능" },
+  { speaker: "aroben",     text: "떡존이 사진좀 ㄱㄱ" },
+  { speaker: "eucalyptus", text: "헐 떡존님 그거 아세요? 선생님이 어제..." },
+  { speaker: "tteokjon",   text: "ㅋㅋ 무슨일이요?" },
+  { speaker: "ostrich",    text: "ㅋㅋㅋㅋㅋ 사건 터지나? 두근두근" },
+  { speaker: "jjyut",      text: "선생님 들어와계세요? ㅎㅎ 안녕하세요" },
+  { speaker: "aroben",     text: "야 떡존이 진짜 몸 좋더라 ㅗㅜㅑ" },
+  { speaker: "tteokjon",   text: "...아 형 그만좀 ㅋㅋㅋㅋ" },
+  { speaker: "ostrich",    text: "ㅋㅋㅋㅋ 떡존이 부끄러워하는거 봐ㅋㅋ" },
+  { speaker: "geumsu",     text: "그래서 순형이 트윗 새글 봤어능?" },
+  { speaker: "jjyut",      text: "(도촬 사진 1장)" },
+  { speaker: "tteokjon",   text: "쮋형 또 도촬했음? ㅋㅋ 그만좀해주세요;" },
+  { speaker: "eucalyptus", text: "히히 떡존님 이거 보세요" },
+  { speaker: "tteokjon",   text: "...뭔데요" },
+  { speaker: "aroben",     text: "야 떡존이 너 가슴좀 보여줘 ㅈㅂ" },
+  { speaker: "tteokjon",   text: "...형 진짜 그만 ㅋㅋ" },
+  { speaker: "ostrich",    text: "야 떡존이 거기 선생님이랑 뭐했냐 ㄱㄱ 썰" },
+  { speaker: "geumsu",     text: "다들 너무 떡존이 괴롭히지 마세효 ㅎ. 떡존이 가엾어요" },
 ];
 
 // ================================
@@ -2746,6 +2849,21 @@ function StatBar({ label, value, danger }: { label: string; value: number; dange
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return <div className="panel"><h2>{title}</h2>{children}</div>;
 }
+function KatalkInput({ onSend }: { onSend: (text: string) => void }) {
+  const [text, setText] = useState("");
+  return (
+    <div className="katalkInputRow">
+      <input
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter" && text.trim()) { onSend(text); setText(""); } }}
+        placeholder="답장 입력..."
+        maxLength={200}
+      />
+      <button onClick={() => { if (text.trim()) { onSend(text); setText(""); } }}>전송</button>
+    </div>
+  );
+}
 
 export default function Page() {
   const [mounted, setMounted] = useState(false);
@@ -2829,6 +2947,13 @@ export default function Page() {
   const [wordChainInput, setWordChainInput] = useState("");
   const [wordChainStatus, setWordChainStatus] = useState<"playing" | "user_win" | "tteokjon_win">("playing");
   const [wordChainStreak, setWordChainStreak] = useState(0);
+  // 친구 카톡
+  const [friendChats, setFriendChats] = useState<Record<string, FriendChatMessage[]>>({});
+  const [groupChat, setGroupChat] = useState<FriendChatMessage[]>([]);
+  const [friendLastSeen, setFriendLastSeen] = useState<Record<string, number>>({});
+  const [friendLastSpawn, setFriendLastSpawn] = useState<Record<string, number>>({});
+  const [groupLastSpawn, setGroupLastSpawn] = useState<number>(0);
+  const [katalkOpenChat, setKatalkOpenChat] = useState<string | null>(null);
   const [slotTick, setSlotTick] = useState(0); // 슬롯 변경 시 리렌더 트리거
   const [seenEvents, setSeenEvents] = useState<Record<string, boolean>>({});
   const [storyRoute, setStoryRoute] = useState<StoryRoute>("common");
@@ -2935,6 +3060,7 @@ export default function Page() {
     { label: "🔮 신탁", target: "fortune" },
     { label: "📔 다이어리", target: "journal" },
     { label: "🎮 미니게임", target: "minigames" },
+    { label: "💬 카톡", target: "katalk" },
     { label: "갤러리", target: "gallery" },
     { label: "전진협", target: "events" },
     { label: "상태", target: "profile" },
@@ -3009,6 +3135,11 @@ export default function Page() {
         setLastJournalDate(saved.lastJournalDate ?? "");
         setMinigameClickerHigh(saved.minigameClickerHigh ?? 0);
         setMinigameWordHigh(saved.minigameWordHigh ?? 0);
+        setFriendChats(saved.friendChats ?? {});
+        setGroupChat(saved.groupChat ?? []);
+        setFriendLastSeen(saved.friendLastSeen ?? {});
+        setFriendLastSpawn(saved.friendLastSpawn ?? {});
+        setGroupLastSpawn(saved.groupLastSpawn ?? 0);
         setSeenEvents(saved.seenEvents ?? {});
         setStoryRoute(saved.storyRoute ?? "common");
         setMemoryNotes(saved.memoryNotes ?? []);
@@ -3095,10 +3226,15 @@ export default function Page() {
       lastJournalDate,
       minigameClickerHigh,
       minigameWordHigh,
+      friendChats,
+      groupChat,
+      friendLastSeen,
+      friendLastSpawn,
+      groupLastSpawn,
     };
     save.messages = sanitizeMessages(save.messages);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
-  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory, userLevel, userExp, lastFreeGacha, gachaTickets, comboCount, lastComboTime, comboMilestonesReached, ownedPets, activePet, totalGachaPulls, activeAdventure, adventureHistory, snsLikes, lastSnsRefresh, snsFeed, raidWeek, raidBossId, raidHp, raidCleared, raidDamageDealt, lastFortuneDate, todayFortuneId, fortuneRerollsToday, journalEntries, lastJournalDate, minigameClickerHigh, minigameWordHigh]);
+  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory, userLevel, userExp, lastFreeGacha, gachaTickets, comboCount, lastComboTime, comboMilestonesReached, ownedPets, activePet, totalGachaPulls, activeAdventure, adventureHistory, snsLikes, lastSnsRefresh, snsFeed, raidWeek, raidBossId, raidHp, raidCleared, raidDamageDealt, lastFortuneDate, todayFortuneId, fortuneRerollsToday, journalEntries, lastJournalDate, minigameClickerHigh, minigameWordHigh, friendChats, groupChat, friendLastSeen, friendLastSpawn, groupLastSpawn]);
 
   // ─ 방광 채우기 타이머 ─
   useEffect(() => {
@@ -3560,6 +3696,103 @@ export default function Page() {
       }
     }
   }, [visibleQuests, completedQuests, questState]);
+  // ─ 친구 카톡 자동 메시지 ─
+  function spawnFriendMessage(friendId: FriendId): boolean {
+    const tod = getTimeOfDay(new Date());
+    const eligible = FRIEND_MSGS.filter((m) => {
+      if (m.friendId !== friendId) return false;
+      const tr = m.triggers;
+      if (!tr) return true;
+      if (tr.timeOfDay && tr.timeOfDay !== tod) return false;
+      if (tr.storyRoute && tr.storyRoute !== storyRoute) return false;
+      if (tr.minStat) for (const [k, v] of Object.entries(tr.minStat)) if (stats[k as StatKey] < (v as number)) return false;
+      if (tr.maxStat) for (const [k, v] of Object.entries(tr.maxStat)) if (stats[k as StatKey] > (v as number)) return false;
+      return true;
+    });
+    if (!eligible.length) return false;
+    const tpl = eligible[Math.floor(Math.random() * eligible.length)];
+    const newMsg: FriendChatMessage = {
+      id: `${tpl.id}_${Date.now()}`,
+      speaker: friendId,
+      text: tpl.text,
+      time: Date.now(),
+    };
+    setFriendChats((prev) => ({ ...prev, [friendId]: [...(prev[friendId] ?? []), newMsg] }));
+    setFriendLastSpawn((prev) => ({ ...prev, [friendId]: Date.now() }));
+    return true;
+  }
+  function spawnGroupBurst() {
+    // 단톡: 한 번에 3~5개 자동 추가
+    const count = 3 + Math.floor(Math.random() * 3);
+    const newMsgs: FriendChatMessage[] = [];
+    const startIdx = Math.floor(Math.random() * (GROUP_MSG_POOL.length - count));
+    for (let i = 0; i < count; i++) {
+      const tpl = GROUP_MSG_POOL[(startIdx + i) % GROUP_MSG_POOL.length];
+      newMsgs.push({
+        id: `g_${Date.now()}_${i}`,
+        speaker: tpl.speaker,
+        text: tpl.text,
+        time: Date.now() + i * 1000,
+      });
+    }
+    setGroupChat((prev) => [...prev, ...newMsgs].slice(-100)); // 최근 100개 보존
+    setGroupLastSpawn(Date.now());
+  }
+  function openKatalkChat(chatId: string) {
+    setKatalkOpenChat(chatId);
+    const now = Date.now();
+    setFriendLastSeen((prev) => ({ ...prev, [chatId]: now }));
+    // 1:1 친구 — 마지막 spawn으로부터 30분 지났으면 새 메시지 생성
+    if (chatId !== "group") {
+      const last = friendLastSpawn[chatId] ?? 0;
+      if (now - last > 30 * 60 * 1000) {
+        spawnFriendMessage(chatId as FriendId);
+      }
+      // 처음이면 자동으로 인사 메시지 1개
+      if (!friendChats[chatId] || friendChats[chatId].length === 0) {
+        spawnFriendMessage(chatId as FriendId);
+      }
+    } else {
+      const lastG = groupLastSpawn;
+      if (now - lastG > 60 * 60 * 1000 || groupChat.length === 0) {
+        spawnGroupBurst();
+      }
+    }
+  }
+  function sendKatalkReply(chatId: string, text: string) {
+    if (!text.trim()) return;
+    const userMsg: FriendChatMessage = {
+      id: `u_${Date.now()}`,
+      speaker: "user",
+      text: text.trim(),
+      time: Date.now(),
+    };
+    if (chatId === "group") {
+      setGroupChat((prev) => [...prev, userMsg].slice(-100));
+      // 단톡에선 가끔 자동 답장 (50% 확률)
+      window.setTimeout(() => {
+        if (Math.random() < 0.5) spawnGroupBurst();
+      }, 1500 + Math.random() * 2000);
+    } else {
+      setFriendChats((prev) => ({ ...prev, [chatId]: [...(prev[chatId] ?? []), userMsg] }));
+      // 친구 자동 답장 (1.5초 뒤)
+      window.setTimeout(() => spawnFriendMessage(chatId as FriendId), 1500 + Math.random() * 2000);
+    }
+  }
+  // 미확인 카톡 수
+  const unreadKatalk = useMemo(() => {
+    let count = 0;
+    for (const fid of FRIENDS.map((f) => f.id)) {
+      const msgs = friendChats[fid] ?? [];
+      const lastSeen = friendLastSeen[fid] ?? 0;
+      const newMsgs = msgs.filter((m) => m.speaker === fid && m.time > lastSeen).length;
+      count += newMsgs;
+    }
+    const groupNew = groupChat.filter((m) => m.speaker !== "user" && m.time > (friendLastSeen["group"] ?? 0)).length;
+    count += groupNew;
+    return count;
+  }, [friendChats, groupChat, friendLastSeen]);
+
   // ─ 신탁: 매일 자동 갱신 ─
   useEffect(() => {
     const today = todayKey();
@@ -4460,6 +4693,11 @@ export default function Page() {
     setLastJournalDate("");
     setMinigameClickerHigh(0);
     setMinigameWordHigh(0);
+    setFriendChats({});
+    setGroupChat([]);
+    setFriendLastSeen({});
+    setFriendLastSpawn({});
+    setGroupLastSpawn(0);
     setSeenEvents({});
     setStoryRoute("common");
     setMemoryNotes([]);
@@ -4570,7 +4808,7 @@ export default function Page() {
             </div>
           );
         })()}
-        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["gacha","🎰 뽑기"],["pets","🐹 펫"],["adventure","🌍 모험"],["sns","📱 SNS"],["raid","⚔️ 레이드"],["fortune","🔮 신탁"],["journal","📔 다이어리"],["minigames","🎮 미니게임"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=>{
+        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["gacha","🎰 뽑기"],["pets","🐹 펫"],["adventure","🌍 모험"],["sns","📱 SNS"],["raid","⚔️ 레이드"],["fortune","🔮 신탁"],["journal","📔 다이어리"],["minigames","🎮 미니게임"],["katalk","💬 카톡"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=>{
           const dailyClaimable = key === "quests" ? dailyState.missions.filter((m) => {
             if (m.claimed) return false;
             const t = DAILY_MISSION_TEMPLATES.find((x) => x.id === m.templateId);
@@ -4588,8 +4826,9 @@ export default function Page() {
             || (key === "gacha" && (freeGachaReady || gachaTickets > 0))
             || (key === "adventure" && !!advReady)
             || (key === "sns" && snsRefreshDue)
-            || (key === "raid" && raidActive);
-          return <button key={key} className={`${view===key ? "active" : ""}${showDot ? " navDot" : ""}${key==="admin" ? " adminNavBtn" : ""}`} onClick={()=>setView(key as AppView)}>{label}{key==="quests" && totalClaimable > 0 && <span className="navBadge">{totalClaimable}</span>}</button>;
+            || (key === "raid" && raidActive)
+            || (key === "katalk" && unreadKatalk > 0);
+          return <button key={key} className={`${view===key ? "active" : ""}${showDot ? " navDot" : ""}${key==="admin" ? " adminNavBtn" : ""}`} onClick={()=>setView(key as AppView)}>{label}{key==="quests" && totalClaimable > 0 && <span className="navBadge">{totalClaimable}</span>}{key==="katalk" && unreadKatalk > 0 && <span className="navBadge">{unreadKatalk}</span>}</button>;
         })}</nav>
       </aside>
       <section className="content">
@@ -4805,6 +5044,78 @@ export default function Page() {
             </div>
           </Panel>
         )}
+        {view === "katalk" && (() => {
+          const open = katalkOpenChat;
+          const isGroup = open === "group";
+          const friend = open && open !== "group" ? FRIENDS.find((f) => f.id === open) : null;
+          const messages = isGroup ? groupChat : (open ? friendChats[open] ?? [] : []);
+          return (
+            <Panel title={open ? (isGroup ? "🍻 전진협 단톡" : `${friend?.emoji} ${friend?.name}`) : "💬 카톡 메뉴"}>
+              {!open && (
+                <div className="katalkList">
+                  <p className="katalkIntro">전진협 친구들. 들어가면 자동으로 메시지 옴 ㅋ</p>
+                  <button className="katalkRow katalkGroup" onClick={() => openKatalkChat("group")}>
+                    <span className="katalkEmoji">🍻</span>
+                    <div className="katalkRowBody">
+                      <b>전진협 단톡 (5명)</b>
+                      <small>{groupChat.length > 0 ? groupChat[groupChat.length - 1].text.slice(0, 50) : "들어가서 시끄럽게 시작하셈"}</small>
+                    </div>
+                    {groupChat.filter((m) => m.speaker !== "user" && m.time > (friendLastSeen["group"] ?? 0)).length > 0 && (
+                      <span className="katalkUnread">{groupChat.filter((m) => m.speaker !== "user" && m.time > (friendLastSeen["group"] ?? 0)).length}</span>
+                    )}
+                  </button>
+                  {FRIENDS.map((f) => {
+                    const msgs = friendChats[f.id] ?? [];
+                    const lastMsg = msgs[msgs.length - 1];
+                    const lastSeen = friendLastSeen[f.id] ?? 0;
+                    const unread = msgs.filter((m) => m.speaker === f.id && m.time > lastSeen).length;
+                    return (
+                      <button key={f.id} className="katalkRow" onClick={() => openKatalkChat(f.id)}>
+                        <span className="katalkEmoji">{f.emoji}</span>
+                        <div className="katalkRowBody">
+                          <b>{f.name} <small className="katalkAge">({f.age})</small></b>
+                          <small>{lastMsg ? lastMsg.text.slice(0, 50) : f.oneliner}</small>
+                          <small className="katalkRowFlavor">{f.flavor}</small>
+                        </div>
+                        {unread > 0 && <span className="katalkUnread">{unread}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {open && (
+                <div className="katalkChat">
+                  <button className="katalkBackBtn" onClick={() => setKatalkOpenChat(null)}>← 친구 목록</button>
+                  <div className="katalkMsgList">
+                    {messages.map((m) => {
+                      let speakerName = "??";
+                      let speakerEmoji = "❓";
+                      let isUser = false;
+                      let isMe = false;
+                      if (m.speaker === "user") { speakerName = "선생님"; isUser = true; }
+                      else if (m.speaker === "tteokjon") { speakerName = "근떡존"; speakerEmoji = "🦴"; isMe = true; }
+                      else {
+                        const fr = FRIENDS.find((f) => f.id === m.speaker);
+                        if (fr) { speakerName = fr.name; speakerEmoji = fr.emoji; }
+                      }
+                      return (
+                        <div key={m.id} className={`katalkMsg${isUser ? " katalkUser" : ""}${isMe ? " katalkMe" : ""}`}>
+                          {!isUser && <span className="katalkMsgSpeaker">{speakerEmoji} {speakerName}</span>}
+                          <div className="katalkMsgBubble">{m.text}</div>
+                        </div>
+                      );
+                    })}
+                    {messages.length === 0 && <p className="katalkEmpty">메시지 없음. 잠시만 기다리시면 옴 ㅋ</p>}
+                  </div>
+                  <KatalkInput onSend={(text) => sendKatalkReply(open, text)} />
+                  <div className="katalkActions">
+                    <button onClick={() => isGroup ? spawnGroupBurst() : spawnFriendMessage(open as FriendId)}>새 메시지 부르기 🔄</button>
+                  </div>
+                </div>
+              )}
+            </Panel>
+          );
+        })()}
         {view === "fortune" && (() => {
           const f = todayFortune;
           if (!f) return <Panel title="요도니아 신탁 🔮"><p>신탁이 흐릿합니다. 잠시 후 다시 시도해주세요.</p></Panel>;
@@ -6569,6 +6880,38 @@ const CSS = `
 .mgResultBanner button{border:0;border-radius:8px;padding:8px 14px;background:rgba(255,255,255,.25);color:#fff;font-weight:900;cursor:pointer}
 .mgResultBanner.mgWin{background:linear-gradient(135deg,#a3c785,#7ba65a)}
 .mgResultBanner.mgLose{background:linear-gradient(135deg,#7a4a4a,#5a2a2a)}
+/* ─ 카톡 ─ */
+.katalkIntro{margin:0 0 14px;padding:11px 14px;background:#fff8ef;border:1px solid #e8c99e;border-radius:10px;color:#7a5e4a;font-size:13px;text-align:center;font-style:italic}
+.katalkList{display:grid;gap:8px}
+.katalkRow{display:flex;align-items:center;gap:14px;padding:14px 16px;background:#fff;border:1px solid #e6d2b8;border-radius:14px;cursor:pointer;text-align:left;transition:all .15s;border:0;width:100%}
+.katalkRow:hover{background:#fff8ef;transform:translateX(2px)}
+.katalkRow.katalkGroup{background:linear-gradient(135deg,#fff7d6,#ffe9a8);border:1px solid #d9a656}
+.katalkEmoji{font-size:34px;flex:none}
+.katalkRowBody{flex:1;display:grid;gap:2px;min-width:0}
+.katalkRowBody b{font-size:14px;color:#2a1a14;font-weight:1000}
+.katalkAge{font-size:11px;color:#9a7c65;font-weight:700;margin-left:4px}
+.katalkRowBody small{font-size:12px;color:#7a5e4a;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.katalkRowFlavor{font-style:italic;color:#9a7c65 !important;font-size:11px !important;margin-top:2px}
+.katalkUnread{background:#df5e88;color:#fff;font-size:11px;font-weight:1000;padding:3px 8px;border-radius:99px;flex:none}
+.katalkChat{display:grid;gap:12px}
+.katalkBackBtn{align-self:flex-start;border:0;border-radius:10px;padding:8px 14px;background:#3a2d29;color:#fff;font-weight:900;font-size:12px;cursor:pointer}
+.katalkMsgList{display:grid;gap:10px;max-height:520px;overflow-y:auto;padding:14px;background:#fff8ef;border-radius:14px;border:1px solid #e8c99e}
+.katalkEmpty{text-align:center;color:#9a7c65;font-style:italic;padding:30px}
+.katalkMsg{display:grid;gap:3px}
+.katalkMsg.katalkUser{justify-items:flex-end}
+.katalkMsg.katalkMe{justify-items:flex-start}
+.katalkMsgSpeaker{font-size:11px;color:#7a5e4a;font-weight:900;padding:0 8px}
+.katalkMsgBubble{display:inline-block;max-width:80%;padding:10px 14px;border-radius:16px;background:#fff;color:#3a2017;font-size:14px;line-height:1.55;word-break:break-word;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.katalkUser .katalkMsgBubble{background:#df842c;color:#fff}
+.katalkMe .katalkMsgBubble{background:#7a5e4a;color:#fff}
+.katalkInputRow{display:flex;gap:8px}
+.katalkInputRow input{flex:1;border:2px solid #d9a656;border-radius:12px;padding:11px 14px;font-size:14px;background:#fff8ef}
+.katalkInputRow input:focus{outline:none;border-color:#df842c;background:#fff}
+.katalkInputRow button{border:0;border-radius:12px;padding:11px 18px;background:#df842c;color:#fff;font-weight:1000;cursor:pointer}
+.katalkInputRow button:hover{background:#c8731f}
+.katalkActions{display:flex;justify-content:center}
+.katalkActions button{border:0;border-radius:10px;padding:8px 16px;background:#fff8ef;color:#5a3520;font-weight:900;font-size:12px;cursor:pointer;border:1px solid #d9a656}
+.katalkActions button:hover{background:#fff5d6}
 .secretRouteCard{position:relative;overflow:hidden;transition:transform .15s ease,box-shadow .2s ease}.secretRouteCard.secretUnlocked{background:linear-gradient(135deg,#fff7d6 0%,#ffe9a8 60%,#ffd17a 100%);border:1px solid #d9a656;color:#5a3d12;box-shadow:0 8px 24px rgba(217,166,86,.28)}.secretRouteCard.secretUnlocked:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(217,166,86,.4)}.secretRouteCard.secretUnlocked b{color:#3a2510}.secretRouteCard.secretUnlocked small{color:#7b5318}.secretRouteCard.secretLocked{background:repeating-linear-gradient(135deg,#2a201b 0px,#2a201b 14px,#22191a 14px,#22191a 28px);color:#7a6b62;border:1px dashed #5a4a40;cursor:not-allowed;opacity:.85}.secretRouteCard.secretLocked b{color:#8a7a6f;letter-spacing:.18em}.secretRouteCard.secretLocked small{color:#6b5b50;font-style:italic}.secretRouteCard.secretLocked:hover{transform:none;box-shadow:none}
 .saveSlotGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:18px}.saveSlotCard{background:#fff8ef;border:1px solid #e8c99e;border-radius:18px;padding:16px;display:grid;gap:12px;color:#3a2017;box-shadow:0 8px 22px rgba(91,48,24,.08);transition:transform .15s ease,box-shadow .2s ease}.saveSlotCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.saveSlotCard.ssEmpty{background:#f6efe5;border-style:dashed;border-color:#cdb89a;opacity:.85}.saveSlotCard.ssRoutePure{background:linear-gradient(180deg,#fff5f8 0%,#fce6ee 100%);border-color:#ecc4d6}.saveSlotCard.ssRouteObsession{background:linear-gradient(180deg,#2a1517 0%,#1a0d0e 100%);border-color:#5d2a30;color:#f4dadd}.saveSlotCard.ssRouteObsession .ssTime,.saveSlotCard.ssRouteObsession .ssPreview{color:#b89a9d}.saveSlotCard.ssRouteObsession .ssStats span{background:rgba(255,200,200,.08);color:#f4dadd}.saveSlotCard.ssRouteObsession .ssThumb{border-color:rgba(255,170,170,.2)}.ssHead{display:flex;align-items:center;justify-content:space-between;gap:8px}.ssNum{font-size:14px;font-weight:1000;letter-spacing:.04em;color:inherit}.ssRouteBadge{font-size:11px;font-weight:900;padding:4px 10px;border-radius:99px;background:rgba(91,48,24,.12);color:#7b4f2f}.ssRoutePure .ssRouteBadge{background:rgba(220,120,160,.18);color:#a14872}.ssRouteObsession .ssRouteBadge{background:rgba(220,80,80,.22);color:#ffaab2}.ssBody{display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:start}.ssThumb{width:84px;height:84px;border-radius:14px;object-fit:cover;border:1px solid rgba(91,48,24,.18);background:#ead7c7}.ssMeta{display:grid;gap:6px;min-width:0}.ssScene{margin:0;font-size:14px;font-weight:900;color:inherit;line-height:1.4}.ssPreview{margin:0;font-size:12px;font-style:italic;color:#7a5e4a;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.ssStats{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}.ssStats span{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:99px;background:rgba(91,48,24,.1);color:#5b3520;letter-spacing:.02em}.ssTime{color:#9a7c65;font-size:11px;font-weight:700;margin-top:2px}.ssEmptyBody{text-align:center;padding:24px 12px;color:#876953}.ssEmptyIcon{font-size:36px;display:block;margin-bottom:8px;opacity:.6}.ssEmptyBody p{margin:0 0 4px;font-size:14px;font-weight:900}.ssEmptyBody small{font-size:11px;color:#a78a72}.ssActions{display:flex;gap:6px}.ssActions button{flex:1;border:0;border-radius:12px;padding:10px 8px;font-size:13px;font-weight:900;cursor:pointer;transition:background .15s ease,transform .12s ease}.ssActions button:hover{transform:translateY(-1px)}.ssBtnLoad{background:#df842c;color:#fff}.ssBtnLoad:hover{background:#c8731f}.ssBtnSave{background:#3a2d29;color:#fff}.ssBtnSave:hover{background:#5a4338}.ssBtnDel{background:transparent;color:#c44;border:1px solid #c44 !important}.ssBtnDel:hover{background:rgba(196,68,68,.1)}
 .cgReaction{display:grid;grid-template-columns:86px minmax(0,1fr) auto;gap:14px;align-items:center;margin:0 0 18px;padding:14px;border-radius:20px;background:#fff8ef;border:1px solid #e8c99e;box-shadow:0 12px 32px rgba(91,48,24,.08)}.cgReaction>img{width:86px;height:86px;border-radius:18px;object-fit:cover;background:#ead7c7}.cgReactionBody{display:grid;gap:6px;min-width:0}.cgReactionBody p{margin:0;color:#4a342a;line-height:1.65;font-weight:800}.cgSourceCaption{color:#9a7c65;font-size:12px;font-weight:700}.cgReactionActions{display:flex;gap:6px;align-items:center}.cgReaction button{border:0;border-radius:999px;background:#3a2d29;color:white;padding:10px 14px;font-weight:900}.favBtn{background:#fff;color:#c44}.favBtn.favOn{background:#c44;color:#fff}.cgCard{position:relative;border:0;text-align:center;cursor:pointer;transition:transform .15s ease,box-shadow .2s ease}.cgCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.cgCardLocked{cursor:default;background:#1f1714}.cgCardLocked:hover{transform:none}.cgSilhouette{filter:brightness(.18) blur(6px) saturate(.5)}.cgLockedBadge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;color:rgba(255,210,150,.55);text-shadow:0 2px 12px rgba(0,0,0,.6);pointer-events:none}.cgFavMark{position:absolute;top:8px;right:10px;font-size:18px;color:#ff5577;text-shadow:0 2px 6px rgba(0,0,0,.45);pointer-events:none}.cgCardCaption{position:absolute;left:0;right:0;bottom:0;padding:6px 10px;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.74) 100%);color:#fff7e8;font-size:11px;font-weight:800;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;text-align:left}.galleryProgress{display:flex;align-items:center;gap:12px;margin:0 0 18px;padding:12px 16px;background:#fff8ef;border:1px solid #e8c99e;border-radius:14px;color:#5a3928}.galleryProgress span{font-size:12px;font-weight:900;letter-spacing:.06em;color:#7b4f2f}.galleryProgressBar{flex:1;min-width:80px;height:8px;background:rgba(91,48,24,.15);border-radius:99px;overflow:hidden}.galleryProgressBar div{height:100%;background:linear-gradient(90deg,#df842c,#e8993b);border-radius:99px;transition:width .35s ease}.galleryProgress strong{font-size:14px;color:#3a2017;font-weight:900}.tabs button.active{background:#df842c}.tabs button.bladderTab{background:linear-gradient(135deg,#d9a656,#b8843a);color:#fff;font-weight:1000}.tabs button.bladderTab.active{background:linear-gradient(135deg,#ffc94f,#d9a656);box-shadow:0 4px 12px rgba(217,166,86,.4)}.tabs button.bladderTab:hover{background:linear-gradient(135deg,#e8b563,#c89540)}
