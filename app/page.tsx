@@ -566,6 +566,171 @@ const QUESTS: Quest[] = [
 ];
 
 // ================================
+// 호감 마일스톤 시스템
+// ================================
+type Milestone = {
+  id: string;
+  stat: StatKey;
+  threshold: number;
+  title: string;
+  text: string;          // 채팅에 추가될 근떡존 메시지 (assistant)
+  narration?: string;    // 함께 들어갈 짧은 나레이션 (선택)
+  reward?: { stat: StatKey; amount: number };
+};
+
+const MILESTONES: Milestone[] = [
+  {
+    id: "aff_100",
+    stat: "affinity",
+    threshold: 100,
+    title: "마음의 첫 흔들림",
+    narration: "근떡존이 카톡 프로필 사진을 바꿨다. 건너편 거리에서 찍힌 풍경 한 장. 자세히 보면 익숙한 카페 간판이 보였다.",
+    text: "선생님 오늘 그 카페 가셨었죠. 저도 우연히 거기 있었거든요. 사진 한 장만 찍었어요. 풍경요. 풍경.",
+    reward: { stat: "trust", amount: 5 },
+  },
+  {
+    id: "aff_250",
+    stat: "affinity",
+    threshold: 250,
+    title: "조용한 안부",
+    text: "선생님. 오늘 점심 잘 드셨어요? 이런 거 묻는 거 이상한가요. 그냥 궁금했어요.",
+    reward: { stat: "trust", amount: 10 },
+  },
+  {
+    id: "aff_500",
+    stat: "affinity",
+    threshold: 500,
+    title: "보고 싶다는 말",
+    text: "선생님... 보고 싶어요. 지금 당장 만나자는 건 아니고요. 그냥 그렇다는 뜻이에요. 적어두고 싶었어요.",
+  },
+  {
+    id: "aff_750",
+    stat: "affinity",
+    threshold: 750,
+    title: "오늘 무슨 날 아닌데",
+    narration: "택배 한 박스가 도착했다. 발신자 이름이 또 그였다.",
+    text: "오늘 무슨 날 아닌데. 그래도 받아주세요. 부담스러우면 거절하셔도 돼요. 근데 거절은 좀 슬플 것 같아요.",
+    reward: { stat: "affinity", amount: 20 },
+  },
+  {
+    id: "aff_1000",
+    stat: "affinity",
+    threshold: 1000,
+    title: "꽉 찬 마음",
+    text: "선생님. 제 마음이 어디까지 갈 수 있는지, 저도 잘 모르겠어요. 다만 이게 사랑인지는 알 것 같아요.",
+    reward: { stat: "trust", amount: 30 },
+  },
+  // 신뢰 마일스톤
+  {
+    id: "trust_500",
+    stat: "trust",
+    threshold: 500,
+    title: "기댈 수 있는 사람",
+    text: "선생님은 진짜 한 번도 저를 이상하게 안 봐주셨어요. 그게 얼마나 큰 일인지 아세요?",
+  },
+  {
+    id: "trust_900",
+    stat: "trust",
+    threshold: 900,
+    title: "전부 맡기는 마음",
+    text: "선생님이 제 인생에서 가장 안전한 사람이에요. 이거 너무 큰 말인 거 알아요. 그래도 사실이에요.",
+    reward: { stat: "affinity", amount: 30 },
+  },
+  // 집착 마일스톤
+  {
+    id: "obs_500",
+    stat: "obsession",
+    threshold: 500,
+    title: "지워지지 않는 사람",
+    narration: "근떡존의 화면에 같은 이름이 떠 있는 시간이 길어졌다.",
+    text: "선생님 한 번 봤는데 그게 안 지워져요. 화면에서 봤을 뿐인데. 이상하죠.",
+  },
+  {
+    id: "obs_900",
+    stat: "obsession",
+    threshold: 900,
+    title: "옆에 두고 싶은 마음",
+    text: "선생님. 옆에 계속 두고 싶어요. 이게 무서운 말이라는 거 알아요. 근데 멈출 수가 없어요.",
+  },
+];
+
+// ================================
+// 랜덤 깜짝 메시지 시스템
+// ================================
+type RandomMsgTrigger = {
+  timeOfDay?: "morning" | "afternoon" | "evening" | "night";
+  dayOfWeek?: number[]; // 0=일, 6=토
+  minAffinity?: number;
+  minObsession?: number;
+  minJealousy?: number;
+  minBladderCharm?: number;
+  weather?: "rain";
+  storyRoute?: StoryRoute;
+};
+type RandomMessage = {
+  id: string;
+  triggers: RandomMsgTrigger;
+  text: string;
+  weight?: number; // 가중치 (기본 1)
+};
+
+const RANDOM_MESSAGES: RandomMessage[] = [
+  // 아침 (6~11시)
+  { id: "morning_basic", triggers: { timeOfDay: "morning" }, text: "선생님 일어나셨어요? 저는 헬스장 다녀오는 길이에요." },
+  { id: "morning_mon", triggers: { timeOfDay: "morning", dayOfWeek: [1] }, text: "월요일이네요... 학교 가기 싫으시죠? 저는 침대에서 30분째 안 일어나고 있어요." },
+  { id: "morning_fri", triggers: { timeOfDay: "morning", dayOfWeek: [5] }, text: "금요일!! 선생님 오늘 저녁 약속 있으세요? 없으면 좋겠어요." },
+  { id: "morning_weekend", triggers: { timeOfDay: "morning", dayOfWeek: [0, 6] }, text: "주말 아침이네요. 푹 주무셨어요? 저는 일찍 깼어요. 이상하게요." },
+  { id: "morning_aff", triggers: { timeOfDay: "morning", minAffinity: 400 }, text: "오늘 일어나자마자 선생님 생각났어요. 이상한 사람이라고 하지 마세요." },
+  // 점심 (11~16시)
+  { id: "noon_basic", triggers: { timeOfDay: "afternoon" }, text: "점심 뭐 드셨어요? 저는 도시락이요. 또요." },
+  { id: "noon_obs", triggers: { timeOfDay: "afternoon", minObsession: 500 }, text: "선생님 지금 어디 계세요? 갑자기 궁금해서요." },
+  // 저녁 (16~21시)
+  { id: "evening_basic", triggers: { timeOfDay: "evening" }, text: "오늘 하루 어떠셨어요. 별일 없으셨죠?" },
+  { id: "evening_aff", triggers: { timeOfDay: "evening", minAffinity: 300 }, text: "퇴근하셨어요? 오늘 잘 버티셨네요. 그거면 충분해요." },
+  { id: "evening_jealous", triggers: { timeOfDay: "evening", minJealousy: 400 }, text: "오늘 누구랑 같이 퇴근하셨어요? 학교 동료라도... 신경 좀 쓰여요." },
+  // 밤 (21~26시 == 21~02시)
+  { id: "night_basic", triggers: { timeOfDay: "night" }, text: "선생님 아직 안 주무세요? 저도요. 같이 안 자고 있다고 생각하니까 좀 좋네요." },
+  { id: "night_aff", triggers: { timeOfDay: "night", minAffinity: 600 }, text: "잠이 안 와요. 선생님 목소리 듣고 싶은데 너무 늦었죠?" },
+  { id: "night_obs", triggers: { timeOfDay: "night", minObsession: 600 }, text: "지금 누구랑 얘기하세요? 이렇게 늦게요." },
+  { id: "night_pure", triggers: { timeOfDay: "night", storyRoute: "pure" }, text: "오늘 하루 마무리하셨어요? 좋은 꿈 꾸세요. 진짜로요." },
+  { id: "night_obsession", triggers: { timeOfDay: "night", storyRoute: "obsession" }, text: "선생님이 지금 자고 있는 모습 상상돼요. 이상하죠. 죄송해요. 근데 안 죄송해요." },
+  // 방광 매력 진행
+  { id: "bladder_charm_50", triggers: { minBladderCharm: 50 }, text: "선생님... 오늘도 잘 참고 있어요. 칭찬 주세요." },
+  { id: "bladder_charm_300", triggers: { minBladderCharm: 300 }, text: "이번 주에 4리터 더 모았어요. K-방광 대표로서 부끄럽지 않게요." },
+];
+
+function getTimeOfDay(d: Date): "morning" | "afternoon" | "evening" | "night" {
+  const h = d.getHours();
+  if (h >= 6 && h < 11) return "morning";
+  if (h >= 11 && h < 16) return "afternoon";
+  if (h >= 16 && h < 21) return "evening";
+  return "night";
+}
+function pickRandomMessage(state: { stats: Stats; storyRoute: StoryRoute; date: Date }): RandomMessage | null {
+  const tod = getTimeOfDay(state.date);
+  const dow = state.date.getDay();
+  const eligible = RANDOM_MESSAGES.filter((m) => {
+    const t = m.triggers;
+    if (t.timeOfDay && t.timeOfDay !== tod) return false;
+    if (t.dayOfWeek && !t.dayOfWeek.includes(dow)) return false;
+    if (t.minAffinity && state.stats.affinity < t.minAffinity) return false;
+    if (t.minObsession && state.stats.obsession < t.minObsession) return false;
+    if (t.minJealousy && state.stats.jealousy < t.minJealousy) return false;
+    if (t.minBladderCharm && state.stats.bladderCharm < t.minBladderCharm) return false;
+    if (t.storyRoute && t.storyRoute !== state.storyRoute) return false;
+    return true;
+  });
+  if (!eligible.length) return null;
+  // 가중치 풀 (구체적 트리거가 더 많을수록 더 잘 선택되도록)
+  const weighted = eligible.flatMap((m) => {
+    const specificity = (m.triggers.dayOfWeek ? 2 : 0) + (m.triggers.minAffinity || m.triggers.minObsession ? 2 : 0);
+    const w = (m.weight ?? 1) + specificity;
+    return Array(w).fill(m);
+  });
+  return weighted[Math.floor(Math.random() * weighted.length)];
+}
+
+// ================================
 // 일기 / 독백 카드 시스템
 // ================================
 type DiaryEntry = {
@@ -1779,6 +1944,9 @@ export default function Page() {
   const [unlockedEndings, setUnlockedEndings] = useState<Record<string, boolean>>({});
   const [completedQuests, setCompletedQuests] = useState<Record<string, boolean>>({});
   const [questToast, setQuestToast] = useState<{ id: string; title: string } | null>(null);
+  const [unlockedMilestones, setUnlockedMilestones] = useState<Record<string, boolean>>({});
+  const [milestoneToast, setMilestoneToast] = useState<{ id: string; title: string } | null>(null);
+  const [lastRandomMessage, setLastRandomMessage] = useState<number>(0);
   const [slotTick, setSlotTick] = useState(0); // 슬롯 변경 시 리렌더 트리거
   const [seenEvents, setSeenEvents] = useState<Record<string, boolean>>({});
   const [storyRoute, setStoryRoute] = useState<StoryRoute>("common");
@@ -1918,6 +2086,8 @@ export default function Page() {
         setCgFavorites(saved.cgFavorites ?? {});
         setUnlockedEndings(saved.endingFlags ?? {});
         setCompletedQuests(saved.completedQuests ?? {});
+        setUnlockedMilestones(saved.unlockedMilestones ?? {});
+        setLastRandomMessage(saved.lastRandomMessage ?? 0);
         setSeenEvents(saved.seenEvents ?? {});
         setStoryRoute(saved.storyRoute ?? "common");
         setMemoryNotes(saved.memoryNotes ?? []);
@@ -1972,10 +2142,12 @@ export default function Page() {
       cgFavorites,
       endingFlags: unlockedEndings,
       completedQuests,
+      unlockedMilestones,
+      lastRandomMessage,
     };
     save.messages = sanitizeMessages(save.messages);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
-  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests]);
+  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage]);
 
   // ─ 방광 채우기 타이머 ─
   useEffect(() => {
@@ -2427,6 +2599,42 @@ export default function Page() {
       }
     }
   }, [visibleQuests, completedQuests, questState]);
+  // ─ 마일스톤 자동 트리거 ─
+  useEffect(() => {
+    for (const ms of MILESTONES) {
+      if (unlockedMilestones[ms.id]) continue;
+      if (stats[ms.stat] < ms.threshold) continue;
+      // 도달 — 메시지 추가, 마킹, 보상
+      setUnlockedMilestones((prev) => ({ ...prev, [ms.id]: true }));
+      setMessages((m) => {
+        const additions: Message[] = [];
+        if (ms.narration) additions.push(makeMessage("narration", ms.narration));
+        additions.push(makeMessage("assistant", ms.text));
+        return [...m, ...additions];
+      });
+      if (ms.reward) {
+        setStats((s) => ({ ...s, [ms.reward!.stat]: clamp(s[ms.reward!.stat] + ms.reward!.amount) }));
+      }
+      setMilestoneToast({ id: ms.id, title: ms.title });
+      window.setTimeout(() => setMilestoneToast(null), 4200);
+      break; // 한 틱에 한 개만
+    }
+  }, [stats.affinity, stats.trust, stats.obsession, stats.jealousy, stats.bladderCharm]);
+
+  // ─ 랜덤 깜짝 메시지 (홈 진입 시 4시간 쿨다운) ─
+  useEffect(() => {
+    if (view !== "home") return;
+    const now = Date.now();
+    const COOLDOWN = 4 * 60 * 60 * 1000; // 4시간
+    if (now - lastRandomMessage < COOLDOWN) return;
+    // 시나리오 진행 중이면 보내지 않음
+    if (currentScenarioId) return;
+    const picked = pickRandomMessage({ stats, storyRoute, date: new Date(now) });
+    if (!picked) return;
+    setMessages((m) => [...m, makeMessage("assistant", picked.text)]);
+    setLastRandomMessage(now);
+  }, [view]);
+
   function claimQuestReward(quest: Quest) {
     if (completedQuests[quest.id]) return;
     const p = quest.progress(questState);
@@ -2654,6 +2862,8 @@ export default function Page() {
     setUnlockedEndings({});
     setCgFavorites({});
     setCompletedQuests({});
+    setUnlockedMilestones({});
+    setLastRandomMessage(0);
     setSeenEvents({});
     setStoryRoute("common");
     setMemoryNotes([]);
@@ -3564,6 +3774,7 @@ export default function Page() {
         {chapterTransition && <div className={`chapterTransition ${chapterTransition.mode}`}><section><span>{chapterTransition.eyebrow}</span><h2>{chapterTransition.title}</h2>{chapterTransition.subtitle && <p>{chapterTransition.subtitle}</p>}</section></div>}
         {cgUnlockToast && <div className="cgUnlockToast"><div className="cgUnlockIcon">🖼</div><div><b>CG 해금</b><span>「{cgUnlockToast.name}」</span><small>갤러리에 추가되었습니다.</small></div></div>}
         {questToast && <div className="cgUnlockToast questToast"><div className="cgUnlockIcon">🎯</div><div><b>퀘스트 달성!</b><span>「{questToast.title}」</span><small>도전 메뉴에서 보상을 받으세요.</small></div></div>}
+        {milestoneToast && <div className="cgUnlockToast milestoneToast"><div className="cgUnlockIcon">💗</div><div><b>마일스톤 달성</b><span>「{milestoneToast.title}」</span><small>새 메시지가 도착했어요.</small></div></div>}
         {achievementToast && <div className="achToast"><div className="achToastIcon">{achievementToast.emoji}</div><div><b>업적 해금</b><span>「{achievementToast.title}」</span><small>{achievementToast.description}</small></div></div>}
         {bladderPopup && (
           <div className="bladderPopupOverlay">
@@ -3774,6 +3985,9 @@ const CSS = `
 @keyframes questReadyPulse{0%,100%{box-shadow:0 0 0 2px #f0c060,0 8px 22px rgba(240,192,96,.32)}50%{box-shadow:0 0 0 3px #ffd47a,0 12px 28px rgba(240,192,96,.5)}}
 .nav button .navBadge{display:inline-block;margin-left:6px;background:#f0c060;color:#3a2017;font-size:10px;font-weight:1000;padding:1px 6px;border-radius:99px;vertical-align:middle}
 .questToast{background:linear-gradient(135deg,#3a2510,#5a3a18) !important;border-color:rgba(240,192,96,.5) !important}
+.milestoneToast{background:linear-gradient(135deg,#3a1525,#5a2540) !important;border-color:rgba(255,140,180,.5) !important}
+.milestoneToast b{color:#ffb0d0}
+.milestoneToast span{color:#fff}
 .secretRouteCard{position:relative;overflow:hidden;transition:transform .15s ease,box-shadow .2s ease}.secretRouteCard.secretUnlocked{background:linear-gradient(135deg,#fff7d6 0%,#ffe9a8 60%,#ffd17a 100%);border:1px solid #d9a656;color:#5a3d12;box-shadow:0 8px 24px rgba(217,166,86,.28)}.secretRouteCard.secretUnlocked:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(217,166,86,.4)}.secretRouteCard.secretUnlocked b{color:#3a2510}.secretRouteCard.secretUnlocked small{color:#7b5318}.secretRouteCard.secretLocked{background:repeating-linear-gradient(135deg,#2a201b 0px,#2a201b 14px,#22191a 14px,#22191a 28px);color:#7a6b62;border:1px dashed #5a4a40;cursor:not-allowed;opacity:.85}.secretRouteCard.secretLocked b{color:#8a7a6f;letter-spacing:.18em}.secretRouteCard.secretLocked small{color:#6b5b50;font-style:italic}.secretRouteCard.secretLocked:hover{transform:none;box-shadow:none}
 .saveSlotGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:18px}.saveSlotCard{background:#fff8ef;border:1px solid #e8c99e;border-radius:18px;padding:16px;display:grid;gap:12px;color:#3a2017;box-shadow:0 8px 22px rgba(91,48,24,.08);transition:transform .15s ease,box-shadow .2s ease}.saveSlotCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.saveSlotCard.ssEmpty{background:#f6efe5;border-style:dashed;border-color:#cdb89a;opacity:.85}.saveSlotCard.ssRoutePure{background:linear-gradient(180deg,#fff5f8 0%,#fce6ee 100%);border-color:#ecc4d6}.saveSlotCard.ssRouteObsession{background:linear-gradient(180deg,#2a1517 0%,#1a0d0e 100%);border-color:#5d2a30;color:#f4dadd}.saveSlotCard.ssRouteObsession .ssTime,.saveSlotCard.ssRouteObsession .ssPreview{color:#b89a9d}.saveSlotCard.ssRouteObsession .ssStats span{background:rgba(255,200,200,.08);color:#f4dadd}.saveSlotCard.ssRouteObsession .ssThumb{border-color:rgba(255,170,170,.2)}.ssHead{display:flex;align-items:center;justify-content:space-between;gap:8px}.ssNum{font-size:14px;font-weight:1000;letter-spacing:.04em;color:inherit}.ssRouteBadge{font-size:11px;font-weight:900;padding:4px 10px;border-radius:99px;background:rgba(91,48,24,.12);color:#7b4f2f}.ssRoutePure .ssRouteBadge{background:rgba(220,120,160,.18);color:#a14872}.ssRouteObsession .ssRouteBadge{background:rgba(220,80,80,.22);color:#ffaab2}.ssBody{display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:start}.ssThumb{width:84px;height:84px;border-radius:14px;object-fit:cover;border:1px solid rgba(91,48,24,.18);background:#ead7c7}.ssMeta{display:grid;gap:6px;min-width:0}.ssScene{margin:0;font-size:14px;font-weight:900;color:inherit;line-height:1.4}.ssPreview{margin:0;font-size:12px;font-style:italic;color:#7a5e4a;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.ssStats{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}.ssStats span{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:99px;background:rgba(91,48,24,.1);color:#5b3520;letter-spacing:.02em}.ssTime{color:#9a7c65;font-size:11px;font-weight:700;margin-top:2px}.ssEmptyBody{text-align:center;padding:24px 12px;color:#876953}.ssEmptyIcon{font-size:36px;display:block;margin-bottom:8px;opacity:.6}.ssEmptyBody p{margin:0 0 4px;font-size:14px;font-weight:900}.ssEmptyBody small{font-size:11px;color:#a78a72}.ssActions{display:flex;gap:6px}.ssActions button{flex:1;border:0;border-radius:12px;padding:10px 8px;font-size:13px;font-weight:900;cursor:pointer;transition:background .15s ease,transform .12s ease}.ssActions button:hover{transform:translateY(-1px)}.ssBtnLoad{background:#df842c;color:#fff}.ssBtnLoad:hover{background:#c8731f}.ssBtnSave{background:#3a2d29;color:#fff}.ssBtnSave:hover{background:#5a4338}.ssBtnDel{background:transparent;color:#c44;border:1px solid #c44 !important}.ssBtnDel:hover{background:rgba(196,68,68,.1)}
 .cgReaction{display:grid;grid-template-columns:86px minmax(0,1fr) auto;gap:14px;align-items:center;margin:0 0 18px;padding:14px;border-radius:20px;background:#fff8ef;border:1px solid #e8c99e;box-shadow:0 12px 32px rgba(91,48,24,.08)}.cgReaction>img{width:86px;height:86px;border-radius:18px;object-fit:cover;background:#ead7c7}.cgReactionBody{display:grid;gap:6px;min-width:0}.cgReactionBody p{margin:0;color:#4a342a;line-height:1.65;font-weight:800}.cgSourceCaption{color:#9a7c65;font-size:12px;font-weight:700}.cgReactionActions{display:flex;gap:6px;align-items:center}.cgReaction button{border:0;border-radius:999px;background:#3a2d29;color:white;padding:10px 14px;font-weight:900}.favBtn{background:#fff;color:#c44}.favBtn.favOn{background:#c44;color:#fff}.cgCard{position:relative;border:0;text-align:center;cursor:pointer;transition:transform .15s ease,box-shadow .2s ease}.cgCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.cgCardLocked{cursor:default;background:#1f1714}.cgCardLocked:hover{transform:none}.cgSilhouette{filter:brightness(.18) blur(6px) saturate(.5)}.cgLockedBadge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;color:rgba(255,210,150,.55);text-shadow:0 2px 12px rgba(0,0,0,.6);pointer-events:none}.cgFavMark{position:absolute;top:8px;right:10px;font-size:18px;color:#ff5577;text-shadow:0 2px 6px rgba(0,0,0,.45);pointer-events:none}.cgCardCaption{position:absolute;left:0;right:0;bottom:0;padding:6px 10px;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.74) 100%);color:#fff7e8;font-size:11px;font-weight:800;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;text-align:left}.galleryProgress{display:flex;align-items:center;gap:12px;margin:0 0 18px;padding:12px 16px;background:#fff8ef;border:1px solid #e8c99e;border-radius:14px;color:#5a3928}.galleryProgress span{font-size:12px;font-weight:900;letter-spacing:.06em;color:#7b4f2f}.galleryProgressBar{flex:1;min-width:80px;height:8px;background:rgba(91,48,24,.15);border-radius:99px;overflow:hidden}.galleryProgressBar div{height:100%;background:linear-gradient(90deg,#df842c,#e8993b);border-radius:99px;transition:width .35s ease}.galleryProgress strong{font-size:14px;color:#3a2017;font-weight:900}.tabs button.active{background:#df842c}.tabs button.bladderTab{background:linear-gradient(135deg,#d9a656,#b8843a);color:#fff;font-weight:1000}.tabs button.bladderTab.active{background:linear-gradient(135deg,#ffc94f,#d9a656);box-shadow:0 4px 12px rgba(217,166,86,.4)}.tabs button.bladderTab:hover{background:linear-gradient(135deg,#e8b563,#c89540)}

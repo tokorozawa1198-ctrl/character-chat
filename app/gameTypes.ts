@@ -104,4 +104,6 @@ export type SaveData = {
   bladderPopupThreshold?: number; // 마지막 팝업을 띄운 % 임계값
   cgFavorites?: Record<string, boolean>; // CG 즐겨찾기
   completedQuests?: Record<string, boolean>; // 보상 받은 퀘스트
+  unlockedMilestones?: Record<string, boolean>; // 도달한 호감 마일스톤
+  lastRandomMessage?: number; // 마지막 깜짝 메시지 timestamp
 };
