@@ -8,7 +8,7 @@ export type StatKey = "affinity" | "jealousy" | "obsession" | "trust" | "bladder
 export type GalleryTab = "all" | "normal" | "jealousy" | "obsession" | "confinement" | "yandere" | "action" | "bladder";
 export type EndingRoute = "none" | "pure" | "obsession" | "confinement" | "jealousy" | "bad";
 export type EndingKey = "pure" | "obsession" | "confinement" | "jealousy" | "bad";
-export type OutfitKey = "black_tanktop" | "hoodie" | "gym" | "convenience_store" | "winter_coat" | "party_shirt" | "obsession_shirt";
+export type OutfitKey = "black_tanktop" | "hoodie" | "gym" | "convenience_store" | "winter_coat" | "party_shirt" | "obsession_shirt" | "k_bladder_suit";
 
 export type Message = { id: string; role: Role; content: string; time: string; image?: string };
 export type Stats = { affinity: number; jealousy: number; obsession: number; trust: number; bladderCharm: number };

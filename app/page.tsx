@@ -445,12 +445,21 @@ const OUTFITS: OutfitDef[] = [
     portrait: "/outfit_obsession_shirt.png",
     unlockHint: "집착 루트 7장 이후 해금",
   },
+  {
+    id: "k_bladder_suit",
+    label: "K-방광 슈트",
+    emoji: "🚽",
+    description: "노란 + 흰 슈퍼히어로 슈트. 가슴팍에 🚽 마크가 새겨져 있다. 지구를 구하는 자의 옷.",
+    portrait: "/outfit_k_bladder_suit.png",
+    unlockHint: "방광 루트 7장 이후 해금",
+  },
 ];
 
 function getUnlockedOutfits(
   seenTriggers: Record<string, boolean>,
   storyRoute: StoryRoute,
-  obsession: number
+  obsession: number,
+  bladderCharm: number = 0
 ): OutfitKey[] {
   const seen = (prefix: string) =>
     Object.keys(seenTriggers).some((k) => k.startsWith(prefix));
@@ -460,6 +469,10 @@ function getUnlockedOutfits(
   if (seen("main_ch4")) unlocked.push("party_shirt");
   if (seen("main_ch5") || seen("main_ch6")) unlocked.push("winter_coat");
   if (storyRoute === "obsession" || obsession >= 600) unlocked.push("obsession_shirt");
+  // K-방광 슈트: 방광 루트 7장+ 진입 OR 방광매력 100+
+  if (seen("bladder_ch7") || seen("bladder_ch8") || seen("bladder_ch9") || bladderCharm >= 100) {
+    unlocked.push("k_bladder_suit");
+  }
   return unlocked;
 }
 // ================================
@@ -1968,6 +1981,7 @@ export default function Page() {
         Object.fromEntries(Object.entries(seenEvents).filter(([, v]) => v)),
         storyRoute,
         stats.obsession,
+        stats.bladderCharm,
       ).length,
     };
     const newlyUnlocked: Achievement[] = [];
@@ -2861,7 +2875,8 @@ export default function Page() {
           const unlocked = getUnlockedOutfits(
             Object.fromEntries(Object.entries(seenEvents).filter(([, v]) => v)),
             storyRoute,
-            stats.obsession
+            stats.obsession,
+            stats.bladderCharm
           );
           return (
             <Panel title="옷장">
@@ -2877,12 +2892,20 @@ export default function Page() {
                       onClick={() => isUnlocked && setEquippedOutfit(outfit.id)}
                       disabled={!isUnlocked}
                     >
-                      <div className="wardrobePreview">
+                      <div className={`wardrobePreview${outfit.id === "k_bladder_suit" ? " kBladderPreview" : ""}`}>
                         {isUnlocked ? (
                           <img
                             src={outfit.portrait}
                             alt={outfit.label}
-                            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                            onError={(e) => {
+                              const el = e.currentTarget as HTMLImageElement;
+                              if (outfit.id === "k_bladder_suit" && !el.dataset.fallback) {
+                                el.dataset.fallback = "1";
+                                el.src = "/bladder_illust.png";
+                              } else {
+                                el.style.display = "none";
+                              }
+                            }}
                           />
                         ) : (
                           <span className="wardrobeLockIcon">🔒</span>
@@ -3598,6 +3621,8 @@ const CSS = `
 .giftReactionText{margin:0;font-size:15px;color:#f0e6cc;line-height:1.7;font-style:italic;white-space:pre-wrap;opacity:0;animation:levelUpFadeUp .5s ease .3s forwards}
 .giftReactionStats{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;opacity:0;animation:levelUpFadeUp .4s ease .7s forwards}.giftReactionStats .pos{font-size:12px;font-weight:800;padding:3px 10px;border-radius:99px;background:rgba(240,192,96,.15);color:#f0c060}.giftReactionStats .neg{font-size:12px;font-weight:800;padding:3px 10px;border-radius:99px;background:rgba(200,80,80,.15);color:#e07070}
 .wardrobeHint{margin:0 0 18px;font-size:13px;color:#6b4f3d;font-weight:700}
+.wardrobePreview.kBladderPreview{background:linear-gradient(135deg,#fff7d0 0%,#ffd95c 60%,#ffb340 100%) !important;position:relative}
+.wardrobePreview.kBladderPreview::after{content:"🚽";position:absolute;top:8px;right:10px;font-size:22px;filter:drop-shadow(0 2px 4px rgba(120,80,20,.5))}
 .wardrobeGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
 .wardrobeCard{display:flex;flex-direction:column;align-items:center;gap:0;border-radius:20px;background:#fff7ec;border:1px solid #e8d2b6;cursor:pointer;transition:all .18s;text-align:center;position:relative;overflow:hidden;padding:0 0 14px}
 .wardrobeCard:hover:not(:disabled){background:rgba(240,192,96,.1);border-color:rgba(240,192,96,.4);transform:translateY(-2px)}
