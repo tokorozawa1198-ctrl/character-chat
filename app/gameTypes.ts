@@ -35,6 +35,7 @@ export type Choice = {
   forceImage?: string;
   route?: StoryRoute;
   condition?: ChoiceCondition;  // 잠금 조건: 미충족 시 회색 잠금
+  flag?: string;                // 분기 플래그 (예: "confine_A_seed") — 추후 라우팅/분석용
 };
 export type VNLine = { speaker: "나레이션" | "근떡존" | "히든" | "메시지"; text: string };
 export type TouchTarget = {
