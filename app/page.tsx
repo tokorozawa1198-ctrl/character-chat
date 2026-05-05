@@ -1000,6 +1000,52 @@ function getLevelTitle(level: number): string {
   return "신참";
 }
 
+// ── 레벨업 보상 (영구 패시브 + 1회성) ──
+type LevelPerkKind =
+  | "daily_slot_4" | "daily_slot_5"
+  | "gacha_cd_18h" | "gacha_cd_12h" | "gacha_double_free"
+  | "adventure_slot_2" | "adventure_speed_20" | "adventure_speed_40"
+  | "combo_exp_20" | "combo_exp_50"
+  | "affinity_passive_10" | "affinity_passive_25"
+  | "sr_bonus_2" | "sr_bonus_5"
+  | "pet_affinity_50" | "pet_affinity_100"
+  | "coin_passive_25" | "coin_passive_50";
+
+type LevelReward = {
+  level: number;
+  emoji: string;
+  title: string;
+  description: string;
+  perks: LevelPerkKind[];
+  oneTime?: { coins?: number; tickets?: number; affinity?: number; trust?: number };
+};
+
+const LEVEL_REWARDS: LevelReward[] = [
+  { level: 2, emoji: "🎁", title: "환영 선물", description: "별 거 아니지만 첫걸음 ㅋ", perks: [], oneTime: { coins: 100 } },
+  { level: 3, emoji: "📅", title: "데일리 미션 +1", description: "이제 매일 4개 받음 (기본 3개 → 4개)", perks: ["daily_slot_4"], oneTime: { coins: 200 } },
+  { level: 5, emoji: "🎰", title: "단골 등업", description: "무료 가챠 쿨다운 24h → 18h. 보너스 티켓 3장", perks: ["gacha_cd_18h"], oneTime: { tickets: 3, coins: 300 } },
+  { level: 7, emoji: "🌍", title: "원정 슬롯 +1", description: "모험을 동시에 2개 보낼 수 있음", perks: ["adventure_slot_2"], oneTime: { coins: 500 } },
+  { level: 8, emoji: "🔥", title: "콤보 강화", description: "콤보 EXP 보너스 +20%", perks: ["combo_exp_20"] },
+  { level: 10, emoji: "⏰", title: "친구 등업", description: "무료 가챠 12h. 매일 무료 2회. 보너스 큰거 받음", perks: ["gacha_cd_12h", "gacha_double_free"], oneTime: { coins: 1000, tickets: 5 } },
+  { level: 12, emoji: "💗", title: "다정한 사람", description: "호감 획득 +10% 영구", perks: ["affinity_passive_10"] },
+  { level: 15, emoji: "🚀", title: "원정 가속", description: "모험 시간 -20%. 펫 친밀도 +50%", perks: ["adventure_speed_20", "pet_affinity_50"], oneTime: { tickets: 5 } },
+  { level: 18, emoji: "📅", title: "데일리 +1", description: "데일리 미션 5개", perks: ["daily_slot_5"] },
+  { level: 20, emoji: "✨", title: "연인 등업", description: "SR 확률 +2%. 콤보 EXP +50%. 호감 +400 즉시", perks: ["sr_bonus_2", "combo_exp_50"], oneTime: { affinity: 400, trust: 200, coins: 2000, tickets: 10 } },
+  { level: 25, emoji: "💎", title: "운명의 사람", description: "코인 획득 +25%. SR 확률 +5%", perks: ["coin_passive_25", "sr_bonus_5"] },
+  { level: 28, emoji: "🌟", title: "원정 마스터", description: "모험 시간 -40%", perks: ["adventure_speed_40"] },
+  { level: 30, emoji: "👑", title: "평생", description: "코인 +50%. 호감 +25%. 펫 친밀도 +100%. 한정 보상", perks: ["coin_passive_50", "affinity_passive_25", "pet_affinity_100"], oneTime: { coins: 10000, tickets: 30, affinity: 1000 } },
+];
+
+function getActivePerks(level: number): Set<LevelPerkKind> {
+  const set = new Set<LevelPerkKind>();
+  for (const r of LEVEL_REWARDS) {
+    if (level >= r.level) {
+      for (const p of r.perks) set.add(p);
+    }
+  }
+  return set;
+}
+
 // ================================
 // 코인 / 데일리 미션 / 상점 시스템
 // ================================
@@ -1030,13 +1076,13 @@ function todayKey(d: Date = new Date()): string {
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
-function pickDailyMissions(date: string, eligibleIds: string[]): DailyMission[] {
-  // 날짜 기반 시드로 안정적으로 3개 선택
+function pickDailyMissions(date: string, eligibleIds: string[], slotCount = 3): DailyMission[] {
+  // 날짜 기반 시드로 안정적으로 N개 선택
   let seed = 0;
   for (const c of date) seed = (seed * 31 + c.charCodeAt(0)) >>> 0;
   const pool = [...eligibleIds];
   const picked: string[] = [];
-  for (let i = 0; i < 3 && pool.length; i++) {
+  for (let i = 0; i < slotCount && pool.length; i++) {
     seed = (seed * 1103515245 + 12345) >>> 0;
     const idx = seed % pool.length;
     picked.push(pool.splice(idx, 1)[0]);
@@ -2026,9 +2072,12 @@ function isYesterday(ts: number): boolean {
 function clamp(value: number) {
   return Math.max(0, Math.min(STAT_MAX, Math.round(value)));
 }
-function applyStats(stats: Stats, delta: StatDelta = {}): Stats {
+function applyStats(stats: Stats, delta: StatDelta = {}, affinityBonus = 0): Stats {
+  // 호감 +N 일 때만 패시브 보너스 적용 (감소엔 적용 안 함)
+  const affDelta = delta.affinity ?? 0;
+  const affFinal = affDelta > 0 ? Math.round(affDelta * (1 + affinityBonus)) : affDelta;
   return {
-    affinity: clamp(stats.affinity + (delta.affinity ?? 0)),
+    affinity: clamp(stats.affinity + affFinal),
     jealousy: clamp(stats.jealousy + (delta.jealousy ?? 0)),
     obsession: clamp(stats.obsession + (delta.obsession ?? 0)),
     trust: clamp(stats.trust + (delta.trust ?? 0)),
@@ -2600,8 +2649,9 @@ export default function Page() {
   const [shopToast, setShopToast] = useState<{ name: string; detail: string } | null>(null);
   const [userLevel, setUserLevel] = useState<number>(1);
   const [userExp, setUserExp] = useState<number>(0);
-  const [levelUpEffect, setLevelUpEffect] = useState<{ level: number; title: string } | null>(null);
+  const [levelUpEffect, setLevelUpEffect] = useState<{ level: number; title: string; reward?: LevelReward } | null>(null);
   const [expFloater, setExpFloater] = useState<{ id: number; amount: number } | null>(null);
+  const [showLevelRewards, setShowLevelRewards] = useState(false);
   // 가챠
   const [lastFreeGacha, setLastFreeGacha] = useState<number>(0);
   const [gachaTickets, setGachaTickets] = useState<number>(0);
@@ -3229,7 +3279,7 @@ export default function Page() {
     setLastCheckIn(now);
     setCheckInStreak(newStreak);
     setCheckInHistory((prev) => [...prev, now].slice(-30)); // 최근 30일만 보관
-    setStats((s) => applyStats(s, reward.stat));
+    setStats((s) => applyStats(s, reward.stat, perkBonus.affinityPassive));
     // 데일리: 출석 + 코인 보너스
     setDailyState((prev) => ({ ...prev, checkinDone: true }));
     setCoins((c) => c + 5);
@@ -3251,7 +3301,7 @@ export default function Page() {
     const cooldownUntil = giftCooldowns[gift.id] ?? 0;
     if (now < cooldownUntil) return; // 쿨타임 중
 
-    const nextStats = applyStats(stats, gift.stat);
+    const nextStats = applyStats(stats, gift.stat, perkBonus.affinityPassive);
     setStats(nextStats);
     showStatDelta(gift.stat);
     setDailyState((prev) => ({ ...prev, giftCount: prev.giftCount + 1 }));
@@ -3280,7 +3330,7 @@ export default function Page() {
 
   function chooseScenario(choice: Choice) {
     if (!currentScenario) return;
-    const nextStats = applyStats(stats, choice.stat);
+    const nextStats = applyStats(stats, choice.stat, perkBonus.affinityPassive);
     setStats(nextStats);
     showStatDelta(choice.stat);
     if (choice.route) enterRoute(choice.route);
@@ -3356,7 +3406,8 @@ export default function Page() {
   function startAdventure(loc: AdventureLoc) {
     if (activeAdventure) return;
     const now = Date.now();
-    setActiveAdventure({ id: loc.id, startTime: now, endTime: now + loc.durationMs, petUsed: activePet });
+    const reducedDuration = Math.round(loc.durationMs * (1 - perkBonus.adventureSpeed));
+    setActiveAdventure({ id: loc.id, startTime: now, endTime: now + reducedDuration, petUsed: activePet });
   }
   function collectAdventure() {
     if (!activeAdventure) return;
@@ -3555,7 +3606,7 @@ export default function Page() {
   function rollGachaWithLuck(): GachaItem {
     const luck = getPetMultiplier(activePetObj, activePetData, "luck") - 1; // 0 ~ 0.4
     const allMul = getPetMultiplier(activePetObj, activePetData, "all") - 1;
-    const boost = luck + allMul; // 합산
+    const boost = luck + allMul + perkBonus.srBonus; // 합산 + 레벨 perk
     if (boost > 0) {
       const r = Math.random();
       let acc = 0;
@@ -3582,7 +3633,7 @@ export default function Page() {
     if (gachaResult) return; // 이미 뽑는 중
     const now = Date.now();
     if (mode === "free") {
-      if (now - lastFreeGacha < GACHA_FREE_COOLDOWN) return;
+      if (now - lastFreeGacha < perkBonus.gachaCooldownMs) return;
       setLastFreeGacha(now);
       const item = rollGachaWithLuck();
       applyGachaItem(item);
@@ -3639,7 +3690,7 @@ export default function Page() {
       if (ms && !comboMilestonesReached[next]) {
         setComboMilestonesReached((p) => ({ ...p, [next]: true }));
         if (ms.reward.coins) setCoins((c) => c + ms.reward.coins!);
-        if (ms.reward.exp) gainExp(ms.reward.exp);
+        if (ms.reward.exp) gainExp(Math.round(ms.reward.exp * (1 + perkBonus.comboExp)));
         if (ms.reward.tickets) setGachaTickets((t) => t + ms.reward.tickets!);
         if (ms.reward.stat) setStats((s) => ({ ...s, [ms.reward.stat!.stat]: clamp(s[ms.reward.stat!.stat] + ms.reward.stat!.amount) }));
         setComboToast(ms.toast);
@@ -3670,12 +3721,36 @@ export default function Page() {
       if (levelChanged) {
         setUserLevel(curLevel);
         setCoins((c) => c + curLevel * 10); // 레벨업 보너스 코인
-        setLevelUpEffect({ level: curLevel, title: getLevelTitle(curLevel) });
-        window.setTimeout(() => setLevelUpEffect(null), 2400);
+        const rewardThisLevel = LEVEL_REWARDS.find((r) => r.level === curLevel);
+        setLevelUpEffect({ level: curLevel, title: getLevelTitle(curLevel), reward: rewardThisLevel });
+        window.setTimeout(() => setLevelUpEffect(null), rewardThisLevel ? 4000 : 2400);
+        // 레벨업 1회성 보상 지급
+        for (const r of LEVEL_REWARDS) {
+          if (r.level === curLevel && r.oneTime) {
+            if (r.oneTime.coins) setCoins((c) => c + r.oneTime!.coins!);
+            if (r.oneTime.tickets) setGachaTickets((t) => t + r.oneTime!.tickets!);
+            if (r.oneTime.affinity) setStats((s) => ({ ...s, affinity: clamp(s.affinity + r.oneTime!.affinity!) }));
+            if (r.oneTime.trust) setStats((s) => ({ ...s, trust: clamp(s.trust + r.oneTime!.trust!) }));
+          }
+        }
       }
       return exp;
     });
   }
+  // 활성 패시브 효과 헬퍼
+  const activePerks = useMemo(() => getActivePerks(userLevel), [userLevel]);
+  const perkBonus = {
+    affinityPassive: activePerks.has("affinity_passive_25") ? 0.25 : activePerks.has("affinity_passive_10") ? 0.10 : 0,
+    coinPassive: activePerks.has("coin_passive_50") ? 0.50 : activePerks.has("coin_passive_25") ? 0.25 : 0,
+    petAffinityBonus: activePerks.has("pet_affinity_100") ? 1.0 : activePerks.has("pet_affinity_50") ? 0.5 : 0,
+    comboExp: activePerks.has("combo_exp_50") ? 0.50 : activePerks.has("combo_exp_20") ? 0.20 : 0,
+    srBonus: activePerks.has("sr_bonus_5") ? 0.05 : activePerks.has("sr_bonus_2") ? 0.02 : 0,
+    adventureSpeed: activePerks.has("adventure_speed_40") ? 0.4 : activePerks.has("adventure_speed_20") ? 0.2 : 0,
+    dailySlots: activePerks.has("daily_slot_5") ? 5 : activePerks.has("daily_slot_4") ? 4 : 3,
+    gachaCooldownMs: activePerks.has("gacha_cd_12h") ? 12 * 3600000 : activePerks.has("gacha_cd_18h") ? 18 * 3600000 : 24 * 3600000,
+    doubleFree: activePerks.has("gacha_double_free"),
+    adventureSlots: activePerks.has("adventure_slot_2") ? 2 : 1,
+  };
 
   // ─ 데일리 자동 갱신 (날짜 변경 감지) ─
   useEffect(() => {
@@ -3691,7 +3766,7 @@ export default function Page() {
       scenarioCount: prev.date === today ? prev.scenarioCount : 0,
       checkinDone: prev.date === today ? prev.checkinDone : false,
       bladderPeak: prev.date === today ? prev.bladderPeak : 0,
-      missions: pickDailyMissions(today, eligibleIds),
+      missions: pickDailyMissions(today, eligibleIds, perkBonus.dailySlots),
     }));
   }, [view]); // 뷰 전환 시마다 체크
 
@@ -3856,12 +3931,13 @@ export default function Page() {
     gainExp(5);
     pumpCombo();
     dealRaidDamage(10);
-    // 활성 펫 친밀도 +1 (채팅마다)
+    // 활성 펫 친밀도 +1 (채팅마다, 레벨 perk 보너스 적용)
     if (activePet && ownedPets[activePet]) {
+      const gain = Math.round(1 * (1 + perkBonus.petAffinityBonus));
       setOwnedPets((prev) => {
         const cur = prev[activePet];
         if (!cur) return prev;
-        const newAff = cur.affinity + 1;
+        const newAff = cur.affinity + gain;
         return { ...prev, [activePet]: { ...cur, affinity: newAff, level: petLevel(newAff) } };
       });
     }
@@ -4139,7 +4215,7 @@ export default function Page() {
           <div className="userLvBar">
             <div className="userLvBarFill" style={{ width: `${(userExp / expToNextLevel(userLevel)) * 100}%` }}/>
           </div>
-          <small className="userLvExp">{userExp} / {expToNextLevel(userLevel)} EXP</small>
+          <small className="userLvExp">{userExp} / {expToNextLevel(userLevel)} EXP · <a className="userLvRewardLink" onClick={()=>setShowLevelRewards(true)}>보상 보기 ▸</a></small>
         </div>
         {activePetObj && activePetData && (() => {
           const lvl = petLevel(activePetData.affinity);
@@ -4172,7 +4248,7 @@ export default function Page() {
           }).length : 0;
           const totalClaimable = (key === "quests" ? claimableCount + dailyClaimable : 0);
           // 빨간 점 알림 통합
-          const freeGachaReady = Date.now() - lastFreeGacha >= GACHA_FREE_COOLDOWN;
+          const freeGachaReady = Date.now() - lastFreeGacha >= perkBonus.gachaCooldownMs;
           const advReady = activeAdventure && Date.now() >= activeAdventure.endTime;
           const snsRefreshDue = Date.now() - lastSnsRefresh > 4 * 60 * 60 * 1000;
           const raidActive = !raidCleared && raidHp > 0;
@@ -4618,8 +4694,8 @@ export default function Page() {
           </Panel>
         )}
         {view === "gacha" && (() => {
-          const freeReady = Date.now() - lastFreeGacha >= GACHA_FREE_COOLDOWN;
-          const nextFreeMs = Math.max(0, GACHA_FREE_COOLDOWN - (Date.now() - lastFreeGacha));
+          const freeReady = Date.now() - lastFreeGacha >= perkBonus.gachaCooldownMs;
+          const nextFreeMs = Math.max(0, perkBonus.gachaCooldownMs - (Date.now() - lastFreeGacha));
           const nextFreeH = Math.floor(nextFreeMs / 3600000);
           const nextFreeM = Math.floor((nextFreeMs % 3600000) / 60000);
           return (
@@ -5399,13 +5475,60 @@ export default function Page() {
           </div>
         )}
         {levelUpEffect && (
-          <div className="levelUpOverlay">
+          <div className="levelUpOverlay" onClick={()=>setLevelUpEffect(null)}>
             <div className="levelUpRays"/>
             <div className="levelUpCard">
               <span className="levelUpEyebrow">L · E · V · E · L &nbsp;&nbsp; U · P</span>
               <p className="levelUpLevel">Lv. {levelUpEffect.level}</p>
               <span className="levelUpTitle">{levelUpEffect.title}</span>
               <small className="levelUpReward">🪙 +{levelUpEffect.level * 10} 보너스</small>
+              {levelUpEffect.reward && (
+                <div className="levelUpUnlock">
+                  <div className="levelUpUnlockHead">{levelUpEffect.reward.emoji} {levelUpEffect.reward.title}</div>
+                  <p className="levelUpUnlockDesc">{levelUpEffect.reward.description}</p>
+                  {levelUpEffect.reward.oneTime && (
+                    <small className="levelUpUnlockOneTime">
+                      {levelUpEffect.reward.oneTime.coins ? `🪙 +${levelUpEffect.reward.oneTime.coins} ` : ""}
+                      {levelUpEffect.reward.oneTime.tickets ? `🎫 +${levelUpEffect.reward.oneTime.tickets} ` : ""}
+                      {levelUpEffect.reward.oneTime.affinity ? `호감 +${levelUpEffect.reward.oneTime.affinity} ` : ""}
+                      {levelUpEffect.reward.oneTime.trust ? `신뢰 +${levelUpEffect.reward.oneTime.trust} ` : ""}
+                    </small>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {showLevelRewards && (
+          <div className="levelRewardsOverlay" onClick={()=>setShowLevelRewards(false)}>
+            <div className="levelRewardsModal" onClick={(e)=>e.stopPropagation()}>
+              <button className="levelRewardsClose" onClick={()=>setShowLevelRewards(false)}>✕</button>
+              <h2 className="levelRewardsTitle">📜 레벨 보상 도감</h2>
+              <p className="levelRewardsHint">현재 레벨 <b>Lv.{userLevel}</b> · 레벨 올릴 때마다 새 능력 잠금 해제됨</p>
+              <div className="levelRewardsList">
+                {LEVEL_REWARDS.map((r) => {
+                  const reached = userLevel >= r.level;
+                  return (
+                    <div key={r.level} className={`levelRewardCard${reached ? " lrReached" : " lrLocked"}`}>
+                      <div className="lrCardLv">Lv.{r.level}</div>
+                      <div className="lrCardEmoji">{reached ? r.emoji : "🔒"}</div>
+                      <div className="lrCardBody">
+                        <b>{r.title}</b>
+                        <small>{r.description}</small>
+                        {r.oneTime && (
+                          <div className="lrOneTime">
+                            🎁 1회 보상:
+                            {r.oneTime.coins ? ` 🪙${r.oneTime.coins}` : ""}
+                            {r.oneTime.tickets ? ` 🎫${r.oneTime.tickets}` : ""}
+                            {r.oneTime.affinity ? ` 호감+${r.oneTime.affinity}` : ""}
+                            {r.oneTime.trust ? ` 신뢰+${r.oneTime.trust}` : ""}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
@@ -5651,6 +5774,31 @@ const CSS = `
 @keyframes levelUpSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 @keyframes levelUpPop{0%{opacity:0;transform:scale(.5) rotate(-3deg)}50%{opacity:1;transform:scale(1.08) rotate(1deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
 @keyframes levelUpLevelGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.2)}}
+.levelUpUnlock{margin-top:14px;padding:14px 16px;background:linear-gradient(135deg,rgba(255,210,100,.15),rgba(223,132,44,.15));border:1px solid rgba(255,210,100,.4);border-radius:14px;text-align:center}
+.levelUpUnlockHead{font-size:16px;font-weight:1000;color:#ffd97a;margin-bottom:6px;letter-spacing:.04em}
+.levelUpUnlockDesc{margin:0;font-size:12px;color:#fff;line-height:1.5}
+.levelUpUnlockOneTime{display:block;margin-top:8px;padding:6px 10px;background:rgba(0,0,0,.3);border-radius:8px;font-size:11px;color:#ffd97a;font-weight:900;letter-spacing:.03em}
+.userLvRewardLink{cursor:pointer;color:#ffd97a;text-decoration:underline;font-weight:1000}
+.userLvRewardLink:hover{color:#fff}
+/* ─ 레벨 보상 모달 ─ */
+.levelRewardsOverlay{position:fixed;inset:0;z-index:99997;background:rgba(0,0,0,.88);display:grid;place-items:center;cursor:pointer;animation:gachaFadeIn .25s ease}
+.levelRewardsModal{position:relative;width:min(680px,92vw);max-height:90vh;background:linear-gradient(180deg,#241814,#3a2519);border:2px solid rgba(255,210,100,.4);border-radius:24px;padding:32px 28px;cursor:default;overflow-y:auto;color:#fff;box-shadow:0 0 60px rgba(255,210,100,.3)}
+.levelRewardsClose{position:absolute;top:16px;right:16px;border:0;background:transparent;color:#fff;font-size:22px;cursor:pointer;font-weight:1000;width:32px;height:32px;border-radius:50%;display:grid;place-items:center}
+.levelRewardsClose:hover{background:rgba(255,255,255,.1)}
+.levelRewardsTitle{margin:0 0 8px;font-size:24px;color:#ffd97a;text-align:center;text-shadow:0 0 14px rgba(255,210,100,.5)}
+.levelRewardsHint{margin:0 0 18px;text-align:center;font-size:13px;color:#caa890}
+.levelRewardsHint b{color:#ffd97a;font-weight:1000}
+.levelRewardsList{display:grid;gap:10px}
+.levelRewardCard{display:grid;grid-template-columns:60px 50px 1fr;gap:12px;align-items:center;padding:12px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,210,100,.18);border-radius:14px;transition:all .15s}
+.levelRewardCard.lrReached{background:linear-gradient(135deg,rgba(255,210,100,.12),rgba(223,132,44,.08));border-color:rgba(255,210,100,.5)}
+.levelRewardCard.lrLocked{opacity:.5}
+.lrCardLv{font-size:16px;font-weight:1000;color:#ffd97a;text-align:center;letter-spacing:.04em;background:rgba(0,0,0,.3);padding:6px 8px;border-radius:8px}
+.lrReached .lrCardLv{background:linear-gradient(135deg,#ffd97a,#e8993b);color:#3a2017}
+.lrCardEmoji{font-size:32px;text-align:center}
+.lrCardBody{display:grid;gap:3px;min-width:0}
+.lrCardBody b{font-size:14px;color:#fff;font-weight:1000}
+.lrCardBody small{font-size:12px;color:#caa890;line-height:1.5}
+.lrOneTime{font-size:11px;color:#ffd97a;font-weight:900;margin-top:3px}
 /* ─ 퀘스트 섹션 헤더 ─ */
 .questSectionTitle{margin:24px 0 12px;font-size:18px;color:#3a2017;display:flex;align-items:center;gap:8px}
 .questSectionTitle small{font-size:12px;color:#9a7c65;font-weight:700}
