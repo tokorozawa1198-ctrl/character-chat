@@ -32,6 +32,7 @@ export const imagePools = {
   obsession: ["/oppa_obsessed1.png", "/oppa_obsessed2.png", "/oppa_obsessed3.png", "/oppa_obsessed4.png", "/oppa_obsessed5.png", "/oppa_obsessed6.png", "/oppa_obsessed7.png", "/oppa_obsessed8.png", "/oppa_shy.png", "/oppa_angry.png"],
   yandere: ["/oppa_yandere1.png", "/oppa_yandere2.png", "/oppa_yandere3.png", "/oppa_yandere4.png", "/oppa_yandere5.png", "/oppa_yandere6.png", "/oppa_yandere7.png", "/oppa_yandere8.png", "/oppa_yandere.png", "/oppa_angry.png"],
   confinement: ["/oppa_confinement1.png", "/oppa_confinement2.png", "/oppa_confinement3.png", "/oppa_confinement4.png", "/oppa_confinement5.png", "/oppa_confinement6.png", "/oppa_confinement7.png", "/oppa_confinement8.png", "/oppa_locked1.png", "/oppa_locked2.png", "/oppa_yandere.png"],
+  bladder: ["/bladder_illust.png", "/bladder_ch5_01.png", "/bladder_ch5_02.png", "/bladder_ch5_03.png", "/bladder_ch5_04.png", "/bladder_ch5_05.png", "/bladder_ch5_06.png", "/bladder_ch6_01.png", "/bladder_ch6_02.png", "/bladder_ch6_03.png", "/bladder_ch7_02.png", "/bladder_ch7_03.png", "/bladder_ch7_04.png", "/bladder_ch8_01.png"],
 };
 
 export const actionCGPools = {
