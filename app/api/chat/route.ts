@@ -306,7 +306,7 @@ function stripStageDirections(reply: string): { reply: string; extractedNarratio
 
   // 줄/문장 단위 narrative 검출
   // 근떡존은 항상 존댓말(요/네요/세요/습니다 등) → 평서체 ~다 종결은 나레이션 누수로 간주
-  const NARRATIVE_END = /(?:었다|였다|았다|했다|렀다|혔다|봤다|왔다|갔다|났다|졌다|섰다|냈다|놨다|렸다|쳤다|들었다|있었다|없었다|이었다|는다|이다|한다|된다|인다|그랬다|아니었다|만났다|놓았다|안았다|줬다|뒀다)\.?$/;
+  const NARRATIVE_END = /(?:었다|였다|았다|했다|렀다|혔다|봤다|왔다|갔다|났다|졌다|섰다|냈다|놨다|렸다|쳤다|셨다|드렸다|들었다|있었다|없었다|이었다|아니었다|만났다|놓았다|안았다|줬다|뒀다|그랬다|는다|이다|한다|된다|인다)\.?$/;
   const POLITE_END = /(요|네요|세요|어요|아요|습니다|입니다|니다|예요|에요|이에요|죠|군요|걸요|네|어|아|음|읍|돼|돼요)[.!?…~ㅋㅎ]*$/;
   function looksLikeNarrationLine(t: string): boolean {
     if (t.length < 6) return false;
@@ -374,6 +374,54 @@ function stripStageDirections(reply: string): { reply: string; extractedNarratio
 function normalizeHonorific(text: string) {
   // 선생님/주인님 둘 다 허용. 히든님만 선생님으로 보정.
   return text.replace(/히든님/g, "선생님");
+}
+
+// reply 안의 반말 종결을 존댓말로 자동 변환
+// 근떡존은 항상 존댓말 캐릭터 — 반말이 새면 기계적으로 보정
+// 보수적으로 동작: 명백한 반말 패턴만 잡고 의문문/감탄문은 건드리지 않음
+function reformatBanmalToJondaetmal(text: string): string {
+  if (!text) return text;
+  return text
+    .split("\n")
+    .map((line) => {
+      let s = line;
+      // 문장 단위로 처리 (마침표/물음표/느낌표 다음에 잘림)
+      const parts = s.match(/[^.!?…]+[.!?…]+|[^.!?…]+$/g);
+      if (!parts) return s;
+      return parts
+        .map((part) => {
+          let p = part;
+          const trimmed = p.trimEnd();
+          // 문장 끝 punctuation 분리
+          const punctMatch = p.match(/^(.*?)([.!?…\s]*)$/);
+          if (!punctMatch) return p;
+          const body = punctMatch[1];
+          const tail = punctMatch[2];
+          // 이미 존댓말 종결이면 그대로
+          if (/(요|네요|세요|어요|아요|습니다|입니다|니다|예요|에요|이에요|죠|군요|걸요|는데요|던데요|는걸요|는군요)$/.test(body)) {
+            return p;
+          }
+          // 의문/감탄으로 끝나면 함부로 못 바꿈 (그대로 둠)
+          if (/[?!]/.test(tail)) return p;
+          // 반말 종결 변환
+          let converted = body;
+          // 어미별 변환: 더 긴 패턴부터
+          if (/잖아$/.test(converted)) converted = converted.replace(/잖아$/, "잖아요");
+          else if (/거든$/.test(converted)) converted = converted.replace(/거든$/, "거든요");
+          else if (/구나$/.test(converted)) converted = converted.replace(/구나$/, "군요");
+          else if (/는데$/.test(converted)) converted = converted.replace(/는데$/, "는데요");
+          else if (/던데$/.test(converted)) converted = converted.replace(/던데$/, "던데요");
+          else if (/지$/.test(converted) && converted.length >= 3) converted = converted.replace(/지$/, "죠");
+          else if (/네$/.test(converted) && converted.length >= 3) converted = converted.replace(/네$/, "네요");
+          else if (/군$/.test(converted) && converted.length >= 3) converted = converted.replace(/군$/, "군요");
+          // "이야"/"야" 종결: "큰일이야" → "큰일이에요" / "맞아" 류는 손대지 않음 (감탄성)
+          else if (/이야$/.test(converted)) converted = converted.replace(/이야$/, "이에요");
+          // 변환된 게 있으면 적용
+          return converted + tail;
+        })
+        .join("");
+    })
+    .join("\n");
 }
 
 function pickBySeed<T>(items: T[], seedSource: string) {
@@ -1034,7 +1082,10 @@ ${instruction}
 - reply에 "*근떡존이 ~한다*", "(웃는다)", "근떡존이 고개를 끄덕인다." 같은 3인칭 지문/행동 묘사는 절대 넣지 않는다. 그런 묘사가 필요하면 narration에만 쓴다.
 - reply는 한국어 1인칭 대사여야 한다. "저", "주인님", "선생님" 같은 화자/청자 호칭이 자연스럽게 나오는 멘트.
 - ⚠️ 절대 금지: reply 안에 "근떡존은 ~했다", "그는 ~었다", "~한 기분이었다", "~로 보였다" 같은 평서체(~다.) 종결 문장을 넣지 마라. 근떡존은 항상 존댓말(요/네요/세요/습니다)로 카톡한다. 평서체 ~다 종결은 100% 나레이션이므로 narration 필드로만 보내라.
-- reply의 모든 문장은 "요/네요/세요/어요/아요/습니다/예요/에요/죠" 등 정중체로 끝나야 한다.
+- ⚠️ 절대 금지: reply 안에 반말 종결("~지", "~네", "~잖아", "~거든", "~구나", "~야", "~라", "~어", "~아") 도 절대 쓰지 마라. 근떡존은 어떤 상황에서도 존댓말만 쓴다.
+  나쁜 예: "조심해야지." / "그러게 말이야." / "맞잖아." / "그러네."
+  좋은 예: "조심해야죠." / "그러게 말이에요." / "맞잖아요." / "그러네요."
+- reply의 모든 문장은 "요/네요/세요/어요/아요/습니다/예요/에요/죠/군요" 등 정중체로 끝나야 한다. 한 문장도 예외 없다.
 - reply가 비면 안 된다.
 
 [최종 지시]
@@ -1118,7 +1169,7 @@ ${instruction}
       reply = buildNonRepeatingFallback(finalUserMessage, body.stats, requestType);
     }
 
-    reply = normalizeHonorific(repairAbruptReply(reply));
+    reply = reformatBanmalToJondaetmal(normalizeHonorific(repairAbruptReply(reply)));
 
     if (!reply) {
       return NextResponse.json(
