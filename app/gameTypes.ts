@@ -1,7 +1,7 @@
 "use client";
 
 export type Role = "user" | "assistant" | "narration";
-export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests" | "shop";
+export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests" | "shop" | "gacha";
 export type ScenarioKind = "normal" | "jealousy" | "obsession" | "confinement" | "yandere";
 export type ScenarioCategory = "main" | "action" | "special" | "after" | "side";
 export type StatKey = "affinity" | "jealousy" | "obsession" | "trust" | "bladderCharm";
@@ -112,6 +112,12 @@ export type SaveData = {
   ownedConsumables?: Record<string, number>; // 보유 소모품 (id -> 개수)
   userLevel?: number; // 유저 레벨
   userExp?: number;   // 현재 레벨 내 누적 EXP
+  lastFreeGacha?: number; // 마지막 무료 가챠 timestamp
+  gachaTickets?: number; // 가챠 티켓 수 (콤보/이벤트 보상)
+  gachaHistory?: Record<string, number>; // 가챠 결과 누적
+  comboCount?: number; // 채팅 콤보
+  lastComboTime?: number; // 마지막 채팅 timestamp
+  comboMilestonesReached?: Record<number, boolean>; // 도달한 콤보 마일스톤
 };
 export type DailyMission = {
   templateId: string;

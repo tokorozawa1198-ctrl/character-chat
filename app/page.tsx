@@ -576,6 +576,80 @@ const QUESTS: Quest[] = [
 ];
 
 // ================================
+// 가챠 / 룰렛 시스템 (병맛 톤)
+// ================================
+type GachaTier = "SSR" | "SR" | "R" | "N" | "C";
+type GachaItem = {
+  id: string;
+  tier: GachaTier;
+  emoji: string;
+  name: string;
+  flavor: string; // 병맛 설명
+  effect:
+    | { kind: "stat"; stat: StatKey; amount: number }
+    | { kind: "coins"; amount: number }
+    | { kind: "coins_random"; min: number; max: number }
+    | { kind: "ticket"; amount: number };
+};
+const GACHA_POOL: GachaItem[] = [
+  // ─── SSR (1%) ───
+  { id: "g_golden_toilet",   tier: "SSR", emoji: "🚽✨",  name: "황금 변기",        flavor: "요도니아 옥좌 그자체. 졸라 비싼거임 ㄷㄷ",          effect: { kind: "coins", amount: 500 } },
+  { id: "g_pacific_water",   tier: "SSR", emoji: "🌊",    name: "태평양 정수",      flavor: "K-방광에서 정제한 그것. 마시면 안됨 ㅈㅂ",         effect: { kind: "stat", stat: "bladderCharm", amount: 80 } },
+  { id: "g_blessing",        tier: "SSR", emoji: "👑",    name: "요도니아의 축복",  flavor: "방광 갓이 직접 내린거 ㅗㅜㅑ 개꿀",                effect: { kind: "stat", stat: "affinity", amount: 200 } },
+  { id: "g_kbladder_cert",   tier: "SSR", emoji: "📜",    name: "K-방광 인증서",    flavor: "이거 들고있으면 떡존이가 너 ㅈㄴ 사랑함",          effect: { kind: "stat", stat: "affinity", amount: 150 } },
+  // ─── SR (6%) ───
+  { id: "g_holy_pee_jar",    tier: "SR",  emoji: "🍶",    name: "신성한 오줌통",    flavor: "신령이 직접 만들었대요 ㄹㅇ로",                    effect: { kind: "stat", stat: "bladderCharm", amount: 30 } },
+  { id: "g_amulet",          tier: "SR",  emoji: "🪬",    name: "요도니아 부적",    flavor: "방광 마려울 때 손에 쥐면 좀 나아짐 ㅋ",            effect: { kind: "stat", stat: "affinity", amount: 60 } },
+  { id: "g_ticket",          tier: "SR",  emoji: "🎫",    name: "가챠 티켓",        flavor: "이거 또 뽑으라는거임? ㅋㅋㅋ",                       effect: { kind: "ticket", amount: 1 } },
+  { id: "g_trust_decree",    tier: "SR",  emoji: "🤝",    name: "약속 결의문",      flavor: "둘 사이 약속 보장 ㅇㅈ",                           effect: { kind: "stat", stat: "trust", amount: 50 } },
+  // ─── R (15%) ───
+  { id: "g_mini_toilet",     tier: "R",   emoji: "🚽",    name: "미니 변기 키링",   flavor: "어디 매달면 ㅈㄴ 귀엽긴 함",                       effect: { kind: "coins_random", min: 80, max: 150 } },
+  { id: "g_pee_jar",         tier: "R",   emoji: "💦",    name: "일반 오줌통",      flavor: "걍 오줌통임 ㅋ ㅈㅅ",                              effect: { kind: "stat", stat: "bladderCharm", amount: 10 } },
+  { id: "g_gift_box",        tier: "R",   emoji: "📦",    name: "선물 박스",        flavor: "안에 뭐들었는지 나도 모름 ㅋ",                     effect: { kind: "stat", stat: "affinity", amount: 40 } },
+  { id: "g_obs_seed",        tier: "R",   emoji: "🌹",    name: "집착의 씨앗",      flavor: "심으면 ㅈㄴ 잘자람 ㅎㅎ",                          effect: { kind: "stat", stat: "obsession", amount: 30 } },
+  { id: "g_coin_pack",       tier: "R",   emoji: "💰",    name: "코인 주머니",      flavor: "쪼끔 있음",                                         effect: { kind: "coins", amount: 100 } },
+  // ─── N (38%) ───
+  { id: "g_coin_50",         tier: "N",   emoji: "🪙",    name: "코인 50",          flavor: "그냥 코인이래",                                     effect: { kind: "coins", amount: 50 } },
+  { id: "g_coin_30",         tier: "N",   emoji: "🪙",    name: "코인 30",          flavor: "쪼끔임 ㅈㅅ",                                       effect: { kind: "coins", amount: 30 } },
+  { id: "g_encourage",       tier: "N",   emoji: "💪",    name: "작은 격려",        flavor: "힘내래 ㅋㅋ",                                        effect: { kind: "stat", stat: "trust", amount: 10 } },
+  { id: "g_pee_drop",        tier: "N",   emoji: "💧",    name: "떡존이 땀 한방울", flavor: "운동후 흘린 그거임. 호감 좀 줌",                    effect: { kind: "stat", stat: "affinity", amount: 8 } },
+  // ─── C (40%) ───
+  { id: "g_coin_10",         tier: "C",   emoji: "🪙",    name: "코인 10",          flavor: "ㅋㅋ ㅈㅅ 10원짜리임",                              effect: { kind: "coins", amount: 10 } },
+  { id: "g_useless_lint",    tier: "C",   emoji: "🧦",    name: "떡존이 양말 보푸라기", flavor: "이게 왜 들어있는거임;;",                       effect: { kind: "coins", amount: 5 } },
+  { id: "g_air",             tier: "C",   emoji: "💨",    name: "방광에서 나온 공기", flavor: "냄새는 안남 ㄹㅇ로",                              effect: { kind: "coins", amount: 3 } },
+];
+const GACHA_TIER_RATES: Record<GachaTier, number> = { SSR: 0.01, SR: 0.06, R: 0.15, N: 0.38, C: 0.40 };
+const GACHA_PRICE = 100;
+const GACHA_FREE_COOLDOWN = 24 * 60 * 60 * 1000; // 24시간
+
+function rollGacha(): GachaItem {
+  // 등급 결정
+  const r = Math.random();
+  let acc = 0;
+  let tier: GachaTier = "C";
+  for (const t of ["SSR", "SR", "R", "N", "C"] as GachaTier[]) {
+    acc += GACHA_TIER_RATES[t];
+    if (r < acc) { tier = t; break; }
+  }
+  const pool = GACHA_POOL.filter((x) => x.tier === tier);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// ================================
+// 채팅 콤보 시스템
+// ================================
+type ComboMilestone = { count: number; reward: { coins?: number; exp?: number; tickets?: number; stat?: { stat: StatKey; amount: number } }; toast: string; };
+const COMBO_MILESTONES: ComboMilestone[] = [
+  { count: 5,   toast: "콤보 5! 오 좀 친해지냐능? ㅋ",            reward: { exp: 30 } },
+  { count: 10,  toast: "콤보 10! ㄷㄷ 떡존이 핸드폰만 보는듯",     reward: { coins: 50, exp: 50 } },
+  { count: 20,  toast: "콤보 20! 야 그만해 손가락 아프자너 ㅠㅠ",  reward: { tickets: 1, exp: 100 } },
+  { count: 35,  toast: "콤보 35!! 진짜 미친거 같음 ㅋㅋㅋ",        reward: { coins: 150, exp: 150 } },
+  { count: 50,  toast: "콤보 50!!! 이젠 떡존이가 무서워함",        reward: { tickets: 2, stat: { stat: "affinity", amount: 50 } } },
+  { count: 100, toast: "콤보 100!!!! 전설의 ㄱㅈㅆㄹ ㄷㄷㄷ",       reward: { coins: 1000, tickets: 3, exp: 500 } },
+];
+const COMBO_TIMEOUT_MS = 60 * 60 * 1000; // 1시간
+
+// ================================
 // 레벨 / EXP 시스템
 // ================================
 // 레벨 N에서 N+1로 올라가는 데 필요한 EXP: 100 + (N-1) * 50
@@ -745,11 +819,58 @@ const SHOP_ITEMS: ShopItem[] = [
   {
     id: "jealousy_calm",
     name: "달래주는 한 마디",
-    description: "질투가 가라앉는다. 질투 -100",
+    description: "질투 가라앉는다능. 질투 -100",
     emoji: "🌿",
     price: 100,
     category: "consumable",
     effect: { kind: "stat", stat: "jealousy", amount: -100 },
+  },
+  // ─── 병맛 / 방광 테마 ───
+  {
+    id: "pee_bottle",
+    name: "오줌통 콜렉터스 에디션",
+    description: "한정판이래 ㅋ 어디 쓸지는 본인 마음 ㅎ. 방광매력 +20",
+    emoji: "🍶",
+    price: 80,
+    category: "cosmetic",
+    effect: { kind: "stat", stat: "bladderCharm", amount: 20 },
+  },
+  {
+    id: "urethra_blessing",
+    name: "요도니아 가호권",
+    description: "신령이 직접 발급한거임 ㄹㅇ. 방광매력 +60",
+    emoji: "🪬",
+    price: 350,
+    category: "boost",
+    effect: { kind: "stat", stat: "bladderCharm", amount: 60 },
+    visible: (s) => s.stats.bladderCharm > 0,
+  },
+  {
+    id: "kbladder_fan",
+    name: "K-방광 부채",
+    description: "더운날 부쳐보셈. 시원함 ㄹㅇ. 호감 +25",
+    emoji: "🪭",
+    price: 70,
+    category: "cosmetic",
+    effect: { kind: "stat", stat: "affinity", amount: 25 },
+  },
+  {
+    id: "bladder_keychain",
+    name: "방광 키링",
+    description: "ㅈㄴ 귀엽다는 후기 많음 ㅋ. 호감 +15, 방광매력 +5",
+    emoji: "🔑",
+    price: 40,
+    category: "cosmetic",
+    effect: { kind: "stat", stat: "affinity", amount: 15 },
+  },
+  {
+    id: "tteokjon_sweat",
+    name: "떡존이 땀 복권",
+    description: "운동 후 흘린 그거. 마시면 호감 +10 (먹지 마셈 ㅈㅂ)",
+    emoji: "💦",
+    price: 30,
+    category: "consumable",
+    effect: { kind: "stat", stat: "affinity", amount: 10 },
   },
 ];
 
@@ -2145,6 +2266,16 @@ export default function Page() {
   const [userExp, setUserExp] = useState<number>(0);
   const [levelUpEffect, setLevelUpEffect] = useState<{ level: number; title: string } | null>(null);
   const [expFloater, setExpFloater] = useState<{ id: number; amount: number } | null>(null);
+  // 가챠
+  const [lastFreeGacha, setLastFreeGacha] = useState<number>(0);
+  const [gachaTickets, setGachaTickets] = useState<number>(0);
+  const [gachaResult, setGachaResult] = useState<{ items: GachaItem[]; index: number; phase: "rolling" | "reveal" | "done" } | null>(null);
+  // 콤보
+  const [comboCount, setComboCount] = useState<number>(0);
+  const [lastComboTime, setLastComboTime] = useState<number>(0);
+  const [comboMilestonesReached, setComboMilestonesReached] = useState<Record<number, boolean>>({});
+  const [comboToast, setComboToast] = useState<string | null>(null);
+  const [comboBreak, setComboBreak] = useState<boolean>(false);
   const [slotTick, setSlotTick] = useState(0); // 슬롯 변경 시 리렌더 트리거
   const [seenEvents, setSeenEvents] = useState<Record<string, boolean>>({});
   const [storyRoute, setStoryRoute] = useState<StoryRoute>("common");
@@ -2243,6 +2374,7 @@ export default function Page() {
     { label: "시나리오", target: "scenarioMenu" },
     { label: "도전", target: "quests" },
     { label: "🪙 상점", target: "shop" },
+    { label: "🎰 뽑기", target: "gacha" },
     { label: "갤러리", target: "gallery" },
     { label: "전진협", target: "events" },
     { label: "상태", target: "profile" },
@@ -2292,6 +2424,11 @@ export default function Page() {
         setShopHistory(saved.shopHistory ?? {});
         setUserLevel(saved.userLevel ?? 1);
         setUserExp(saved.userExp ?? 0);
+        setLastFreeGacha(saved.lastFreeGacha ?? 0);
+        setGachaTickets(saved.gachaTickets ?? 0);
+        setComboCount(saved.comboCount ?? 0);
+        setLastComboTime(saved.lastComboTime ?? 0);
+        setComboMilestonesReached(saved.comboMilestonesReached ?? {});
         setSeenEvents(saved.seenEvents ?? {});
         setStoryRoute(saved.storyRoute ?? "common");
         setMemoryNotes(saved.memoryNotes ?? []);
@@ -2353,10 +2490,15 @@ export default function Page() {
       shopHistory,
       userLevel,
       userExp,
+      lastFreeGacha,
+      gachaTickets,
+      comboCount,
+      lastComboTime,
+      comboMilestonesReached,
     };
     save.messages = sanitizeMessages(save.messages);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
-  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory, userLevel, userExp]);
+  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory, userLevel, userExp, lastFreeGacha, gachaTickets, comboCount, lastComboTime, comboMilestonesReached]);
 
   // ─ 방광 채우기 타이머 ─
   useEffect(() => {
@@ -2816,6 +2958,88 @@ export default function Page() {
       }
     }
   }, [visibleQuests, completedQuests, questState]);
+  // ─ 가챠 결과에 효과 적용 ─
+  function applyGachaItem(item: GachaItem) {
+    const e = item.effect;
+    if (e.kind === "stat") {
+      setStats((s) => ({ ...s, [e.stat]: clamp(s[e.stat] + e.amount) }));
+    } else if (e.kind === "coins") {
+      setCoins((c) => c + e.amount);
+    } else if (e.kind === "coins_random") {
+      const a = Math.floor(Math.random() * (e.max - e.min + 1)) + e.min;
+      setCoins((c) => c + a);
+    } else if (e.kind === "ticket") {
+      setGachaTickets((t) => t + e.amount);
+    }
+  }
+  // ─ 가챠 한 번 뽑기 ─
+  function pullGacha(mode: "free" | "ticket" | "single" | "ten") {
+    if (gachaResult) return; // 이미 뽑는 중
+    const now = Date.now();
+    if (mode === "free") {
+      if (now - lastFreeGacha < GACHA_FREE_COOLDOWN) return;
+      setLastFreeGacha(now);
+      const item = rollGacha();
+      applyGachaItem(item);
+      setGachaResult({ items: [item], index: 0, phase: "rolling" });
+      window.setTimeout(() => setGachaResult({ items: [item], index: 0, phase: "reveal" }), 800);
+    } else if (mode === "ticket") {
+      if (gachaTickets <= 0) return;
+      setGachaTickets((t) => t - 1);
+      const item = rollGacha();
+      applyGachaItem(item);
+      setGachaResult({ items: [item], index: 0, phase: "rolling" });
+      window.setTimeout(() => setGachaResult({ items: [item], index: 0, phase: "reveal" }), 800);
+    } else if (mode === "single") {
+      if (coins < GACHA_PRICE) return;
+      setCoins((c) => c - GACHA_PRICE);
+      const item = rollGacha();
+      applyGachaItem(item);
+      setGachaResult({ items: [item], index: 0, phase: "rolling" });
+      window.setTimeout(() => setGachaResult({ items: [item], index: 0, phase: "reveal" }), 800);
+    } else if (mode === "ten") {
+      const TEN_PRICE = GACHA_PRICE * 9; // 10연차는 1+1
+      if (coins < TEN_PRICE) return;
+      setCoins((c) => c - TEN_PRICE);
+      const items = Array.from({ length: 10 }, () => rollGacha());
+      // SR 보장: 모두 N/C면 한 개를 SR로 강제
+      if (!items.some((x) => x.tier === "SSR" || x.tier === "SR" || x.tier === "R")) {
+        const srPool = GACHA_POOL.filter((x) => x.tier === "SR");
+        items[Math.floor(Math.random() * 10)] = srPool[Math.floor(Math.random() * srPool.length)];
+      }
+      items.forEach(applyGachaItem);
+      setGachaResult({ items, index: 0, phase: "rolling" });
+      window.setTimeout(() => setGachaResult({ items, index: 0, phase: "reveal" }), 800);
+    }
+  }
+
+  // ─ 콤보 처리 ─
+  function pumpCombo() {
+    const now = Date.now();
+    setLastComboTime(now);
+    setComboCount((prev) => {
+      const expired = lastComboTime > 0 && now - lastComboTime > COMBO_TIMEOUT_MS;
+      const next = expired || prev === 0 ? 1 : prev + 1;
+      // 콤보 깨졌을 때 살짝 표시
+      if (expired && prev >= 5) {
+        setComboBreak(true);
+        window.setTimeout(() => setComboBreak(false), 1200);
+      }
+      // 마일스톤 체크
+      const ms = COMBO_MILESTONES.find((m) => m.count === next);
+      if (ms && !comboMilestonesReached[next]) {
+        setComboMilestonesReached((p) => ({ ...p, [next]: true }));
+        if (ms.reward.coins) setCoins((c) => c + ms.reward.coins!);
+        if (ms.reward.exp) gainExp(ms.reward.exp);
+        if (ms.reward.tickets) setGachaTickets((t) => t + ms.reward.tickets!);
+        if (ms.reward.stat) setStats((s) => ({ ...s, [ms.reward.stat!.stat]: clamp(s[ms.reward.stat!.stat] + ms.reward.stat!.amount) }));
+        setComboToast(ms.toast);
+        window.setTimeout(() => setComboToast(null), 3200);
+      }
+      return next;
+    });
+  }
+
   // ─ EXP 획득 + 레벨업 처리 ─
   function gainExp(amount: number) {
     if (amount <= 0) return;
@@ -3018,6 +3242,7 @@ export default function Page() {
     setIsSending(true);
     setDailyState((prev) => ({ ...prev, chatCount: prev.chatCount + 1 }));
     gainExp(5);
+    pumpCombo();
     const displayText = text || "📷 사진";
     const nextStats = applyStats(stats, text.includes("질투") ? { jealousy: 2 } : text.includes("좋아") ? { affinity: 2 } : {});
     setStats(nextStats);
@@ -3189,6 +3414,11 @@ export default function Page() {
     setShopHistory({});
     setUserLevel(1);
     setUserExp(0);
+    setLastFreeGacha(0);
+    setGachaTickets(0);
+    setComboCount(0);
+    setLastComboTime(0);
+    setComboMilestonesReached({});
     setSeenEvents({});
     setStoryRoute("common");
     setMemoryNotes([]);
@@ -3276,7 +3506,7 @@ export default function Page() {
           </div>
           <small className="userLvExp">{userExp} / {expToNextLevel(userLevel)} EXP</small>
         </div>
-        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=>{
+        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["gacha","🎰 뽑기"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=>{
           const dailyClaimable = key === "quests" ? dailyState.missions.filter((m) => {
             if (m.claimed) return false;
             const t = DAILY_MISSION_TEMPLATES.find((x) => x.id === m.templateId);
@@ -3284,9 +3514,11 @@ export default function Page() {
           }).length : 0;
           const totalClaimable = (key === "quests" ? claimableCount + dailyClaimable : 0);
           // 빨간 점 알림 통합
+          const freeGachaReady = Date.now() - lastFreeGacha >= GACHA_FREE_COOLDOWN;
           const showDot = (key === "checkin" && !isCheckedInToday(lastCheckIn))
             || (key === "quests" && totalClaimable > 0)
-            || (key === "shop" && coins >= 50 && Object.keys(shopHistory).length === 0);
+            || (key === "shop" && coins >= 50 && Object.keys(shopHistory).length === 0)
+            || (key === "gacha" && (freeGachaReady || gachaTickets > 0));
           return <button key={key} className={`${view===key ? "active" : ""}${showDot ? " navDot" : ""}${key==="admin" ? " adminNavBtn" : ""}`} onClick={()=>setView(key as AppView)}>{label}{key==="quests" && totalClaimable > 0 && <span className="navBadge">{totalClaimable}</span>}</button>;
         })}</nav>
       </aside>
@@ -3503,6 +3735,51 @@ export default function Page() {
             </div>
           </Panel>
         )}
+        {view === "gacha" && (() => {
+          const freeReady = Date.now() - lastFreeGacha >= GACHA_FREE_COOLDOWN;
+          const nextFreeMs = Math.max(0, GACHA_FREE_COOLDOWN - (Date.now() - lastFreeGacha));
+          const nextFreeH = Math.floor(nextFreeMs / 3600000);
+          const nextFreeM = Math.floor((nextFreeMs % 3600000) / 60000);
+          return (
+            <Panel title="요도니아의 룰렛 🎰">
+              <p className="gachaIntro">뽑으면 뭐가 나올지 모름 ㅋㅋ 운좋으면 SSR 나오자너 ㅇㅈ?</p>
+              <div className="gachaInfoBar">
+                <span>🪙 <b>{coins.toLocaleString()}</b></span>
+                <span>🎫 티켓 <b>{gachaTickets}</b></span>
+              </div>
+              <div className="gachaPullBtns">
+                <button className={`gachaBtn gachaFree${freeReady ? "" : " gachaDisabled"}`} disabled={!freeReady} onClick={() => pullGacha("free")}>
+                  <b>무료 뽑기</b>
+                  <small>{freeReady ? "지금 가능 ㄱㄱ" : `${nextFreeH}시간 ${nextFreeM}분 후`}</small>
+                </button>
+                <button className={`gachaBtn gachaTicket${gachaTickets <= 0 ? " gachaDisabled" : ""}`} disabled={gachaTickets <= 0} onClick={() => pullGacha("ticket")}>
+                  <b>티켓 뽑기</b>
+                  <small>{gachaTickets > 0 ? "한번만 굴려보자" : "티켓 없음 ㅈㅅ"}</small>
+                </button>
+                <button className={`gachaBtn gachaSingle${coins < GACHA_PRICE ? " gachaDisabled" : ""}`} disabled={coins < GACHA_PRICE} onClick={() => pullGacha("single")}>
+                  <b>단일 뽑기</b>
+                  <small>🪙 {GACHA_PRICE}</small>
+                </button>
+                <button className={`gachaBtn gachaTen${coins < GACHA_PRICE * 9 ? " gachaDisabled" : ""}`} disabled={coins < GACHA_PRICE * 9} onClick={() => pullGacha("ten")}>
+                  <b>10연차</b>
+                  <small>🪙 {GACHA_PRICE * 9} (1+1, SR 보장)</small>
+                </button>
+              </div>
+              <h3 className="gachaSectionTitle">📜 풀 미리보기 (병맛 주의)</h3>
+              <div className="gachaPoolGrid">
+                {(["SSR","SR","R","N","C"] as GachaTier[]).map((tier) => (
+                  <div key={tier} className={`gachaPoolTier gachaTier-${tier}`}>
+                    <div className="gachaTierHead">
+                      <b>{tier}</b>
+                      <span>{(GACHA_TIER_RATES[tier] * 100).toFixed(0)}%</span>
+                    </div>
+                    <ul>{GACHA_POOL.filter((g) => g.tier === tier).map((g) => <li key={g.id}>{g.emoji} {g.name}</li>)}</ul>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+          );
+        })()}
         {view === "profile" && <Panel title="상태"><div className="profilePanel"><div className="profileOverview"><div className="profileIllustration"><img key={currentPortrait} className="portraitCrossfade" src={currentPortrait || getHomeCharacterImage(stats, storyRoute)} alt={`${profile.name} 초상`} onError={(e)=>{e.currentTarget.src="/oppa1.png"}}/></div><div className="profileSummary"><h3>{profile.name}</h3><p className="profileTag">Lv.{relLevel.lv} · {relLevel.displayName}</p><div className="profileStatsLine"><span>{routeLabel}</span><span>{currentChapter}장 진행</span>{currentScenario ? <span>{currentScenario.title}</span> : null}</div><div className="profileDetails"><span>나이 {profile.age}</span><span>키 {profile.height}</span><span>{profile.location}</span></div><div className="statusCards"><div className="statusCard"><strong>호감</strong><span>{stats.affinity}%</span><small>{getStatMood("affinity", stats.affinity)}</small></div><div className="statusCard"><strong>질투</strong><span>{stats.jealousy}%</span><small>{getStatMood("jealousy", stats.jealousy)}</small></div><div className="statusCard"><strong>집착</strong><span>{stats.obsession}%</span><small>{getStatMood("obsession", stats.obsession)}</small></div><div className="statusCard"><strong>신뢰</strong><span>{stats.trust}%</span><small>{getStatMood("trust", stats.trust)}</small></div>{stats.bladderCharm > 0 && <div className="statusCard bladderCharmCard"><strong>🚽 방광매력</strong><span>{stats.bladderCharm}</span><small>{stats.bladderCharm >= 800 ? "태평양방광 — 전 세계가 매료됨" : stats.bladderCharm >= 400 ? "K-방광 — 선생님이 진심으로 듬직해함" : stats.bladderCharm >= 100 ? "방광이 매력 포인트가 되기 시작함" : "선생님이 살짝 신경 쓰이기 시작"}</small></div>}</div><div className="statusNote"><b>{emotionState.label}</b><span>{emotionState.detail}</span><small>{getCurrentStatusText(stats, storyRoute)}</small></div></div></div><div className="memoryPanel"><div><strong>관계 기억 노트</strong><small>{memoryNotes.length}개 저장됨</small></div>{memoryNotes.length ? memoryNotes.slice(-8).reverse().map((note)=><p key={note.id}><b>{note.chapter}장</b>{note.text}</p>) : <p>아직 근떡존이 오래 붙잡고 있을 만한 기억은 없어요.</p>}</div><div className="profileTextBlock"><p>{profile.bio}</p><p>{profile.personality}</p></div><div className="profileMeta"><div><strong>좋아하는 것</strong><p>{profile.likes.join(" · ")}</p></div><div><strong>취미</strong><p>{profile.hobbies.join(" · ")}</p></div><div><strong>키워드</strong><p>{profile.tags.join(" · ")}</p></div></div></div></Panel>}
         {view === "gallery" && (
           <Panel title="CG 갤러리">
@@ -4194,6 +4471,38 @@ export default function Page() {
         {milestoneToast && <div className="cgUnlockToast milestoneToast"><div className="cgUnlockIcon">💗</div><div><b>마일스톤 달성</b><span>「{milestoneToast.title}」</span><small>새 메시지가 도착했어요.</small></div></div>}
         {shopToast && <div className="cgUnlockToast shopToast"><div className="cgUnlockIcon">🪙</div><div><b>{shopToast.name}</b><span>{shopToast.detail}</span></div></div>}
         {expFloater && <div className="expFloater" key={expFloater.id}>+{expFloater.amount} EXP</div>}
+        {comboCount >= 3 && view === "chat" && (
+          <div className={`comboCounter${comboBreak ? " comboBreak" : ""}`}>
+            <span className="comboLabel">COMBO</span>
+            <span className="comboNum">{comboCount}</span>
+          </div>
+        )}
+        {comboToast && <div className="cgUnlockToast comboToast"><div className="cgUnlockIcon">🔥</div><div><b>{comboToast}</b><span>보상 받았다능 ㅋ</span></div></div>}
+        {gachaResult && (
+          <div className="gachaOverlay" onClick={() => gachaResult.phase === "reveal" && setGachaResult(null)}>
+            {gachaResult.phase === "rolling" && (
+              <div className="gachaRolling">
+                <div className="gachaSpinner"/>
+                <p>운명이 결정되는중 ㄷㄷ</p>
+              </div>
+            )}
+            {gachaResult.phase === "reveal" && (
+              <div className="gachaResultWrap">
+                <div className="gachaResultGrid">
+                  {gachaResult.items.map((item, i) => (
+                    <div key={i} className={`gachaCard gachaCard-${item.tier}`} style={{ animationDelay: `${i * 0.08}s` }}>
+                      <span className="gachaTierBadge">{item.tier}</span>
+                      <div className="gachaCardEmoji">{item.emoji}</div>
+                      <div className="gachaCardName">{item.name}</div>
+                      <small className="gachaCardFlavor">{item.flavor}</small>
+                    </div>
+                  ))}
+                </div>
+                <button className="gachaCloseBtn" onClick={() => setGachaResult(null)}>ㅇㅋ 닫기 ✓</button>
+              </div>
+            )}
+          </div>
+        )}
         {levelUpEffect && (
           <div className="levelUpOverlay">
             <div className="levelUpRays"/>
@@ -4489,6 +4798,65 @@ const CSS = `
 .shopBuyBtn{margin-top:6px;border:0;border-radius:12px;padding:10px;background:linear-gradient(135deg,#3a2510,#5a3a18);color:#ffd97a;font-weight:1000;font-size:13px;cursor:pointer;letter-spacing:.04em;transition:all .2s}
 .shopBuyBtn:hover:not(:disabled){background:linear-gradient(135deg,#5a3a18,#7a5128);transform:translateY(-1px);box-shadow:0 6px 16px rgba(60,40,15,.3)}
 .shopBuyBtn:disabled{background:#d9c8b5;color:#8a7a6f;cursor:not-allowed}
+/* ─ 가챠 ─ */
+.gachaIntro{margin:0 0 14px;padding:12px 14px;background:linear-gradient(135deg,#ffd97a,#e8993b);border-radius:12px;color:#3a2017;font-weight:900;font-size:14px;text-align:center;text-shadow:0 1px 0 rgba(255,255,255,.3)}
+.gachaInfoBar{display:flex;justify-content:space-around;padding:14px;background:#2a1f10;border-radius:14px;color:#ffd97a;font-weight:900;margin-bottom:18px}
+.gachaInfoBar b{color:#fff;font-size:18px;margin-left:4px}
+.gachaPullBtns{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:20px}
+.gachaBtn{display:grid;gap:4px;border:0;border-radius:14px;padding:18px 16px;font-weight:1000;cursor:pointer;text-align:center;transition:all .2s}
+.gachaBtn:hover:not(:disabled){transform:translateY(-2px)}
+.gachaBtn b{font-size:15px}
+.gachaBtn small{font-size:11px;opacity:.85;font-weight:700}
+.gachaBtn.gachaFree{background:linear-gradient(135deg,#a3c785,#7ba65a);color:#fff;box-shadow:0 6px 16px rgba(123,166,90,.3)}
+.gachaBtn.gachaTicket{background:linear-gradient(135deg,#c685c4,#8b5a8d);color:#fff;box-shadow:0 6px 16px rgba(139,90,141,.3)}
+.gachaBtn.gachaSingle{background:linear-gradient(135deg,#d9a656,#b8843a);color:#fff;box-shadow:0 6px 16px rgba(217,166,86,.3)}
+.gachaBtn.gachaTen{background:linear-gradient(135deg,#df5e88,#a8334e);color:#fff;box-shadow:0 6px 16px rgba(168,51,78,.3)}
+.gachaBtn.gachaDisabled{background:#ccbeb0 !important;color:#7a6957 !important;cursor:not-allowed;box-shadow:none}
+.gachaSectionTitle{margin:18px 0 10px;font-size:15px;color:#3a2017}
+.gachaPoolGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.gachaPoolTier{padding:10px 12px;border-radius:10px;background:#fff;border:1px solid #e6d2b8}
+.gachaPoolTier ul{list-style:none;padding:0;margin:6px 0 0;font-size:11px;color:#5a4338}
+.gachaPoolTier ul li{padding:2px 0}
+.gachaTierHead{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:1000}
+.gachaTierHead span{font-size:11px;color:#9a7c65}
+.gachaTier-SSR .gachaTierHead b{color:#df5e88;text-shadow:0 0 8px rgba(223,94,136,.5)}
+.gachaTier-SR .gachaTierHead b{color:#c685c4}
+.gachaTier-R .gachaTierHead b{color:#d9a656}
+.gachaTier-N .gachaTierHead b{color:#7ba65a}
+.gachaTier-C .gachaTierHead b{color:#8a7a6f}
+/* 가챠 결과 모달 */
+.gachaOverlay{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.92);display:grid;place-items:center;cursor:pointer;animation:gachaFadeIn .3s ease}
+@keyframes gachaFadeIn{0%{opacity:0;backdrop-filter:blur(20px)}100%{opacity:1}}
+.gachaRolling{display:grid;justify-items:center;gap:18px;color:#ffd97a}
+.gachaSpinner{width:120px;height:120px;border:6px solid rgba(255,210,100,.18);border-top-color:#ffd97a;border-radius:50%;animation:gachaSpin .8s linear infinite}
+@keyframes gachaSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.gachaRolling p{font-size:18px;font-weight:1000;letter-spacing:.06em;text-shadow:0 0 16px rgba(255,210,100,.7)}
+.gachaResultWrap{display:grid;gap:18px;justify-items:center;padding:28px;max-width:90vw;max-height:90vh;overflow:auto}
+.gachaResultGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;width:min(720px,90vw)}
+.gachaCard{position:relative;display:grid;justify-items:center;gap:6px;padding:18px 14px;border-radius:18px;text-align:center;animation:gachaCardPop .55s cubic-bezier(.2,1.4,.3,1) both}
+@keyframes gachaCardPop{0%{opacity:0;transform:scale(.4) rotate(-8deg)}60%{opacity:1;transform:scale(1.08) rotate(2deg)}100%{transform:scale(1) rotate(0)}}
+.gachaCard-SSR{background:linear-gradient(135deg,#ff5577 0%,#ffaa44 35%,#ffdd33 65%,#ff5577 100%);background-size:200% 200%;animation:gachaCardPop .55s cubic-bezier(.2,1.4,.3,1) both,gachaSSRBg 3s linear infinite;color:#fff;box-shadow:0 0 30px rgba(255,210,100,.7),0 0 60px rgba(223,94,136,.5)}
+@keyframes gachaSSRBg{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+.gachaCard-SR{background:linear-gradient(135deg,#c685c4 0%,#8b5a8d 100%);color:#fff;box-shadow:0 0 18px rgba(139,90,141,.5)}
+.gachaCard-R{background:linear-gradient(135deg,#d9a656 0%,#b8843a 100%);color:#fff;box-shadow:0 0 12px rgba(217,166,86,.4)}
+.gachaCard-N{background:linear-gradient(135deg,#a3c785 0%,#7ba65a 100%);color:#fff}
+.gachaCard-C{background:linear-gradient(135deg,#bcb0a0 0%,#8a7a6f 100%);color:#fff}
+.gachaTierBadge{position:absolute;top:8px;left:10px;font-size:11px;font-weight:1000;letter-spacing:.06em;padding:2px 7px;border-radius:6px;background:rgba(0,0,0,.32);color:#fff}
+.gachaCardEmoji{font-size:48px;line-height:1;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25))}
+.gachaCardName{font-size:14px;font-weight:1000;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.gachaCardFlavor{font-size:11px;opacity:.92;line-height:1.4}
+.gachaCloseBtn{border:0;border-radius:14px;padding:14px 28px;background:#ffd97a;color:#3a2017;font-weight:1000;font-size:15px;cursor:pointer;letter-spacing:.04em}
+.gachaCloseBtn:hover{background:#ffe4a8}
+/* ─ 콤보 카운터 ─ */
+.comboCounter{position:fixed;top:90px;right:20px;z-index:9997;display:grid;justify-items:center;gap:0;padding:8px 18px;background:linear-gradient(135deg,#ff5577,#ff8844);border-radius:14px;color:#fff;font-weight:1000;box-shadow:0 6px 20px rgba(255,90,80,.45);animation:comboPulse 1.6s ease-in-out infinite,comboPunch .25s ease-out;pointer-events:none}
+.comboCounter.comboBreak{animation:comboBreak .8s ease forwards}
+.comboLabel{font-size:9px;letter-spacing:.18em;opacity:.92}
+.comboNum{font-size:30px;line-height:1;text-shadow:0 0 12px rgba(255,255,255,.65),0 2px 0 rgba(120,30,40,.4)}
+@keyframes comboPulse{0%,100%{box-shadow:0 6px 20px rgba(255,90,80,.45)}50%{box-shadow:0 8px 26px rgba(255,90,80,.7)}}
+@keyframes comboPunch{0%{transform:scale(1.4)}100%{transform:scale(1)}}
+@keyframes comboBreak{0%{transform:scale(1) rotate(0);opacity:1}30%{transform:scale(1.2) rotate(-8deg);background:#999}100%{transform:scale(0.6) rotate(20deg) translateY(40px);opacity:0}}
+.comboToast{background:linear-gradient(135deg,#3a1015,#5a2025) !important;border-color:rgba(255,90,80,.5) !important}
+.comboToast b{color:#ff8888;font-size:14px}
 .secretRouteCard{position:relative;overflow:hidden;transition:transform .15s ease,box-shadow .2s ease}.secretRouteCard.secretUnlocked{background:linear-gradient(135deg,#fff7d6 0%,#ffe9a8 60%,#ffd17a 100%);border:1px solid #d9a656;color:#5a3d12;box-shadow:0 8px 24px rgba(217,166,86,.28)}.secretRouteCard.secretUnlocked:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(217,166,86,.4)}.secretRouteCard.secretUnlocked b{color:#3a2510}.secretRouteCard.secretUnlocked small{color:#7b5318}.secretRouteCard.secretLocked{background:repeating-linear-gradient(135deg,#2a201b 0px,#2a201b 14px,#22191a 14px,#22191a 28px);color:#7a6b62;border:1px dashed #5a4a40;cursor:not-allowed;opacity:.85}.secretRouteCard.secretLocked b{color:#8a7a6f;letter-spacing:.18em}.secretRouteCard.secretLocked small{color:#6b5b50;font-style:italic}.secretRouteCard.secretLocked:hover{transform:none;box-shadow:none}
 .saveSlotGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:18px}.saveSlotCard{background:#fff8ef;border:1px solid #e8c99e;border-radius:18px;padding:16px;display:grid;gap:12px;color:#3a2017;box-shadow:0 8px 22px rgba(91,48,24,.08);transition:transform .15s ease,box-shadow .2s ease}.saveSlotCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.saveSlotCard.ssEmpty{background:#f6efe5;border-style:dashed;border-color:#cdb89a;opacity:.85}.saveSlotCard.ssRoutePure{background:linear-gradient(180deg,#fff5f8 0%,#fce6ee 100%);border-color:#ecc4d6}.saveSlotCard.ssRouteObsession{background:linear-gradient(180deg,#2a1517 0%,#1a0d0e 100%);border-color:#5d2a30;color:#f4dadd}.saveSlotCard.ssRouteObsession .ssTime,.saveSlotCard.ssRouteObsession .ssPreview{color:#b89a9d}.saveSlotCard.ssRouteObsession .ssStats span{background:rgba(255,200,200,.08);color:#f4dadd}.saveSlotCard.ssRouteObsession .ssThumb{border-color:rgba(255,170,170,.2)}.ssHead{display:flex;align-items:center;justify-content:space-between;gap:8px}.ssNum{font-size:14px;font-weight:1000;letter-spacing:.04em;color:inherit}.ssRouteBadge{font-size:11px;font-weight:900;padding:4px 10px;border-radius:99px;background:rgba(91,48,24,.12);color:#7b4f2f}.ssRoutePure .ssRouteBadge{background:rgba(220,120,160,.18);color:#a14872}.ssRouteObsession .ssRouteBadge{background:rgba(220,80,80,.22);color:#ffaab2}.ssBody{display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:start}.ssThumb{width:84px;height:84px;border-radius:14px;object-fit:cover;border:1px solid rgba(91,48,24,.18);background:#ead7c7}.ssMeta{display:grid;gap:6px;min-width:0}.ssScene{margin:0;font-size:14px;font-weight:900;color:inherit;line-height:1.4}.ssPreview{margin:0;font-size:12px;font-style:italic;color:#7a5e4a;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.ssStats{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}.ssStats span{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:99px;background:rgba(91,48,24,.1);color:#5b3520;letter-spacing:.02em}.ssTime{color:#9a7c65;font-size:11px;font-weight:700;margin-top:2px}.ssEmptyBody{text-align:center;padding:24px 12px;color:#876953}.ssEmptyIcon{font-size:36px;display:block;margin-bottom:8px;opacity:.6}.ssEmptyBody p{margin:0 0 4px;font-size:14px;font-weight:900}.ssEmptyBody small{font-size:11px;color:#a78a72}.ssActions{display:flex;gap:6px}.ssActions button{flex:1;border:0;border-radius:12px;padding:10px 8px;font-size:13px;font-weight:900;cursor:pointer;transition:background .15s ease,transform .12s ease}.ssActions button:hover{transform:translateY(-1px)}.ssBtnLoad{background:#df842c;color:#fff}.ssBtnLoad:hover{background:#c8731f}.ssBtnSave{background:#3a2d29;color:#fff}.ssBtnSave:hover{background:#5a4338}.ssBtnDel{background:transparent;color:#c44;border:1px solid #c44 !important}.ssBtnDel:hover{background:rgba(196,68,68,.1)}
 .cgReaction{display:grid;grid-template-columns:86px minmax(0,1fr) auto;gap:14px;align-items:center;margin:0 0 18px;padding:14px;border-radius:20px;background:#fff8ef;border:1px solid #e8c99e;box-shadow:0 12px 32px rgba(91,48,24,.08)}.cgReaction>img{width:86px;height:86px;border-radius:18px;object-fit:cover;background:#ead7c7}.cgReactionBody{display:grid;gap:6px;min-width:0}.cgReactionBody p{margin:0;color:#4a342a;line-height:1.65;font-weight:800}.cgSourceCaption{color:#9a7c65;font-size:12px;font-weight:700}.cgReactionActions{display:flex;gap:6px;align-items:center}.cgReaction button{border:0;border-radius:999px;background:#3a2d29;color:white;padding:10px 14px;font-weight:900}.favBtn{background:#fff;color:#c44}.favBtn.favOn{background:#c44;color:#fff}.cgCard{position:relative;border:0;text-align:center;cursor:pointer;transition:transform .15s ease,box-shadow .2s ease}.cgCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.cgCardLocked{cursor:default;background:#1f1714}.cgCardLocked:hover{transform:none}.cgSilhouette{filter:brightness(.18) blur(6px) saturate(.5)}.cgLockedBadge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;color:rgba(255,210,150,.55);text-shadow:0 2px 12px rgba(0,0,0,.6);pointer-events:none}.cgFavMark{position:absolute;top:8px;right:10px;font-size:18px;color:#ff5577;text-shadow:0 2px 6px rgba(0,0,0,.45);pointer-events:none}.cgCardCaption{position:absolute;left:0;right:0;bottom:0;padding:6px 10px;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.74) 100%);color:#fff7e8;font-size:11px;font-weight:800;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;text-align:left}.galleryProgress{display:flex;align-items:center;gap:12px;margin:0 0 18px;padding:12px 16px;background:#fff8ef;border:1px solid #e8c99e;border-radius:14px;color:#5a3928}.galleryProgress span{font-size:12px;font-weight:900;letter-spacing:.06em;color:#7b4f2f}.galleryProgressBar{flex:1;min-width:80px;height:8px;background:rgba(91,48,24,.15);border-radius:99px;overflow:hidden}.galleryProgressBar div{height:100%;background:linear-gradient(90deg,#df842c,#e8993b);border-radius:99px;transition:width .35s ease}.galleryProgress strong{font-size:14px;color:#3a2017;font-weight:900}.tabs button.active{background:#df842c}.tabs button.bladderTab{background:linear-gradient(135deg,#d9a656,#b8843a);color:#fff;font-weight:1000}.tabs button.bladderTab.active{background:linear-gradient(135deg,#ffc94f,#d9a656);box-shadow:0 4px 12px rgba(217,166,86,.4)}.tabs button.bladderTab:hover{background:linear-gradient(135deg,#e8b563,#c89540)}
