@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "../supabase";
 
 type PushStateBody = {
-  type?: "user_message" | "assistant_message";
+  type?: "user_message" | "assistant_message" | "reset";
   memorySummary?: string;
   relationshipLog?: string | string[];
   recentHistory?: string[];
@@ -186,13 +186,22 @@ export async function POST(req: NextRequest) {
       updated_at: now,
     };
 
-    if (type === "user_message") {
+    if (type === "reset") {
+      updateData.last_user_at = now;
+      updateData.last_assistant_at = now;
+      updateData.nag_level = 0;
+      updateData.last_push_body = "[]";
+      updateData.memory_summary = "";
+      updateData.relationship_log = "";
+      updateData.last_user_message = "";
+      updateData.route_label = "";
+      updateData.stats_summary = "";
+      updateData.last_scene = "";
+    } else if (type === "user_message") {
       updateData.last_user_at = now;
       updateData.nag_level = 0;
     } else {
       updateData.last_assistant_at = now;
-      const queued = await appendPushQueue(body.lastAssistantMessage || "", "assistant_message", now);
-      if (queued !== undefined) updateData.last_push_body = queued;
     }
 
     const memorySummary = cleanText(body.memorySummary, 3500);

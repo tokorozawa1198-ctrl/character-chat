@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { actionCGImages, actionCGPools, actionItems, imagePools, profile, quickReplies, scenarioData } from "./gameData";
@@ -640,41 +640,83 @@ type TradingCard = {
   name: string;
   flavor: string;
   set?: string;
+  image?: string; // /card_<id>.png 같은 경로 (없으면 이모지 fallback)
 };
 const TRADING_CARDS: TradingCard[] = [
   // R (Rare 60%) — 일상
-  { id: "c_r1",  rarity: "R", emoji: "🍱", name: "도시락",       flavor: "편의점 도시락 들고 있는 떡존이",       set: "daily" },
-  { id: "c_r2",  rarity: "R", emoji: "☕", name: "커피 마시는 중", flavor: "아메리카노 한 모금",                   set: "daily" },
-  { id: "c_r3",  rarity: "R", emoji: "💪", name: "운동 후",       flavor: "땀나는 떡존이",                         set: "daily" },
-  { id: "c_r4",  rarity: "R", emoji: "📱", name: "카톡 답장 중",   flavor: "심각한 얼굴로 답장 고심",              set: "daily" },
-  { id: "c_r5",  rarity: "R", emoji: "🚆", name: "전철 안",       flavor: "창밖 보는 떡존이",                     set: "daily" },
-  { id: "c_r6",  rarity: "R", emoji: "🌧", name: "비 맞는 떡존이", flavor: "우산 안 가져옴",                       set: "weather" },
-  { id: "c_r7",  rarity: "R", emoji: "☀️", name: "햇빛 떡존이",    flavor: "눈 부심",                              set: "weather" },
-  { id: "c_r8",  rarity: "R", emoji: "🌸", name: "벚꽃 머리 위",   flavor: "꽃잎 한 장 얹은 떡존이",               set: "weather" },
-  { id: "c_r9",  rarity: "R", emoji: "🍜", name: "라멘 먹는 중",   flavor: "후루룩",                               set: "food" },
-  { id: "c_r10", rarity: "R", emoji: "🍦", name: "아이스크림",    flavor: "어린애처럼 먹음",                      set: "food" },
+  { id: "c_r1", image: "/card_c_r1.png",  rarity: "R", emoji: "🍱", name: "도시락",       flavor: "편의점 도시락 들고 있는 떡존이",       set: "daily" },
+  { id: "c_r2", image: "/card_c_r2.png",  rarity: "R", emoji: "☕", name: "커피 마시는 중", flavor: "아메리카노 한 모금",                   set: "daily" },
+  { id: "c_r3", image: "/card_c_r3.png",  rarity: "R", emoji: "💪", name: "운동 후",       flavor: "땀나는 떡존이",                         set: "daily" },
+  { id: "c_r4", image: "/card_c_r4.png",  rarity: "R", emoji: "📱", name: "카톡 답장 중",   flavor: "심각한 얼굴로 답장 고심",              set: "daily" },
+  { id: "c_r5", image: "/card_c_r5.png",  rarity: "R", emoji: "🚆", name: "전철 안",       flavor: "창밖 보는 떡존이",                     set: "daily" },
+  { id: "c_r6", image: "/card_c_r6.png",  rarity: "R", emoji: "🌧", name: "비 맞는 떡존이", flavor: "우산 안 가져옴",                       set: "weather" },
+  { id: "c_r7", image: "/card_c_r7.png",  rarity: "R", emoji: "☀️", name: "햇빛 떡존이",    flavor: "눈 부심",                              set: "weather" },
+  { id: "c_r8", image: "/card_c_r8.png",  rarity: "R", emoji: "🌸", name: "벚꽃 머리 위",   flavor: "꽃잎 한 장 얹은 떡존이",               set: "weather" },
+  { id: "c_r9", image: "/card_c_r9.png",  rarity: "R", emoji: "🍜", name: "라멘 먹는 중",   flavor: "후루룩",                               set: "food" },
+  { id: "c_r10", image: "/card_c_r10.png", rarity: "R", emoji: "🍦", name: "아이스크림",    flavor: "어린애처럼 먹음",                      set: "food" },
   // SR (Super Rare 30%)
-  { id: "c_sr1", rarity: "SR", emoji: "💗", name: "헤헤 떡존이",  flavor: "처음 헤헤 한 그 표정",                set: "moments" },
-  { id: "c_sr2", rarity: "SR", emoji: "🤝", name: "손잡기",       flavor: "강가에서 처음 잡은 손",                set: "moments" },
-  { id: "c_sr3", rarity: "SR", emoji: "👀", name: "도촬당함",     flavor: "쮋이 찍은 사진",                       set: "moments" },
-  { id: "c_sr4", rarity: "SR", emoji: "🎤", name: "노래방의 그것", flavor: "그 발라드를 부르던 때",                set: "moments" },
-  { id: "c_sr5", rarity: "SR", emoji: "🌌", name: "전망대 야경",   flavor: "도시 내려다보는 떡존이",               set: "moments" },
-  { id: "c_sr6", rarity: "SR", emoji: "📔", name: "일기 쓰는 중", flavor: "선생님 얘기만 적힌 일기",              set: "moments" },
-  { id: "c_sr7", rarity: "SR", emoji: "🚽", name: "K-방광 인증",  flavor: "12시간 인증샷",                        set: "bladder" },
-  { id: "c_sr8", rarity: "SR", emoji: "🧚", name: "방광 요정과",  flavor: "쉬와 함께",                             set: "bladder" },
-  { id: "c_sr9", rarity: "SR", emoji: "📦", name: "선물 들고",    flavor: "받은 것보다 큰 선물",                   set: "gifts" },
+  { id: "c_sr1", image: "/card_c_sr1.png", rarity: "SR", emoji: "💗", name: "헤헤 떡존이",  flavor: "처음 헤헤 한 그 표정",                set: "moments" },
+  { id: "c_sr2", image: "/card_c_sr2.png", rarity: "SR", emoji: "🤝", name: "손잡기",       flavor: "강가에서 처음 잡은 손",                set: "moments" },
+  { id: "c_sr3", image: "/card_c_sr3.png", rarity: "SR", emoji: "👀", name: "도촬당함",     flavor: "쮋이 찍은 사진",                       set: "moments" },
+  { id: "c_sr4", image: "/card_c_sr4.png", rarity: "SR", emoji: "🎤", name: "노래방의 그것", flavor: "그 발라드를 부르던 때",                set: "moments" },
+  { id: "c_sr5", image: "/card_c_sr5.png", rarity: "SR", emoji: "🌌", name: "전망대 야경",   flavor: "도시 내려다보는 떡존이",               set: "moments" },
+  { id: "c_sr6", image: "/card_c_sr6.png", rarity: "SR", emoji: "📔", name: "일기 쓰는 중", flavor: "선생님 얘기만 적힌 일기",              set: "moments" },
+  { id: "c_sr7", image: "/card_c_sr7.png", rarity: "SR", emoji: "🚽", name: "K-방광 인증",  flavor: "12시간 인증샷",                        set: "bladder" },
+  { id: "c_sr8", image: "/card_c_sr8.png", rarity: "SR", emoji: "🧚", name: "방광 요정과",  flavor: "쉬와 함께",                             set: "bladder" },
+  { id: "c_sr9", image: "/card_c_sr9.png", rarity: "SR", emoji: "📦", name: "선물 들고",    flavor: "받은 것보다 큰 선물",                   set: "gifts" },
   // SSR (10%) — 한정
-  { id: "c_ssr1", rarity: "SSR", emoji: "💍", name: "반지 끼는 떡존이",  flavor: "아무 의미 없는 반지...라고 했지만", set: "secret" },
-  { id: "c_ssr2", rarity: "SSR", emoji: "🌊", name: "태평양방광",       flavor: "K-방광 진화체",                     set: "secret" },
-  { id: "c_ssr3", rarity: "SSR", emoji: "👑", name: "요도니아 옥좌",     flavor: "황금 변기 위에 앉은 떡존이",       set: "secret" },
-  { id: "c_ssr4", rarity: "SSR", emoji: "🦴", name: "전설의 떡존",       flavor: "히로시마의 전설 그 자체",          set: "secret" },
-  { id: "c_ssr5", rarity: "SSR", emoji: "🌹", name: "고백하는 떡존이",   flavor: "골목에서 그 한 마디를 한 순간",    set: "secret" },
-  { id: "c_ssr6", rarity: "SSR", emoji: "🔥", name: "흑화한 떡존이",     flavor: "집착 루트의 그 표정",              set: "secret" },
-  { id: "c_ssr7", rarity: "SSR", emoji: "💎", name: "다이아 떡존",       flavor: "왜 이게 다이아냐고 묻지마셈",      set: "secret" },
-  { id: "c_ssr8", rarity: "SSR", emoji: "🚀", name: "우주 원정 떡존",    flavor: "나사 로고 박힌 슈트 입은 떡존이",  set: "secret" },
-  { id: "c_ssr9", rarity: "SSR", emoji: "❤️‍🔥", name: "심장 자체",     flavor: "그 자체로 SSR",                     set: "secret" },
-  { id: "c_ssr10", rarity: "SSR", emoji: "🌟", name: "전 세계 영웅",    flavor: "K-방광으로 세상을 구한 떡존이",    set: "secret" },
+  { id: "c_ssr1", image: "/card_c_ssr1.png", rarity: "SSR", emoji: "💍", name: "반지 끼는 떡존이",  flavor: "아무 의미 없는 반지...라고 했지만", set: "secret" },
+  { id: "c_ssr2", image: "/card_c_ssr2.png", rarity: "SSR", emoji: "🌊", name: "태평양방광",       flavor: "K-방광 진화체",                     set: "secret" },
+  { id: "c_ssr3", image: "/card_c_ssr3.png", rarity: "SSR", emoji: "👑", name: "요도니아 옥좌",     flavor: "황금 변기 위에 앉은 떡존이",       set: "secret" },
+  { id: "c_ssr4", image: "/card_c_ssr4.png", rarity: "SSR", emoji: "🦴", name: "전설의 떡존",       flavor: "히로시마의 전설 그 자체",          set: "secret" },
+  { id: "c_ssr5", image: "/card_c_ssr5.png", rarity: "SSR", emoji: "🌹", name: "고백하는 떡존이",   flavor: "골목에서 그 한 마디를 한 순간",    set: "secret" },
+  { id: "c_ssr6", image: "/card_c_ssr6.png", rarity: "SSR", emoji: "🔥", name: "흑화한 떡존이",     flavor: "집착 루트의 그 표정",              set: "secret" },
+  { id: "c_ssr7", image: "/card_c_ssr7.png", rarity: "SSR", emoji: "💎", name: "다이아 떡존",       flavor: "왜 이게 다이아냐고 묻지마셈",      set: "secret" },
+  { id: "c_ssr8", image: "/card_c_ssr8.png", rarity: "SSR", emoji: "🚀", name: "우주 원정 떡존",    flavor: "나사 로고 박힌 슈트 입은 떡존이",  set: "secret" },
+  { id: "c_ssr9", image: "/card_c_ssr9.png", rarity: "SSR", emoji: "❤️‍🔥", name: "심장 자체",     flavor: "그 자체로 SSR",                     set: "secret" },
+  { id: "c_ssr10", image: "/card_c_ssr10.png", rarity: "SSR", emoji: "🌟", name: "전 세계 영웅",    flavor: "K-방광으로 세상을 구한 떡존이",    set: "secret" },
 ];
+
+// ================================
+// 떡존이 퀴즈 (10문제)
+// ================================
+type QuizQuestion = { q: string; options: string[]; answer: number; explain?: string };
+const QUIZ_QUESTIONS: QuizQuestion[] = [
+  { q: "떡존이의 키는?", options: ["180cm", "185cm", "190cm", "195cm"], answer: 2, explain: "190cm 떡대 ㄷ" },
+  { q: "떡존이의 직업은?", options: ["편의점 알바", "헬스 트레이너", "공무원", "회사원"], answer: 3, explain: "회사원이긴 한데 일은 잘 안하는듯" },
+  { q: "떡존이의 머리 색은?", options: ["갈색", "검정", "금발", "은발"], answer: 2, explain: "금발 ㅇㅇ" },
+  { q: "떡존이가 사는 도시는?", options: ["도쿄", "오사카", "히로시마", "후쿠오카"], answer: 2, explain: "히로시마 거주중 ㅇㅇ" },
+  { q: "떡존이가 가장 좋아하는 음식은?", options: ["라멘", "도시락", "오뎅", "스시"], answer: 1, explain: "편의점 도시락 ㄹㅇ 좋아함 ㅋ" },
+  { q: "떡존이의 취미가 아닌 것은?", options: ["헬스", "오줌 참기", "혼자 상상하기", "독서"], answer: 3, explain: "독서는 안함 ㅋ" },
+  { q: "떡존이가 너를 부르는 호칭은? (순애 루트 후반)", options: ["주인님", "선생님", "히든님", "형"], answer: 1, explain: "기본은 선생님 / 주인님 둘다 OK" },
+  { q: "전진협의 정식 명칭은?", options: ["전국 진상 협회", "전세계 진남자 협회", "전진하는 협회", "전부진심협회"], answer: 1, explain: "ㄹㅇ" },
+  { q: "떡존이가 마주친 첫 신은?", options: ["요도니아", "방광 요정", "김치신", "삼신할매"], answer: 0, explain: "방광 요정은 옆 사람" },
+  { q: "K-방광의 진화 단계 마지막은?", options: ["강철방광", "백두방광", "태평양방광", "은하방광"], answer: 2, explain: "태평양방광 ㄷㄷ" },
+];
+
+// ================================
+// 시즌 패스 (50레벨 트랙)
+// ================================
+type SeasonReward = { lv: number; free?: { coins?: number; tickets?: number; affinity?: number }; premium?: { coins?: number; tickets?: number; affinity?: number; cards?: number; outfit?: string } };
+const SEASON_REWARDS: SeasonReward[] = Array.from({ length: 50 }, (_, i) => {
+  const lv = i + 1;
+  const isMilestone = lv % 10 === 0;
+  return {
+    lv,
+    free: {
+      coins: 50 + lv * 10,
+      ...(lv % 5 === 0 ? { tickets: 1 } : {}),
+      ...(isMilestone ? { affinity: 50 } : {}),
+    },
+    premium: {
+      coins: 100 + lv * 20,
+      tickets: lv % 3 === 0 ? 2 : 1,
+      ...(isMilestone ? { affinity: 100, cards: 3 } : {}),
+    },
+  };
+});
+const SEASON_CURRENT_ID = "season_001_hiroshima_spring";
+const SEASON_PREMIUM_PRICE = 5000; // 가짜 코인 결제
 
 // ================================
 // 30일 출석 마일스톤
@@ -3064,7 +3106,7 @@ export default function Page() {
   const [journalEntries, setJournalEntries] = useState<{ id: string; date: string; templateId: string; liked: boolean }[]>([]);
   const [lastJournalDate, setLastJournalDate] = useState<string>("");
   // 미니게임
-  const [minigameMode, setMinigameMode] = useState<"hub" | "clicker" | "wordchain">("hub");
+  const [minigameMode, setMinigameMode] = useState<"hub" | "clicker" | "wordchain" | "rps" | "quiz">("hub");
   const [minigameClickerHigh, setMinigameClickerHigh] = useState<number>(0);
   const [minigameWordHigh, setMinigameWordHigh] = useState<number>(0);
   // 클리커 게임 state
@@ -3100,6 +3142,23 @@ export default function Page() {
   const [bladderMarathonScore, setBladderMarathonScore] = useState<number>(0);
   const [monthlyCalendarClaims, setMonthlyCalendarClaims] = useState<Record<string, boolean>>({});
   const [cardPullResult, setCardPullResult] = useState<TradingCard | null>(null);
+  // 시즌 패스
+  const [seasonId, setSeasonId] = useState<string>(SEASON_CURRENT_ID);
+  const [seasonClaimedFree, setSeasonClaimedFree] = useState<Record<number, boolean>>({});
+  const [seasonClaimedPremium, setSeasonClaimedPremium] = useState<Record<number, boolean>>({});
+  const [seasonPremium, setSeasonPremium] = useState<boolean>(false);
+  // 음향
+  const [soundBgmEnabled, setSoundBgmEnabled] = useState<boolean>(true);
+  const [soundSfxEnabled, setSoundSfxEnabled] = useState<boolean>(true);
+  const [soundBgmVolume, setSoundBgmVolume] = useState<number>(0.3);
+  const [soundSfxVolume, setSoundSfxVolume] = useState<number>(0.5);
+  // 미니게임 추가
+  const [rpsScore, setRpsScore] = useState<{ user: number; tt: number; round: number; lastChoice?: string; lastTt?: string; lastResult?: string }>({ user: 0, tt: 0, round: 0 });
+  const [quizState, setQuizState] = useState<{ idx: number; correct: number; questions: number[]; finished: boolean; selected?: number; showResult: boolean }>({ idx: 0, correct: 0, questions: [], finished: false, showResult: false });
+  // 펫 합성
+  const [fusionPick1, setFusionPick1] = useState<string | null>(null);
+  const [fusionPick2, setFusionPick2] = useState<string | null>(null);
+  const [fusionResultMsg, setFusionResultMsg] = useState<string | null>(null);
   const [slotTick, setSlotTick] = useState(0); // 슬롯 변경 시 리렌더 트리거
   const [seenEvents, setSeenEvents] = useState<Record<string, boolean>>({});
   const [storyRoute, setStoryRoute] = useState<StoryRoute>("common");
@@ -3213,6 +3272,8 @@ export default function Page() {
     { label: "💌 편지", target: "letters" },
     { label: "💭 명언", target: "quote" },
     { label: "🃏 카드", target: "cards" },
+    { label: "🎟 시즌패스", target: "seasonPass" },
+    { label: "🔊 음향", target: "sound" },
     { label: "갤러리", target: "gallery" },
     { label: "전진협", target: "events" },
     { label: "상태", target: "profile" },
@@ -3306,6 +3367,14 @@ export default function Page() {
         setBladderMarathonWeek(saved.bladderMarathonWeek ?? weekKey());
         setBladderMarathonScore(saved.bladderMarathonScore ?? 0);
         setMonthlyCalendarClaims(saved.monthlyCalendarClaims ?? {});
+        setSeasonId(saved.seasonId ?? SEASON_CURRENT_ID);
+        setSeasonClaimedFree(saved.seasonClaimedFree ?? {});
+        setSeasonClaimedPremium(saved.seasonClaimedPremium ?? {});
+        setSeasonPremium(saved.seasonPremium ?? false);
+        setSoundBgmEnabled(saved.soundBgmEnabled ?? true);
+        setSoundSfxEnabled(saved.soundSfxEnabled ?? true);
+        setSoundBgmVolume(saved.soundBgmVolume ?? 0.3);
+        setSoundSfxVolume(saved.soundSfxVolume ?? 0.5);
         setSeenEvents(saved.seenEvents ?? {});
         setStoryRoute(saved.storyRoute ?? "common");
         setMemoryNotes(saved.memoryNotes ?? []);
@@ -3411,10 +3480,18 @@ export default function Page() {
       bladderMarathonWeek,
       bladderMarathonScore,
       monthlyCalendarClaims,
+      seasonId,
+      seasonClaimedFree,
+      seasonClaimedPremium,
+      seasonPremium,
+      soundBgmEnabled,
+      soundSfxEnabled,
+      soundBgmVolume,
+      soundSfxVolume,
     };
     save.messages = sanitizeMessages(save.messages);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
-  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory, userLevel, userExp, lastFreeGacha, gachaTickets, comboCount, lastComboTime, comboMilestonesReached, ownedPets, activePet, totalGachaPulls, activeAdventure, adventureHistory, snsLikes, lastSnsRefresh, snsFeed, raidWeek, raidBossId, raidHp, raidCleared, raidDamageDealt, lastFortuneDate, todayFortuneId, fortuneRerollsToday, journalEntries, lastJournalDate, minigameClickerHigh, minigameWordHigh, friendChats, groupChat, friendLastSeen, friendLastSpawn, groupLastSpawn, loveMeterPoints, loveMeterDate, loveMeterClaimedToday, letterReads, unlockedLetters, quoteOfDayId, quoteOfDayDate, collectedQuotes, ownedCards, totalCardPulls, bossDefeats, bladderMarathonWeek, bladderMarathonScore, monthlyCalendarClaims]);
+  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory, userLevel, userExp, lastFreeGacha, gachaTickets, comboCount, lastComboTime, comboMilestonesReached, ownedPets, activePet, totalGachaPulls, activeAdventure, adventureHistory, snsLikes, lastSnsRefresh, snsFeed, raidWeek, raidBossId, raidHp, raidCleared, raidDamageDealt, lastFortuneDate, todayFortuneId, fortuneRerollsToday, journalEntries, lastJournalDate, minigameClickerHigh, minigameWordHigh, friendChats, groupChat, friendLastSeen, friendLastSpawn, groupLastSpawn, loveMeterPoints, loveMeterDate, loveMeterClaimedToday, letterReads, unlockedLetters, quoteOfDayId, quoteOfDayDate, collectedQuotes, ownedCards, totalCardPulls, bossDefeats, bladderMarathonWeek, bladderMarathonScore, monthlyCalendarClaims, seasonId, seasonClaimedFree, seasonClaimedPremium, seasonPremium, soundBgmEnabled, soundSfxEnabled, soundBgmVolume, soundSfxVolume]);
 
   // ─ 방광 채우기 타이머 ─
   useEffect(() => {
@@ -3879,6 +3956,162 @@ export default function Page() {
       }
     }
   }, [visibleQuests, completedQuests, questState]);
+  // ─ 음향: SFX 헬퍼 (파일 없어도 안전) ─
+  function playSfx(name: "click" | "coin" | "levelup" | "card" | "win" | "lose") {
+    if (!soundSfxEnabled || typeof window === "undefined") return;
+    try {
+      const audio = new Audio(`/sfx_${name}.mp3`);
+      audio.volume = soundSfxVolume;
+      audio.play().catch(() => { /* 파일 없으면 조용히 무시 */ });
+    } catch { /* ignore */ }
+  }
+  // BGM: route에 따라 자동 변경 (파일 있을 때만 동작)
+  const bgmAudioRef = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!soundBgmEnabled) {
+      bgmAudioRef.current?.pause();
+      return;
+    }
+    const bgmFile = storyRoute === "obsession" ? "/bgm_obsession.mp3"
+                  : storyRoute === "pure" ? "/bgm_pure.mp3"
+                  : "/bgm_common.mp3";
+    if (!bgmAudioRef.current || bgmAudioRef.current.src.indexOf(bgmFile) < 0) {
+      bgmAudioRef.current?.pause();
+      const audio = new Audio(bgmFile);
+      audio.loop = true;
+      audio.volume = soundBgmVolume;
+      audio.play().catch(() => { /* 파일 없으면 무시 */ });
+      bgmAudioRef.current = audio;
+    } else {
+      bgmAudioRef.current.volume = soundBgmVolume;
+    }
+  }, [soundBgmEnabled, soundBgmVolume, storyRoute]);
+
+  // ─ 가위바위보 ─
+  function playRps(userChoice: "rock" | "paper" | "scissors") {
+    const choices = ["rock", "paper", "scissors"] as const;
+    const ttChoice = choices[Math.floor(Math.random() * 3)];
+    const beats: Record<string, string> = { rock: "scissors", paper: "rock", scissors: "paper" };
+    let result: "win" | "lose" | "draw";
+    if (userChoice === ttChoice) result = "draw";
+    else if (beats[userChoice] === ttChoice) result = "win";
+    else result = "lose";
+    setRpsScore((prev) => {
+      const next = { ...prev };
+      if (result === "win") next.user += 1;
+      else if (result === "lose") next.tt += 1;
+      next.round += 1;
+      next.lastChoice = userChoice;
+      next.lastTt = ttChoice;
+      next.lastResult = result;
+      // 3판 2승 또는 5라운드 끝
+      if (next.user >= 2 || next.tt >= 2 || next.round >= 5) {
+        if (next.user > next.tt) {
+          setCoins((c) => c + 200);
+          setStats((s) => ({ ...s, affinity: clamp(s.affinity + 30) }));
+          gainExp(80);
+          playSfx("win");
+        } else if (next.tt > next.user) {
+          setCoins((c) => Math.max(0, c - 100));
+          playSfx("lose");
+        }
+      }
+      return next;
+    });
+  }
+  function resetRps() {
+    setRpsScore({ user: 0, tt: 0, round: 0 });
+  }
+
+  // ─ 떡존이 퀴즈 ─
+  function startQuiz() {
+    // 10문제 풀에서 5개 셔플
+    const indices = QUIZ_QUESTIONS.map((_, i) => i).sort(() => Math.random() - 0.5).slice(0, 5);
+    setQuizState({ idx: 0, correct: 0, questions: indices, finished: false, showResult: false });
+  }
+  function answerQuiz(optionIdx: number) {
+    setQuizState((prev) => {
+      const qIdx = prev.questions[prev.idx];
+      const q = QUIZ_QUESTIONS[qIdx];
+      const isCorrect = q.answer === optionIdx;
+      return { ...prev, selected: optionIdx, showResult: true, correct: prev.correct + (isCorrect ? 1 : 0) };
+    });
+  }
+  function nextQuiz() {
+    setQuizState((prev) => {
+      const next = prev.idx + 1;
+      if (next >= prev.questions.length) {
+        // 종료
+        const reward = prev.correct * 50;
+        setCoins((c) => c + reward);
+        gainExp(prev.correct * 30);
+        if (prev.correct >= 4) setStats((s) => ({ ...s, affinity: clamp(s.affinity + 50) }));
+        return { ...prev, finished: true, showResult: false, selected: undefined };
+      }
+      return { ...prev, idx: next, showResult: false, selected: undefined };
+    });
+  }
+
+  // ─ 시즌 패스 보상 ─
+  function claimSeasonReward(lv: number, kind: "free" | "premium") {
+    if (userLevel < lv) return;
+    if (kind === "premium" && !seasonPremium) return;
+    if (kind === "free" && seasonClaimedFree[lv]) return;
+    if (kind === "premium" && seasonClaimedPremium[lv]) return;
+    const reward = SEASON_REWARDS.find((r) => r.lv === lv);
+    if (!reward) return;
+    const r = kind === "free" ? reward.free : reward.premium;
+    if (!r) return;
+    if (r.coins) setCoins((c) => c + r.coins!);
+    if (r.tickets) setGachaTickets((t) => t + r.tickets!);
+    if (r.affinity) setStats((s) => ({ ...s, affinity: clamp(s.affinity + r.affinity!) }));
+    if (kind === "free") {
+      setSeasonClaimedFree((p) => ({ ...p, [lv]: true }));
+    } else {
+      setSeasonClaimedPremium((p) => ({ ...p, [lv]: true }));
+    }
+    playSfx("coin");
+  }
+  function buySeasonPremium() {
+    if (coins < SEASON_PREMIUM_PRICE || seasonPremium) return;
+    setCoins((c) => c - SEASON_PREMIUM_PRICE);
+    setSeasonPremium(true);
+    setShopToast({ name: "🌟 프리미엄 패스 활성화!", detail: "이번 시즌 모든 프리미엄 보상 받기 가능" });
+    window.setTimeout(() => setShopToast(null), 4000);
+  }
+
+  // ─ 펫 합성 ─
+  function fusePets() {
+    if (!fusionPick1 || !fusionPick2) return;
+    if (fusionPick1 === fusionPick2) return;
+    if (coins < 500) return;
+    setCoins((c) => c - 500);
+    const isSameType = false; // 어차피 다른 펫
+    // 첫 번째 펫 친밀도 +200, 두 번째는 +100
+    setOwnedPets((prev) => {
+      const next = { ...prev };
+      const p1 = next[fusionPick1!];
+      const p2 = next[fusionPick2!];
+      if (p1) {
+        const newAff = p1.affinity + 200;
+        next[fusionPick1!] = { ...p1, affinity: newAff, level: petLevel(newAff) };
+      }
+      if (p2) {
+        const newAff = p2.affinity + 100;
+        next[fusionPick2!] = { ...p2, affinity: newAff, level: petLevel(newAff) };
+      }
+      return next;
+    });
+    const f1 = PETS.find((p) => p.id === fusionPick1)?.name;
+    const f2 = PETS.find((p) => p.id === fusionPick2)?.name;
+    setFusionResultMsg(`✨ 합성 완료! ${f1} 친밀도 +200, ${f2} 친밀도 +100`);
+    setFusionPick1(null);
+    setFusionPick2(null);
+    playSfx("levelup");
+    window.setTimeout(() => setFusionResultMsg(null), 4000);
+  }
+
   // ─ 러브 미터: 매일 자동 리셋 ─
   useEffect(() => {
     const today = todayKey();
@@ -5021,6 +5254,10 @@ export default function Page() {
     setBladderMarathonWeek(weekKey());
     setBladderMarathonScore(0);
     setMonthlyCalendarClaims({});
+    setSeasonId(SEASON_CURRENT_ID);
+    setSeasonClaimedFree({});
+    setSeasonClaimedPremium({});
+    setSeasonPremium(false);
     setSeenEvents({});
     setStoryRoute("common");
     setMemoryNotes([]);
@@ -5142,7 +5379,7 @@ export default function Page() {
             </div>
           );
         })()}
-        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["gacha","🎰 뽑기"],["pets","🐹 펫"],["adventure","🌍 모험"],["sns","📱 SNS"],["raid","⚔️ 레이드"],["fortune","🔮 신탁"],["journal","📔 다이어리"],["minigames","🎮 미니게임"],["katalk","💬 카톡"],["calendar30","📅 캘린더"],["codex","📜 도감"],["stats","📇 명함"],["letters","💌 편지"],["quote","💭 명언"],["cards","🃏 카드"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=>{
+        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["gacha","🎰 뽑기"],["pets","🐹 펫"],["adventure","🌍 모험"],["sns","📱 SNS"],["raid","⚔️ 레이드"],["fortune","🔮 신탁"],["journal","📔 다이어리"],["minigames","🎮 미니게임"],["katalk","💬 카톡"],["calendar30","📅 캘린더"],["codex","📜 도감"],["stats","📇 명함"],["letters","💌 편지"],["quote","💭 명언"],["cards","🃏 카드"],["seasonPass","🎟 시즌패스"],["sound","🔊 음향"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=>{
           const dailyClaimable = key === "quests" ? dailyState.missions.filter((m) => {
             if (m.claimed) return false;
             const t = DAILY_MISSION_TEMPLATES.find((x) => x.id === m.templateId);
@@ -5605,7 +5842,10 @@ export default function Page() {
                   return (
                     <div key={card.id} className={`tcCard tcRarity-${card.rarity}${owned ? " tcOwned" : " tcLocked"}`}>
                       <div className="tcRarityBadge">{card.rarity}</div>
-                      <div className="tcEmoji">{owned ? card.emoji : "❓"}</div>
+                      {owned && card.image ? (
+                        <img className="tcImg" src={card.image} alt={card.name} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; const fb = e.currentTarget.nextElementSibling as HTMLElement | null; if (fb) fb.style.display = "block"; }}/>
+                      ) : null}
+                      <div className="tcEmoji" style={{ display: owned && card.image ? "none" : "block" }}>{owned ? card.emoji : "❓"}</div>
                       <b>{owned ? card.name : "???"}</b>
                       <small>{owned ? card.flavor : "잠금"}</small>
                       {owned && data && data.level > 1 && <span className="tcLevel">Lv.{data.level}</span>}
@@ -5617,7 +5857,10 @@ export default function Page() {
                 <div className="cardPullOverlay" onClick={() => setCardPullResult(null)}>
                   <div className={`cardPullReveal tcRarity-${cardPullResult.rarity}`}>
                     <div className="tcRarityBadge">{cardPullResult.rarity}</div>
-                    <div className="cardPullEmoji">{cardPullResult.emoji}</div>
+                    {cardPullResult.image ? (
+                      <img className="cardPullImg" src={cardPullResult.image} alt={cardPullResult.name} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; const fb = e.currentTarget.nextElementSibling as HTMLElement | null; if (fb) fb.style.display = "block"; }}/>
+                    ) : null}
+                    <div className="cardPullEmoji" style={{ display: cardPullResult.image ? "none" : "block" }}>{cardPullResult.emoji}</div>
                     <h2>{cardPullResult.name}</h2>
                     <p>{cardPullResult.flavor}</p>
                     <button onClick={() => setCardPullResult(null)}>닫기 ✓</button>
@@ -5765,6 +6008,16 @@ export default function Page() {
                     <small>이기면 코인 +100~, 지면 -50.</small>
                     <div className="mgHigh">최고 콤보: {minigameWordHigh}회</div>
                   </button>
+                  <button className="mgCard mgRps" onClick={() => { setMinigameMode("rps"); resetRps(); }}>
+                    <div className="mgCardEmoji">✊</div>
+                    <b>가위바위보</b>
+                    <small>3판 2승. 이기면 코인+200, 호감+30. 지면 -100.</small>
+                  </button>
+                  <button className="mgCard mgQuiz" onClick={() => { setMinigameMode("quiz"); startQuiz(); }}>
+                    <div className="mgCardEmoji">❓</div>
+                    <b>떡존이 퀴즈</b>
+                    <small>5문제. 정답 1개당 코인+50, EXP+30. 4개 이상 호감+50.</small>
+                  </button>
                 </div>
               </div>
             )}
@@ -5839,6 +6092,180 @@ export default function Page() {
                 )}
               </div>
             )}
+            {minigameMode === "rps" && (
+              <div className="mgRpsPanel">
+                <div className="mgClickerHeader">
+                  <button className="mgBackBtn" onClick={() => setMinigameMode("hub")}>← 뒤로</button>
+                  <div className="mgScore">선생님 {rpsScore.user} : {rpsScore.tt} 떡존이 (R{rpsScore.round})</div>
+                  <button className="mgRetryBtn" onClick={resetRps}>리셋</button>
+                </div>
+                {rpsScore.round < 5 && rpsScore.user < 2 && rpsScore.tt < 2 ? (
+                  <>
+                    <p className="mgRpsHint">선생님 차례. 골라주세요.</p>
+                    <div className="mgRpsBtns">
+                      <button onClick={() => playRps("rock")}>✊ 바위</button>
+                      <button onClick={() => playRps("paper")}>✋ 보</button>
+                      <button onClick={() => playRps("scissors")}>✌️ 가위</button>
+                    </div>
+                    {rpsScore.lastChoice && (
+                      <div className="mgRpsLast">
+                        선생님: {rpsScore.lastChoice === "rock" ? "✊" : rpsScore.lastChoice === "paper" ? "✋" : "✌️"}
+                        &nbsp; vs &nbsp;
+                        떡존이: {rpsScore.lastTt === "rock" ? "✊" : rpsScore.lastTt === "paper" ? "✋" : "✌️"}
+                        &nbsp; → {rpsScore.lastResult === "win" ? "선생님 승리 ㅋ" : rpsScore.lastResult === "lose" ? "떡존이 승리 (죄송해요...)" : "비김"}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className={`mgResultBanner ${rpsScore.user > rpsScore.tt ? "mgWin" : "mgLose"}`}>
+                    {rpsScore.user > rpsScore.tt ? "🎉 선생님 승리! 코인+200, 호감+30, EXP+80" : "😢 떡존이 승리. 코인-100"}
+                    <button onClick={resetRps}>한판 더</button>
+                  </div>
+                )}
+              </div>
+            )}
+            {minigameMode === "quiz" && (
+              <div className="mgQuizPanel">
+                <div className="mgClickerHeader">
+                  <button className="mgBackBtn" onClick={() => setMinigameMode("hub")}>← 뒤로</button>
+                  <div className="mgScore">정답 {quizState.correct} / {quizState.idx + (quizState.showResult ? 1 : 0)}</div>
+                  <button className="mgRetryBtn" onClick={startQuiz}>새로 시작</button>
+                </div>
+                {!quizState.finished && quizState.questions.length > 0 ? (() => {
+                  const qIdx = quizState.questions[quizState.idx];
+                  const q = QUIZ_QUESTIONS[qIdx];
+                  return (
+                    <div className="mgQuizCard">
+                      <div className="mgQuizQNum">Q{quizState.idx + 1} / {quizState.questions.length}</div>
+                      <p className="mgQuizQuestion">{q.q}</p>
+                      <div className="mgQuizOptions">
+                        {q.options.map((opt, i) => (
+                          <button
+                            key={i}
+                            className={`mgQuizOption${quizState.showResult ? (i === q.answer ? " mgQuizCorrect" : i === quizState.selected ? " mgQuizWrong" : "") : ""}`}
+                            disabled={quizState.showResult}
+                            onClick={() => answerQuiz(i)}
+                          >
+                            {String.fromCharCode(65 + i)}. {opt}
+                          </button>
+                        ))}
+                      </div>
+                      {quizState.showResult && (
+                        <div className="mgQuizExplain">
+                          {quizState.selected === q.answer ? "✅ 정답!" : "❌ 오답!"} {q.explain}
+                          <button className="mgQuizNext" onClick={nextQuiz}>다음 ▶</button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })() : quizState.finished ? (
+                  <div className={`mgResultBanner ${quizState.correct >= 3 ? "mgWin" : "mgLose"}`}>
+                    {quizState.correct >= 4 ? "🎉 떡존이 박사!" : quizState.correct >= 3 ? "👍 떡존이 잘 아시네요" : "😢 떡존이 좀 더 알아주세요..."}
+                    &nbsp;정답 {quizState.correct}/{quizState.questions.length} → 코인+{quizState.correct * 50}, EXP+{quizState.correct * 30}
+                    <button onClick={startQuiz}>한판 더</button>
+                  </div>
+                ) : (
+                  <p className="mgQuizEmpty">시작 누르세요</p>
+                )}
+              </div>
+            )}
+          </Panel>
+        )}
+        {view === "seasonPass" && (() => {
+          const filteredRewards = SEASON_REWARDS;
+          return (
+            <Panel title="시즌 패스 🎟">
+              <div className="seasonHead">
+                <div>
+                  <h3>시즌 1 — 히로시마의 봄</h3>
+                  <small>현재 레벨: <b>Lv.{userLevel}</b> · 시즌 트랙 {Math.min(userLevel, 50)} / 50</small>
+                </div>
+                {!seasonPremium && (
+                  <button className="seasonBuyBtn" disabled={coins < SEASON_PREMIUM_PRICE} onClick={buySeasonPremium}>
+                    프리미엄 패스 🪙{SEASON_PREMIUM_PRICE}
+                  </button>
+                )}
+                {seasonPremium && <span className="seasonPremiumBadge">✨ 프리미엄 활성</span>}
+              </div>
+              <div className="seasonTrack">
+                {filteredRewards.map((r) => {
+                  const reached = userLevel >= r.lv;
+                  const freeClaimed = !!seasonClaimedFree[r.lv];
+                  const premiumClaimed = !!seasonClaimedPremium[r.lv];
+                  return (
+                    <div key={r.lv} className={`seasonRow${reached ? " seasonReached" : ""}${r.lv % 10 === 0 ? " seasonMilestone" : ""}`}>
+                      <div className="seasonLv">Lv.{r.lv}</div>
+                      <div className={`seasonBox seasonFree${freeClaimed ? " seasonClaimed" : reached ? " seasonReady" : ""}`}>
+                        <small>FREE</small>
+                        <div className="seasonReward">
+                          {r.free?.coins ? `🪙${r.free.coins}` : ""}
+                          {r.free?.tickets ? ` 🎫${r.free.tickets}` : ""}
+                          {r.free?.affinity ? ` 호감+${r.free.affinity}` : ""}
+                        </div>
+                        {reached && !freeClaimed && <button onClick={() => claimSeasonReward(r.lv, "free")}>받기</button>}
+                        {freeClaimed && <span className="seasonDone">✓</span>}
+                      </div>
+                      <div className={`seasonBox seasonPremiumBox${premiumClaimed ? " seasonClaimed" : reached && seasonPremium ? " seasonReady" : ""}${!seasonPremium ? " seasonLocked" : ""}`}>
+                        <small>PREMIUM ✨</small>
+                        <div className="seasonReward">
+                          {r.premium?.coins ? `🪙${r.premium.coins}` : ""}
+                          {r.premium?.tickets ? ` 🎫${r.premium.tickets}` : ""}
+                          {r.premium?.affinity ? ` 호감+${r.premium.affinity}` : ""}
+                          {r.premium?.cards ? ` 🃏×${r.premium.cards}` : ""}
+                        </div>
+                        {reached && seasonPremium && !premiumClaimed && <button onClick={() => claimSeasonReward(r.lv, "premium")}>받기</button>}
+                        {premiumClaimed && <span className="seasonDone">✓</span>}
+                        {!seasonPremium && <span className="seasonLockBadge">🔒</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Panel>
+          );
+        })()}
+        {view === "sound" && (
+          <Panel title="음향 설정 🔊">
+            <p className="soundIntro">BGM과 SFX 켜기/끄기 + 볼륨 조절. 파일이 없어도 안전하게 작동.</p>
+            <div className="soundCard">
+              <h4>🎵 배경음악 (BGM)</h4>
+              <label className="soundToggle">
+                <input type="checkbox" checked={soundBgmEnabled} onChange={(e) => setSoundBgmEnabled(e.target.checked)}/>
+                <span>{soundBgmEnabled ? "켜짐" : "꺼짐"}</span>
+              </label>
+              <label className="soundVolume">
+                <span>볼륨: {Math.round(soundBgmVolume * 100)}%</span>
+                <input type="range" min={0} max={100} value={Math.round(soundBgmVolume * 100)} onChange={(e) => setSoundBgmVolume(Number(e.target.value) / 100)}/>
+              </label>
+              <small>현재 트랙: {storyRoute === "obsession" ? "🌑 obsession theme" : storyRoute === "pure" ? "💗 pure theme" : "🌅 common theme"} (파일 없으면 무음)</small>
+            </div>
+            <div className="soundCard">
+              <h4>🔔 효과음 (SFX)</h4>
+              <label className="soundToggle">
+                <input type="checkbox" checked={soundSfxEnabled} onChange={(e) => setSoundSfxEnabled(e.target.checked)}/>
+                <span>{soundSfxEnabled ? "켜짐" : "꺼짐"}</span>
+              </label>
+              <label className="soundVolume">
+                <span>볼륨: {Math.round(soundSfxVolume * 100)}%</span>
+                <input type="range" min={0} max={100} value={Math.round(soundSfxVolume * 100)} onChange={(e) => setSoundSfxVolume(Number(e.target.value) / 100)}/>
+              </label>
+              <button className="soundTestBtn" onClick={() => playSfx("click")}>테스트 재생</button>
+            </div>
+            <details className="soundFiles">
+              <summary>📁 필요한 파일 목록</summary>
+              <ul>
+                <li><code>/bgm_common.mp3</code> — 공통 BGM</li>
+                <li><code>/bgm_pure.mp3</code> — 순애 루트 BGM</li>
+                <li><code>/bgm_obsession.mp3</code> — 집착 루트 BGM</li>
+                <li><code>/sfx_click.mp3</code> — 일반 클릭</li>
+                <li><code>/sfx_coin.mp3</code> — 코인 획득</li>
+                <li><code>/sfx_levelup.mp3</code> — 레벨업</li>
+                <li><code>/sfx_card.mp3</code> — 카드 뽑기</li>
+                <li><code>/sfx_win.mp3</code> — 승리</li>
+                <li><code>/sfx_lose.mp3</code> — 패배</li>
+              </ul>
+              <small>public/ 폴더에 넣으면 자동 적용. 없으면 조용히 무시.</small>
+            </details>
           </Panel>
         )}
         {view === "adventure" && (() => {
@@ -6056,6 +6483,33 @@ export default function Page() {
                   </div>
                 );
               })}
+            </div>
+            <div className="petFusionBox">
+              <h3 className="petFusionTitle">🧬 펫 합성 실험실</h3>
+              <p className="petFusionDesc">펫 2마리 골라서 🪙500 태우면 친밀도 듬뿍 올라감 ㅋㅋ (같은 펫 2번은 ㄴㄴ)</p>
+              <div className="petFusionSlots">
+                <select className="petFusionSelect" value={fusionPick1 ?? ""} onChange={(e) => setFusionPick1(e.target.value || null)}>
+                  <option value="">슬롯 1 선택</option>
+                  {PETS.filter((p) => ownedPets[p.id]).map((p) => (
+                    <option key={p.id} value={p.id}>{p.emoji} {p.name}</option>
+                  ))}
+                </select>
+                <span className="petFusionPlus">+</span>
+                <select className="petFusionSelect" value={fusionPick2 ?? ""} onChange={(e) => setFusionPick2(e.target.value || null)}>
+                  <option value="">슬롯 2 선택</option>
+                  {PETS.filter((p) => ownedPets[p.id]).map((p) => (
+                    <option key={p.id} value={p.id}>{p.emoji} {p.name}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                className="petFusionBtn"
+                disabled={!fusionPick1 || !fusionPick2 || fusionPick1 === fusionPick2 || coins < 500}
+                onClick={fusePets}
+              >
+                🧪 합성 ㄱㄱ (🪙500)
+              </button>
+              {fusionResultMsg && <div className="petFusionResult">{fusionResultMsg}</div>}
             </div>
           </Panel>
         )}
@@ -7309,6 +7763,64 @@ const CSS = `
 .petFeedBtn,.petFeedBigBtn{border:0;border-radius:8px;padding:7px 5px;background:#fff5d6;color:#5a3d12;font-weight:900;font-size:10px;cursor:pointer;border:1px solid #d9a656}
 .petFeedBigBtn{background:linear-gradient(135deg,#ffd97a,#e8993b);color:#fff}
 .petFeedBtn:disabled,.petFeedBigBtn:disabled{opacity:.4;cursor:not-allowed}
+.petFusionBox{margin-top:18px;padding:16px;background:linear-gradient(135deg,#f0e6ff,#e0d0ff);border:2px dashed #9b6fdb;border-radius:16px;display:grid;gap:10px}
+.petFusionTitle{margin:0;font-size:16px;font-weight:1000;color:#4a2d8a}
+.petFusionDesc{margin:0;font-size:12px;color:#5a3d8a;font-weight:700}
+.petFusionSlots{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.petFusionSelect{flex:1;min-width:140px;padding:10px;border:2px solid #b89ce6;border-radius:10px;background:#fff;font-size:13px;font-weight:700;color:#3a2017;cursor:pointer}
+.petFusionPlus{font-size:24px;font-weight:1000;color:#9b6fdb}
+.petFusionBtn{border:0;border-radius:12px;padding:12px;background:linear-gradient(135deg,#b884ff,#7b4ad8);color:#fff;font-weight:1000;font-size:14px;cursor:pointer;box-shadow:0 4px 12px rgba(123,74,216,.3)}
+.petFusionBtn:disabled{opacity:.4;cursor:not-allowed}
+.petFusionBtn:not(:disabled):hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(123,74,216,.45)}
+.petFusionResult{padding:10px 14px;background:#fff;border-radius:10px;font-size:13px;font-weight:900;color:#4a2d8a;text-align:center;border:1px solid #b89ce6}
+/* ─ 미니게임 가위바위보 ─ */
+.mgRpsBtns{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.mgRpsBtn{padding:18px 6px;border:2px solid #d9a656;border-radius:14px;background:#fff8ef;font-size:32px;cursor:pointer;font-weight:1000;transition:transform .15s ease}
+.mgRpsBtn:hover{transform:translateY(-2px);background:#ffe9a8}
+.mgRpsBtn:disabled{opacity:.4;cursor:not-allowed}
+.mgRpsScore{display:flex;justify-content:space-around;padding:12px;background:#fff5d6;border-radius:12px;font-weight:1000;font-size:14px;color:#5a3d12;margin-bottom:10px}
+.mgRpsResult{padding:14px;background:linear-gradient(135deg,#ffd97a,#e8993b);border-radius:12px;color:#fff;font-weight:1000;font-size:15px;text-align:center;margin:10px 0}
+/* ─ 미니게임 퀴즈 ─ */
+.mgQuizCard{padding:16px;background:#fff;border:2px solid #d9a656;border-radius:14px;margin-bottom:12px}
+.mgQuizQ{font-size:15px;font-weight:1000;color:#3a2017;margin:0 0 12px}
+.mgQuizOptions{display:grid;gap:8px}
+.mgQuizOption{padding:12px;border:1px solid #e6d2b8;border-radius:10px;background:#fff8ef;font-weight:900;font-size:13px;color:#3a2017;cursor:pointer;text-align:left}
+.mgQuizOption:hover:not(:disabled){background:#ffe9a8}
+.mgQuizOption.mgQuizCorrect{background:#a3c785;color:#fff;border-color:#7ba65a}
+.mgQuizOption.mgQuizWrong{background:#f5a3a3;color:#fff;border-color:#d56666}
+.mgQuizOption:disabled{cursor:not-allowed}
+.mgQuizExplain{padding:10px;background:#fff5d6;border-radius:8px;font-size:12px;color:#5a3d12;font-weight:700;margin-top:10px}
+/* ─ 시즌 패스 ─ */
+.seasonHead{display:flex;justify-content:space-between;align-items:center;padding:14px;background:linear-gradient(135deg,#3a2d29,#5a4036);border-radius:14px;color:#fff;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+.seasonHead h3{margin:0;font-size:16px;font-weight:1000}
+.seasonPremiumBuy{border:0;border-radius:10px;padding:10px 16px;background:linear-gradient(135deg,#ffd97a,#df842c);color:#fff;font-weight:1000;font-size:13px;cursor:pointer}
+.seasonPremiumBuy:disabled{opacity:.5;cursor:not-allowed}
+.seasonPremiumActive{padding:8px 14px;background:linear-gradient(135deg,#ffd97a,#df842c);color:#fff;border-radius:10px;font-weight:1000;font-size:12px}
+.seasonTrack{display:grid;gap:6px;max-height:600px;overflow-y:auto;padding:8px;background:#f8efe2;border-radius:12px}
+.seasonRow{display:grid;grid-template-columns:50px 1fr 1fr;gap:8px;align-items:center;padding:8px;background:#fff;border-radius:10px;border:1px solid #e6d2b8}
+.seasonRowMile{background:linear-gradient(135deg,#fff7d6,#ffd97a);border-color:#df842c}
+.seasonLv{font-size:14px;font-weight:1000;color:#3a2017;text-align:center}
+.seasonBox,.seasonPremiumBox{padding:8px;border-radius:8px;background:#f8efe2;display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:700}
+.seasonPremiumBox{background:linear-gradient(135deg,#fff7d6,#ffe9a8);border:1px dashed #df842c}
+.seasonRewards{font-size:11px;color:#5a3d12;font-weight:900}
+.seasonClaimBtn{border:0;border-radius:6px;padding:5px 8px;background:#7ba65a;color:#fff;font-weight:1000;font-size:10px;cursor:pointer;margin-top:2px}
+.seasonClaimBtn:disabled{opacity:.4;cursor:not-allowed;background:#aaa}
+.seasonClaimedTag{font-size:10px;color:#7ba65a;font-weight:1000;text-align:center}
+.seasonLockedTag{font-size:10px;color:#999;font-weight:700;text-align:center}
+/* ─ 음향 ─ */
+.soundCard{padding:16px;background:#fff;border:1px solid #e6d2b8;border-radius:14px;margin-bottom:12px;display:grid;gap:10px}
+.soundCardTitle{margin:0;font-size:15px;font-weight:1000;color:#3a2017}
+.soundToggle{display:flex;justify-content:space-between;align-items:center;padding:10px;background:#fff8ef;border-radius:10px;font-weight:900;font-size:13px;color:#3a2017}
+.soundToggle button{border:0;border-radius:8px;padding:8px 16px;background:#3a2d29;color:#fff;font-weight:1000;font-size:12px;cursor:pointer}
+.soundToggle button.soundOn{background:linear-gradient(135deg,#7ba65a,#4a8a5e)}
+.soundVolumeRow{display:flex;align-items:center;gap:10px;padding:8px}
+.soundVolumeRow label{flex:none;font-size:12px;font-weight:900;color:#5a3d12;min-width:60px}
+.soundVolumeRow input{flex:1}
+.soundVolumeRow span{flex:none;min-width:36px;text-align:right;font-size:12px;font-weight:1000;color:#3a2017}
+.soundFiles{margin-top:14px;padding:10px;background:#fff5d6;border-radius:10px;font-size:11px;color:#5a3d12}
+.soundFiles summary{cursor:pointer;font-weight:1000;font-size:13px;padding:4px}
+.soundFiles ul{margin:8px 0 0;padding-left:20px}
+.soundFiles code{background:#fff;padding:1px 6px;border-radius:4px;font-size:11px}
 /* ─ 모험 ─ */
 .advIntro{margin:0 0 14px;padding:12px 14px;background:linear-gradient(135deg,#a3c785,#7ba65a);border-radius:12px;color:#fff;font-weight:900;font-size:14px;text-align:center}
 .advActive{margin:0 0 18px;padding:16px 18px;background:linear-gradient(135deg,#f4f9d8,#e8e9b8);border:2px solid #b3c54a;border-radius:16px;display:grid;gap:10px}

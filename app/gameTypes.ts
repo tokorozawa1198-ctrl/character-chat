@@ -1,7 +1,7 @@
 "use client";
 
 export type Role = "user" | "assistant" | "narration";
-export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests" | "shop" | "gacha" | "pets" | "adventure" | "sns" | "raid" | "fortune" | "journal" | "minigames" | "katalk" | "calendar30" | "codex" | "stats" | "letters" | "quote" | "cards";
+export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests" | "shop" | "gacha" | "pets" | "adventure" | "sns" | "raid" | "fortune" | "journal" | "minigames" | "katalk" | "calendar30" | "codex" | "stats" | "letters" | "quote" | "cards" | "seasonPass" | "sound";
 export type ScenarioKind = "normal" | "jealousy" | "obsession" | "confinement" | "yandere";
 export type ScenarioCategory = "main" | "action" | "special" | "after" | "side";
 export type StatKey = "affinity" | "jealousy" | "obsession" | "trust" | "bladderCharm";
@@ -165,6 +165,16 @@ export type SaveData = {
   bladderMarathonWeek?: string;
   bladderMarathonScore?: number;
   monthlyCalendarClaims?: Record<string, boolean>; // "day_7", "day_14" etc
+  // 시즌 패스
+  seasonId?: string;
+  seasonClaimedFree?: Record<number, boolean>;
+  seasonClaimedPremium?: Record<number, boolean>;
+  seasonPremium?: boolean;
+  // 음향
+  soundBgmEnabled?: boolean;
+  soundSfxEnabled?: boolean;
+  soundBgmVolume?: number;
+  soundSfxVolume?: number;
 };
 export type FriendChatMessage = {
   id: string;
