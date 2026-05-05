@@ -2606,13 +2606,26 @@ function extractMemoryNotes(
 
   return notes;
 }
-const QUOTE_OPEN_CODES = new Set([34, 39, 0x201C, 0x2018, 0x300C]);
-const QUOTE_CLOSE_CODES = new Set([34, 39, 0x201D, 0x2019, 0x300D]);
+const QUOTE_OPEN_CODES = new Set([34, 39, 0x201C, 0x2018, 0x300C, 0x300E, 0x3010]);
+const QUOTE_CLOSE_CODES = new Set([34, 39, 0x201D, 0x2019, 0x300D, 0x300F, 0x3011]);
+// 0x300E『 0x300F』 = 히든 전용 / 0x3010【 0x3011】 = 전진협 메시지 전용
+const HIDDEN_OPEN = 0x300E;
+const HIDDEN_CLOSE = 0x300F;
+const MESSAGE_OPEN = 0x3010;
+const MESSAGE_CLOSE = 0x3011;
 function cleanQuote(text: string) {
   let s = text;
   if (s.length > 0 && QUOTE_OPEN_CODES.has(s.charCodeAt(0))) s = s.slice(1);
   if (s.length > 0 && QUOTE_CLOSE_CODES.has(s.charCodeAt(s.length - 1))) s = s.slice(0, -1);
   return s.trim();
+}
+function detectBracketSpeaker(paragraph: string): VNLine["speaker"] | null {
+  if (!paragraph) return null;
+  const first = paragraph.charCodeAt(0);
+  const last = paragraph.charCodeAt(paragraph.length - 1);
+  if (first === HIDDEN_OPEN && last === HIDDEN_CLOSE) return "히든" as VNLine["speaker"];
+  if (first === MESSAGE_OPEN && last === MESSAGE_CLOSE) return "메시지" as VNLine["speaker"];
+  return null;
 }
 function guessSpeaker(text: string, prevNarration?: string, nextNarration?: string): VNLine["speaker"] {
   const trimmed = text.trim();
@@ -2672,6 +2685,12 @@ function parseVNLines(text: string): VNLine[] {
     const prefixMatch = paragraph.match(/^(나레이션|근떡존|히든|메시지)\s*:\s*([\s\S]+)$/);
     if (prefixMatch) {
       lines.push({ speaker: SPEAKER_MAP[prefixMatch[1]] ?? "나레이션", text: cleanQuote(prefixMatch[2].trim()) });
+      continue;
+    }
+    // Format 1.5: 명시적 brackets — 『...』 = 히든, 【...】 = 메시지
+    const bracketSpeaker = detectBracketSpeaker(paragraph);
+    if (bracketSpeaker) {
+      lines.push({ speaker: bracketSpeaker, text: cleanQuote(paragraph) });
       continue;
     }
     // Format 2: 산문 — 따옴표로 감싼 단락은 대사, 나머지는 나레이션
