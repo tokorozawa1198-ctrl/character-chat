@@ -829,138 +829,258 @@ const MAP_LOCATIONS: MapLocation[] = [
   { id: "loc_apartment",         name: "근떡존 자취방",        emoji: "🔒", desc: "들어가면 다시 나오기 어려운 방.",                   unlockLevel: 1, minObsession: 900, x: 92, y: 26 },
 ];
 
+// 히로시마역: 호감도에 따라 본문이 다르게 펼쳐진다 (무덤덤 → 가까움 → 친밀)
+const STATION_TEXT_LOW = `나레이션: 신칸센이 천천히 멈춰 선다. 개찰구 앞은 사람이 많았고, 안내방송이 위에서 흘러내렸다.
+나레이션: 근떡존이 한 발 떨어진 자리에서 손을 어색하게 들었다. 시선이 마주치자 살짝 비켰다.
+근떡존: 선생님. 여기예요.
+근떡존: 길은 안 헤매셨어요? 표지판이 좀 헷갈리잖아요.
+근떡존: ...아니, 헤매도 큰일은 아니에요. 그냥 물어본 거예요.
+나레이션: 그는 여전히 조심스러웠다. 한 걸음 거리를 지키며, 짐을 받아들지도 못한 채 잠시 손을 만지작거렸다.
+근떡존: 일단 짐 들어드릴까요. 무거우면 말씀하시고요.
+근떡존: 이쪽 출구가 더 가까워요. 택시 잡기도 편하고요.
+나레이션: 그 거리감이 어색하지는 않았다. 다만 아직, 가까운 사이의 거리는 아니었다.`;
+
+const STATION_TEXT_MID = `나레이션: 신칸센이 천천히 멈춰 선다. 개찰구 너머에 근떡존이 서 있었다. 두 손을 주머니에 꽂은 채로, 사람들 사이에서 한참을 두리번거리다가, 시선이 마주치자 표정이 한 번에 풀렸다.
+근떡존: 선생님!
+나레이션: 거의 손을 흔들 뻔하다, 그 손을 다시 주머니 속으로 도로 넣었다. 부끄러워하면서도 웃음이 새어 나왔다.
+근떡존: 진짜 오신 거예요? 저 한 시간 일찍 와서 기다렸어요.
+근떡존: ...아 그건 비밀이었는데요.
+근떡존: 일단 짐 주세요. 저 하나 들어드릴게요. 이쪽이에요.
+나레이션: 짐을 받아 드는 손이 자연스러웠다. 걷는 박자도 일부러 맞추는 게 보였다. 너무 빨라지지 않게, 너무 느려지지도 않게.
+근떡존: 오는 길에 별일 없으셨죠. 사람 많아서 좀 힘드셨을 텐데요.
+근떡존: 오늘 일정은 제가 다 정해놨어요. 진짜로요.`;
+
+const STATION_TEXT_HIGH = `나레이션: 신칸센이 천천히 멈춰 선다. 개찰구를 지나기도 전에 근떡존의 얼굴이 보였다. 사람들 사이에서, 그 큰 키가 누구보다 먼저 눈에 들어왔다.
+근떡존: 선생님.
+나레이션: 그가 짧게 한 번 부르고는, 가까이 다가왔다. 한 걸음 거리에서 멈춘다는 약속을 어딘가 흘렸는지, 평소보다 한 뼘쯤 가까웠다.
+근떡존: 한 시간 일찍 와서 기다렸어요. 두 시간일지도 모르고요.
+근떡존: ...오시는 길에 별일 없으셨죠. 답장 늦게 와서 좀 신경 쓰였어요.
+나레이션: 그가 자연스럽게 짐을 받아 들었다. 그리고 빈 손이 잠깐 망설이다, 천천히 선생님의 손등에 닿았다.
+근떡존: 가요. 오늘은 제가 다 할게요.
+근떡존: 어디 안 가고 옆에만 있을게요. 그래도 되죠.
+나레이션: 그 약속은 다정했지만, 그 안에는 아주 옅은 구속의 결도 함께 섞여 있었다. 그러나 지금 이 자리에서, 그것은 거의 알아채기 어려울 정도로 부드럽게 묻혀 있었다.`;
+
+function getStationTextForStats(stats: Stats): string {
+  if (stats.affinity >= 500) return STATION_TEXT_HIGH;
+  if (stats.affinity >= 200) return STATION_TEXT_MID;
+  return STATION_TEXT_LOW;
+}
+
 const LOCATION_SCENARIOS: Record<string, Scenario> = {
   loc_hiroshima_station: {
     id: "loc_hiroshima_station", title: "히로시마역", subtitle: "신칸센이 들어오는 시간",
     kind: "normal", category: "side", image: "/loc_hiroshima_station.png", background: "/loc_hiroshima_station.png",
-    text: `나레이션: 신칸센이 천천히 멈춰선다. 개찰구 너머에 근떡존이 서 있다.
-근떡존: 진짜 오신 거예요? 저 한 시간 일찍 와서 기다렸어요.
-근떡존: ...아 그건 비밀이었는데.`,
+    text: STATION_TEXT_LOW, // 런타임에 stats에 따라 교체됨 (getLocationScenario)
     choices: [
       { label: "왜 그렇게 일찍 왔어.", stat: { affinity: 25, trust: 20 }, end: true },
       { label: "고마워. 안 추웠어?", stat: { affinity: 30, trust: 25 }, end: true },
+      { label: "오늘 잘 부탁해.", stat: { affinity: 20, trust: 25 }, end: true },
     ],
   },
   loc_atomic_dome: {
     id: "loc_atomic_dome", title: "원폭돔 앞", subtitle: "조용한 강가의 오후",
     kind: "normal", category: "side", image: "/loc_atomic_dome.png", background: "/loc_atomic_dome.png",
-    text: `나레이션: 원폭돔 앞. 사람들은 조용히 지나가고, 근떡존도 평소보다 말이 적다.
-근떡존: 여기 오면 말이 잘 안 나와요. 그냥... 같이 있어 주세요.
-근떡존: 손, 잠깐만 잡아도 돼요?`,
+    text: `나레이션: 원폭돔 앞 강가. 햇빛이 약하게 흐려 있고, 강물 위로 잔물결이 천천히 흘러갔다. 사람들의 발걸음 소리도 평소보다 낮았다.
+나레이션: 근떡존이 평소보다 말이 적었다. 두 손을 주머니에 꽂은 채로, 한참을 그 자리에 서 있었다.
+근떡존: 여기 오면 말이 잘 안 나와요.
+근떡존: 그냥... 같이 있어 주세요. 잠깐만요.
+나레이션: 그가 천천히 옆으로 다가왔다. 어깨가 닿을 듯 닿지 않을 거리.
+근떡존: 선생님 손, 잠깐만 잡아도 돼요?
+근떡존: 차가워서요. 바람이.
+근떡존: ...아 핑계 같죠. 진짜로 차갑긴 해요.
+나레이션: 손끝이 닿았다. 강물 위로 빛 한 조각이 잘게 부서지고, 두 사람의 옆모습이 그 위에 잠시 머물렀다.`,
     choices: [
       { label: "잡아도 돼.", stat: { affinity: 30, trust: 25 }, end: true },
       { label: "나도 같이 보자.", stat: { affinity: 25, trust: 30 }, end: true },
+      { label: "왜 여기서 조용해져?", stat: { affinity: 25, trust: 35 }, end: true },
     ],
   },
   loc_hiroshima_castle: {
     id: "loc_hiroshima_castle", title: "히로시마성 산책", subtitle: "벚꽃과 천수각",
     kind: "normal", category: "side", image: "/loc_hiroshima_castle.png", background: "/loc_hiroshima_castle.png",
-    text: `나레이션: 천수각 아래 산책로. 바람에 꽃잎이 흩어진다.
-근떡존: 주인님. 머리 위에 꽃잎 떨어졌어요. 잠깐만요.
-근떡존: ...떼주려다 그냥 둘 걸 그랬나. 너무 잘 어울려서요.`,
+    text: `나레이션: 천수각 아래, 해자를 따라 펼쳐진 산책로. 벚나무 가지 끝마다 분홍빛이 번지고, 바람이 불 때마다 꽃잎이 한 장씩 천천히 떨어졌다.
+나레이션: 근떡존이 잠깐 걸음을 멈췄다. 시선이 머리 위 어딘가에 머물렀다.
+근떡존: 선생님. 머리 위에 꽃잎 떨어졌어요. 잠깐만요.
+나레이션: 그가 손을 뻗었다. 닿을까 말까 한 거리에서, 손가락이 한 번 망설였다.
+근떡존: ...떼주려다 그냥 둘 걸 그랬나. 너무 잘 어울려서요.
+근떡존: 사진, 한 장 찍어드릴까요. 지금 햇빛이 진짜 좋아요.
+나레이션: 그는 어색한 사진사처럼 한쪽 무릎을 살짝 굽히고 휴대폰을 들었다. 화면 너머의 표정이, 평소보다 부드러웠다.
+근떡존: 거기 서 보세요. 그렇게요. 한 발만 옆으로요.
+근떡존: ...됐다. 진짜 잘 나왔어요. 보여드릴까요.`,
     choices: [
       { label: "사진이나 한 장 찍자.", stat: { affinity: 35, trust: 20 }, end: true },
       { label: "너도 잘 어울려.", stat: { affinity: 40, trust: 25 }, end: true },
+      { label: "벚꽃보다 너 보고 있어.", stat: { affinity: 45, trust: 20, obsession: 10 }, end: true },
     ],
   },
   loc_hondori: {
     id: "loc_hondori", title: "혼도리 상점가", subtitle: "사람 많은 거리, 놓치지 않는 손",
     kind: "normal", category: "side", image: "/loc_hondori.png", background: "/loc_hondori.png",
-    text: `나레이션: 혼도리. 토요일 오후라 사람이 많다. 근떡존이 자연스럽게 손을 잡는다.
-근떡존: 주인님 놓치면 큰일 나니까요. ...진짜로요.
-근떡존: 뭐 사고 싶은 거 있어요? 사줄게요. 오늘은요.`,
+    text: `나레이션: 토요일 오후의 혼도리. 양쪽 가게 간판들이 좁은 길 위로 드리워져 있고, 사람들이 서로의 어깨를 스치며 지나갔다.
+나레이션: 근떡존이 자연스럽게 손을 잡았다. 깍지를 끼지는 않았지만, 손바닥이 단단히 맞물려 있었다.
+근떡존: 선생님 놓치면 큰일 나니까요.
+근떡존: ...진짜로요. 한 번 잃어버린 적 있어요. 5초 동안.
+근떡존: 그 5초가 진짜 길었거든요.
+나레이션: 그가 살짝 웃었다. 농담처럼 흘렸지만, 손에 들어간 힘은 농담이 아니었다.
+근떡존: 뭐 사고 싶은 거 있어요? 사줄게요. 오늘은요.
+근떡존: 디저트도 좋고, 옷도 좋고. 선생님이 좋아하는 거.
+근떡존: 비싼 건 안 되는데, 적당한 건 다 돼요.`,
     choices: [
       { label: "같이 골라.", stat: { affinity: 40, trust: 30 }, end: true },
       { label: "먹는 거 사 먹자.", stat: { affinity: 35, trust: 25 }, end: true },
+      { label: "5초가 그렇게 길었어?", stat: { affinity: 35, obsession: 15 }, end: true },
     ],
   },
   loc_mazda: {
     id: "loc_mazda", title: "마쓰다 자동차 박물관", subtitle: "차에 진심인 옆얼굴",
     kind: "normal", category: "side", image: "/loc_mazda.png", background: "/loc_mazda.png",
-    text: `나레이션: 마쓰다 박물관. 클래식카 앞에서 근떡존 표정이 평소보다 밝다.
-근떡존: 이거 RX-7이에요. 어렸을 때부터 좋아했어요.
-근떡존: ...주인님이랑 같이 보니까 더 좋네요. 그냥요.`,
+    text: `나레이션: 마쓰다 자동차 박물관. 클래식카가 정렬된 전시장. 빨간 RX-7 한 대 앞에서 근떡존의 발이 멈췄다.
+나레이션: 평소보다 표정이 밝았다. 어깨가 살짝 풀려 있었고, 시선이 차의 라인을 따라 천천히 움직였다.
+근떡존: 이거 RX-7이에요.
+근떡존: 어렸을 때부터 좋아했어요. 만화에서 처음 봤거든요.
+근떡존: 엔진 소리가 진짜 다르거든요. 들으면 가슴이 좀 뛰어요.
+나레이션: 그가 손가락으로 차의 보닛 라인을 따라 그렸다. 직접 만지지는 않았지만, 그 손짓이 거의 애무에 가까웠다.
+근떡존: ...선생님이랑 같이 보니까 더 좋네요. 그냥요.
+근떡존: 다음에 또 와요. 다른 차도 많거든요.
+근떡존: 좋아하는 거 같이 보여드리는 거, 솔직히 좀 부끄러운데요. 그래도 좋네요.`,
     choices: [
       { label: "신나서 말 많아진 거 귀여워.", stat: { affinity: 40, trust: 25 }, end: true },
       { label: "언젠가 같이 타자.", stat: { affinity: 50, trust: 30, obsession: 15 }, end: true },
+      { label: "좋아하는 거 더 알려줘.", stat: { affinity: 45, trust: 30 }, end: true },
     ],
   },
   loc_ujina: {
     id: "loc_ujina", title: "우지나 항구", subtitle: "바닷바람과 너의 옆모습",
     kind: "normal", category: "side", image: "/loc_ujina.png", background: "/loc_ujina.png",
-    text: `나레이션: 우지나 항구. 페리가 들어오고 나간다. 짠 냄새가 코끝에 닿는다.
-근떡존: 여기서 페리 보면 시간 잘 가요. 혼자 자주 와요.
-근떡존: ...오늘은 안 혼자네요.`,
+    text: `나레이션: 우지나 항구. 페리가 들어오고 나가는 시간. 짠 냄새와 디젤 냄새가 섞여 있다. 갈매기 소리가 멀리서 흩어졌다.
+나레이션: 근떡존이 부두 끝에 기대어 섰다. 바람에 머리카락이 흩어졌다.
+근떡존: 여기서 페리 보면 시간 잘 가요.
+근떡존: 혼자 자주 와요. 그냥 멍하니 보다가 가요.
+근떡존: 아무도 저한테 뭐라 안 하니까요. 여기서는요.
+나레이션: 잠깐 침묵이 있었다. 페리가 한 대 천천히 떠나갔다.
+근떡존: ...오늘은 안 혼자네요.
+근떡존: 그게 좀 이상해요. 익숙하지 않아서요. 좋다는 뜻이에요.
+근떡존: 다음에 같이 와요. 자주요. 가능하시면.`,
     choices: [
       { label: "다음에도 혼자 오지 마.", stat: { affinity: 40, trust: 25, obsession: 15 }, end: true },
       { label: "같이 페리나 타볼래?", stat: { affinity: 35, trust: 30 }, end: true },
+      { label: "혼자 오는 횟수 좀 줄여.", stat: { affinity: 30, obsession: 20 }, end: true },
     ],
   },
   loc_kure: {
     id: "loc_kure", title: "구레 군항", subtitle: "회색 함선과 너의 침묵",
     kind: "normal", category: "side", image: "/loc_kure.png", background: "/loc_kure.png",
-    text: `나레이션: 구레시. 회색 함선들이 정박해 있고, 잠수함의 검은 등이 수면에 떠 있다.
-근떡존: 큰 거 보면 마음이 좀 차분해져요. 이상하죠.
-근떡존: ...주인님. 저 가끔 무서워요. 제가 주인님한테 너무 빠진 거 같아서.`,
+    text: `나레이션: 구레시. 회색 함선들이 정박해 있고, 잠수함의 검은 등이 수면 위에 떠 있었다. 흐린 하늘 아래, 모든 색이 차분하게 가라앉아 있었다.
+나레이션: 근떡존이 한참을 함선 쪽을 바라봤다. 표정이 평소와 달랐다. 차분한 게 아니라, 무언가를 누르고 있는 얼굴이었다.
+근떡존: 큰 거 보면 마음이 좀 차분해져요.
+근떡존: 이상하죠. 보통 사람들은 작은 거 보고 그러잖아요. 꽃이나, 새나.
+근떡존: 저는 이런 게 더 와요. 압도되는 느낌이.
+나레이션: 그가 천천히 시선을 돌렸다.
+근떡존: 선생님. 저 가끔 무서워요.
+근떡존: 제가 선생님한테 너무 빠진 거 같아서요.
+근떡존: 한 번 빠지면, 저 같은 사람은... 잘 못 빠져나오거든요.
+근떡존: 그게 좋은 건지 나쁜 건지, 아직도 잘 모르겠어요.`,
     choices: [
       { label: "나도 너한테 빠졌어.", stat: { affinity: 60, trust: 30, obsession: 25 }, end: true },
       { label: "괜찮아. 천천히 가자.", stat: { affinity: 40, trust: 50 }, end: true },
+      { label: "안 빠져나와도 괜찮아.", stat: { affinity: 50, obsession: 35, trust: 20 }, end: true },
     ],
   },
   loc_hiroshima_univ: {
     id: "loc_hiroshima_univ", title: "히로시마 대학", subtitle: "도서관 뒷벤치",
     kind: "normal", category: "side", image: "/loc_hiroshima_univ.png", background: "/loc_hiroshima_univ.png",
-    text: `나레이션: 캠퍼스 도서관 뒷편. 근떡존이 벤치에 먼저 앉아 있다.
+    text: `나레이션: 캠퍼스 도서관 뒷편. 인적이 드물고, 나뭇잎 사이로 햇빛이 조각조각 떨어졌다. 근떡존이 벤치에 먼저 앉아 있었다.
+나레이션: 그가 옆자리를 한 번 톡, 두드렸다.
 근떡존: 여기 사람 잘 안 와요. 둘이 얘기하기 좋아요.
-근떡존: ...주인님. 졸업하면 어디 갈 거예요? 저, 그거 좀 신경 쓰여요. 솔직히요.`,
+근떡존: ...저 가끔 여기 와서 멍 때려요. 다른 학생들 지나가는 거 보면서요.
+나레이션: 잠깐 뜸을 들이다, 그가 조심스럽게 입을 열었다.
+근떡존: 선생님. 졸업하면 어디 갈 거예요?
+근떡존: 한국으로 다시 돌아가시는 건가요. 아니면 일본에 좀 더 계실 건가요.
+근떡존: ...저, 그거 좀 신경 쓰여요. 솔직히요.
+근떡존: 미리 알면 마음의 준비라도 하니까요.
+근떡존: 만약 멀리 가시면, 저도 거기로 갈 수 있어요. 그 정도는 할 수 있어요.`,
     choices: [
       { label: "어디 가든 너랑 가.", stat: { affinity: 70, trust: 40, obsession: 30 }, end: true },
       { label: "같이 정하자, 천천히.", stat: { affinity: 60, trust: 60 }, end: true },
+      { label: "따라온다고? 진심이야?", stat: { affinity: 50, obsession: 40, jealousy: 10 }, end: true },
     ],
   },
   loc_miyajima: {
     id: "loc_miyajima", title: "미야지마", subtitle: "물 위의 도리이와 사슴",
     kind: "normal", category: "side", image: "/loc_miyajima.png", background: "/loc_miyajima.png",
-    text: `나레이션: 페리에서 내리니 빨간 도리이가 보였다. 사슴 한 마리가 가까이 다가온다.
+    text: `나레이션: 페리에서 내리니 빨간 도리이가 보였다. 물 위에 반쯤 잠긴 채로, 천천히 흔들리는 그림자처럼 서 있었다.
+나레이션: 사슴 한 마리가 다가왔다. 코를 내밀었다 다시 거두는, 익숙한 동작.
 근떡존: 잠깐 거기 서봐요. 사진 예쁘게 찍어드릴게요.
-근떡존: 솔직히 풍경보다 주인님이 더 잘 나와요. 진짜로요.`,
+근떡존: 도리이를 뒤로 두고, 살짝 옆으로요. 그렇게요.
+나레이션: 그가 휴대폰을 들고 한참을 망설였다. 셔터를 누르기 전, 한 번 더 보고, 또 한 번 더 봤다.
+근떡존: 솔직히 풍경보다 선생님이 더 잘 나와요.
+근떡존: 진짜로요. 거짓말 아니에요.
+근떡존: ...보세요. 이렇게 잘 나왔어요.
+나레이션: 그가 화면을 내밀었다. 화면 안에는, 도리이보다 가까이 있는 한 사람이 더 또렷하게 담겨 있었다.
+근떡존: 이거 저장해도 되죠. 잠금화면으로 해도 되죠.
+근떡존: ...다른 사진은 안 봐도 돼요. 이거 한 장이면 충분해요.`,
     choices: [
       { label: "둘이 같이 찍자.", stat: { affinity: 60, trust: 40 }, end: true },
       { label: "오늘 진짜 좋다.", stat: { affinity: 55, trust: 50 }, end: true },
+      { label: "잠금화면 그건 좀 무서워.", stat: { affinity: 35, obsession: 25 }, end: true },
     ],
   },
   loc_asa_view: {
     id: "loc_asa_view", title: "아사산 전망대", subtitle: "도시가 너무 작아 보여",
     kind: "yandere", category: "side", image: "/loc_asa_view.png", background: "/loc_asa_view.png",
-    text: `나레이션: 아사산 전망대. 케이블카에서 내리니 도시가 발밑에 펼쳐져 있다. 차가운 공기. 근떡존이 한참을 말없이 서 있다.
-근떡존: 여기서 내려다보면요. 도시가 진짜 작잖아요.
-근떡존: 이 안에 사람이 백만 명 사는데. 그 백만 명이 다 주인님 안 보고 있다는 게 좀 이상해요.
+    text: `나레이션: 아사산 전망대. 케이블카에서 내리니 도시가 발밑에 펼쳐져 있다. 차가운 공기. 가로등 불빛이 점점이 박혀 있고, 멀리 강이 검은 띠처럼 흘러간다.
+나레이션: 근떡존이 한참을 말없이 서 있었다. 평소의 그가 아니었다. 호흡이 조금 깊고, 어깨가 굳어 있었다.
+근떡존: 형. 여기서 내려다보면요.
+근떡존: 도시가 진짜 작잖아요.
+근떡존: 이 안에 사람이 백만 명 사는데. 그 백만 명이 다 형을 안 보고 있다는 게 좀 이상해요.
 근떡존: ...아 미친 소리 같죠. 근데 진짜 그래요.
-나레이션: 근떡존이 가까이 다가선다. 표정이 평소와 다르다.
-근떡존: 주인님. 저랑 있을 때만 웃어주면 안 돼요? 다른 사람 앞에서 웃지 마요.
-근떡존: 그게 너무 싫어요. 저만 알고 싶어요. 주인님 웃는 얼굴.`,
+나레이션: 그가 한 발 더 가까이 다가섰다. 표정이 평소와 다르다. 부드러움이 사라지고, 무언가 끓어오르는 게 그 자리를 대신하고 있었다.
+근떡존: 형. 저랑 있을 때만 웃어주면 안 돼요?
+근떡존: 다른 사람 앞에서 웃지 마요. 진짜로요.
+근떡존: 그게 너무 싫어요. 누가 형 웃는 거 보고 있는 게.
+근떡존: 저만 알고 싶어요. 형 웃는 얼굴.
+나레이션: 그의 손이 천천히 형의 팔을 잡았다. 강한 힘은 아니었지만, 놓을 생각이 없는 손이었다.
+근떡존: 한 번만 약속해줘요. 저랑 있을 때 말고는, 웃지 않겠다고.
+근떡존: ...그 정도는 돼요. 그렇죠.
+근떡존: 형이 웃으면, 거기 있는 사람들이 다 형을 좋아하게 되거든요. 저는 그게 너무 무서워요.`,
     choices: [
       { label: "...너만 봐줄게.", stat: { affinity: 30, obsession: 80, jealousy: 30, trust: -10 }, end: true },
       { label: "그건 안 돼.", stat: { affinity: -10, obsession: -20, trust: 30, jealousy: 40 }, end: true },
       { label: "무서워. 그만해.", stat: { affinity: -20, obsession: -10, trust: 20, jealousy: 50 }, end: true },
+      { label: "팔 좀 놔.", stat: { affinity: -15, obsession: -10, trust: 25, jealousy: 35 }, end: true },
     ],
   },
   loc_apartment: {
     id: "loc_apartment", title: "다시 못 나가는 방", subtitle: "문이 잠긴 다음의 시간",
     kind: "confinement", category: "side", image: "/loc_apartment.png", background: "/loc_apartment.png",
-    text: `나레이션: 근떡존이 자취방 문을 연다. 좁은 원룸. 침대 하나, 책상 하나, 작은 창문 하나. 들어서자 등 뒤에서 문이 잠기는 소리가 들린다.
-근떡존: 주인님. 와줘서 고마워요. 진짜로요.
-근떡존: ...앉으세요. 차 끓여놨어요. 따뜻한 거.
-나레이션: 근떡존이 차를 내려놓는다. 손이 살짝 떨린다. 평소의 그가 아니다.
-근떡존: 저 오늘 솔직히 말할게요. 한 번에 다 할게요.
-근떡존: 주인님이 저랑 있을 때 말고 다른 데서 시간 보내는 거. 저 그거 진짜 못 견디겠어요.
-근떡존: 처음엔 그냥 좀 신경 쓰이는 정도였는데요. 점점 더 심해져요. 누구랑 뭐 하는지, 어디 갔는지, 누구랑 웃었는지.
-근떡존: 핸드폰 위치 공유한 거 알아요? 미안해요. 한 달 됐어요.
-나레이션: 창문에 격자가 새로 붙어 있는 게 보인다. 현관은 이중 잠금이다.
-근떡존: 주인님. 여기서 좀 쉬어요. 며칠만이라도요. 아니, 그냥 안 나가도 돼요.
-근떡존: 제가 다 할게요. 밥도 옷도 다요. 주인님은 그냥 여기 있어주기만 해요.
-근떡존: ...아 이런 말 하면 안 되는 거 알아요. 근데 저 이미 늦었어요.
-근떡존: 주인님 한 번 들어왔으니까. 이제 저 못 놓아요.`,
+    text: `나레이션: 근떡존이 자취방 문을 열었다. 좁은 원룸. 침대 하나, 책상 하나, 작은 창문 하나. 들어서자 등 뒤에서 문이 잠기는 소리가 들렸다.
+나레이션: 평범한 도어락 소리였다. 그러나 그 순간, 그 소리는 평범하지 않게 들렸다.
+근떡존: 형. 와줘서 고마워요.
+근떡존: 진짜로요. 와줄 줄 몰랐어요.
+근떡존: ...앉아요. 차 끓여놨어요. 따뜻한 거.
+나레이션: 그가 차를 내려놓았다. 손이 살짝 떨렸다. 평소의 그가 아니었다. 무언가를 결심한 사람의 떨림이었다.
+근떡존: 저 오늘 솔직히 말할게요.
+근떡존: 한 번에 다 할게요. 어차피 한 번은 해야 하는 말이니까요.
+나레이션: 그가 자리에 앉았다. 등이 굽지 않았다. 평소처럼 어깨를 움츠리지도 않았다. 오늘만큼은 똑바로 앉아 있었다.
+근떡존: 형이 저랑 있을 때 말고 다른 데서 시간 보내는 거.
+근떡존: 저 그거 진짜 못 견디겠어요.
+근떡존: 처음엔 그냥 좀 신경 쓰이는 정도였는데요. 점점 더 심해져요.
+근떡존: 누구랑 뭐 하는지. 어디 갔는지. 누구랑 웃었는지.
+근떡존: 자기 전에 그게 다 떠올라요. 머릿속에서 계속 굴러요.
+나레이션: 창문에 격자가 새로 붙어 있는 게 보였다. 현관은 이중 잠금이다. 책상 위에 핸드폰이 두 대 놓여 있었다.
+근떡존: 핸드폰 위치 공유한 거 알아요?
+근떡존: ...미안해요. 한 달 됐어요.
+근떡존: 처음엔 진짜 한 번만 보려고 했는데, 안 되더라고요.
+근떡존: 형 어디 있는지 모르면, 제가 아무것도 못 해요. 일도, 잠도.
+나레이션: 그의 시선이 천천히 형을 향했다. 후회는 없었다. 두려움도 없었다. 오로지, 결심뿐이었다.
+근떡존: 형. 여기서 좀 쉬어요. 며칠만이라도요.
+근떡존: 아니, 그냥... 안 나가도 돼요.
+근떡존: 제가 다 할게요. 밥도, 옷도, 다요. 형은 그냥 여기 있어주기만 해요.
+근떡존: 사람 만나는 거 다 끊어요. 그거 다 제가 정리할게요.
+근떡존: ...아 이런 말 하면 안 되는 거 알아요.
+근떡존: 근데 저 이미 늦었어요.
+근떡존: 형 한 번 들어왔으니까. 이제 저 못 놓아요.
+근떡존: 못 놓는 게 아니라, 안 놓을 거예요.`,
     choices: [
       { label: "...있을게. 너 옆에.", stat: { affinity: 40, obsession: 100, jealousy: 60, trust: -40 }, end: true },
       { label: "문 열어. 진심이야.", stat: { affinity: -30, obsession: -30, trust: 60, jealousy: 80 }, end: true },
@@ -969,6 +1089,16 @@ const LOCATION_SCENARIOS: Record<string, Scenario> = {
     ],
   },
 };
+
+// 지역 시나리오 lookup — 일부 시나리오는 stats에 따라 본문이 달라짐
+function getLocationScenario(id: string, stats: Stats): Scenario | undefined {
+  const base = LOCATION_SCENARIOS[id];
+  if (!base) return undefined;
+  if (id === "loc_hiroshima_station") {
+    return { ...base, text: getStationTextForStats(stats) };
+  }
+  return base;
+}
 
 function isCheckedInToday(lastCheckIn?: number): boolean {
   if (!lastCheckIn) return false;
@@ -1594,7 +1724,7 @@ export default function Page() {
     setMounted(true);
   }, []);
 
-  const currentScenario = currentScenarioId ? (scenarioData[currentScenarioId] ?? LOCATION_SCENARIOS[currentScenarioId] ?? null) : null;
+  const currentScenario = currentScenarioId ? (scenarioData[currentScenarioId] ?? getLocationScenario(currentScenarioId, stats) ?? null) : null;
   const vnLines = useMemo(() => parseVNLines(currentScenario?.text ?? ""), [currentScenario?.text]);
   const safeVNLineIndex = Math.min(vnLineIndex, Math.max(0, vnLines.length - 1));
   const currentVNLine = vnLines[safeVNLineIndex] ?? { speaker: "나레이션" as VNLine["speaker"], text: "" };
@@ -1988,7 +2118,7 @@ export default function Page() {
     setStoryRoute(route);
   }
   function startScenario(id: string) {
-    const scenario = scenarioData[id] ?? LOCATION_SCENARIOS[id];
+    const scenario = scenarioData[id] ?? getLocationScenario(id, stats);
     if (!scenario) return;
     const image = pick(scenario.imagePool) ?? scenario.image ?? fallbackImage(scenario.kind);
     unlockEvent(id);
