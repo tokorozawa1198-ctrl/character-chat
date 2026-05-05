@@ -1,7 +1,7 @@
 "use client";
 
 export type Role = "user" | "assistant" | "narration";
-export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests" | "shop" | "gacha" | "pets" | "adventure" | "sns" | "raid" | "fortune" | "journal" | "minigames" | "katalk";
+export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests" | "shop" | "gacha" | "pets" | "adventure" | "sns" | "raid" | "fortune" | "journal" | "minigames" | "katalk" | "calendar30" | "codex" | "stats" | "letters" | "quote" | "cards";
 export type ScenarioKind = "normal" | "jealousy" | "obsession" | "confinement" | "yandere";
 export type ScenarioCategory = "main" | "action" | "special" | "after" | "side";
 export type StatKey = "affinity" | "jealousy" | "obsession" | "trust" | "bladderCharm";
@@ -150,6 +150,21 @@ export type SaveData = {
   friendLastSeen?: Record<string, number>;
   friendLastSpawn?: Record<string, number>;
   groupLastSpawn?: number;
+  // 메가/콜렉션 패키지
+  loveMeterPoints?: number;
+  loveMeterDate?: string;
+  loveMeterClaimedToday?: boolean;
+  letterReads?: Record<string, boolean>;
+  unlockedLetters?: string[];
+  quoteOfDayId?: string;
+  quoteOfDayDate?: string;
+  collectedQuotes?: string[];
+  ownedCards?: Record<string, { level: number; obtained: number }>;
+  totalCardPulls?: number;
+  bossDefeats?: { bossId: string; week: string; defeatedAt: number }[];
+  bladderMarathonWeek?: string;
+  bladderMarathonScore?: number;
+  monthlyCalendarClaims?: Record<string, boolean>; // "day_7", "day_14" etc
 };
 export type FriendChatMessage = {
   id: string;

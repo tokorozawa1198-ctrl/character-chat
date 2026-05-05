@@ -577,6 +577,117 @@ const QUESTS: Quest[] = [
 ];
 
 // ================================
+// 명언 풀 (떡존이의 명언 — 매일 뽑기)
+// ================================
+const TTEOKJON_QUOTES: { id: string; emoji: string; text: string }[] = [
+  { id: "q_1",  emoji: "💗",  text: "선생님... 오늘 하루도 잘 보내셨어요? 저는 선생님 생각 좀 했어요." },
+  { id: "q_2",  emoji: "💪",  text: "근육은 거짓말 안 해요. 마음도 거짓말 안 했으면 좋겠어요. 선생님이요." },
+  { id: "q_3",  emoji: "🚽",  text: "참는 것도 사랑이에요. K-방광이 그걸 가르쳐줬어요." },
+  { id: "q_4",  emoji: "🌧",  text: "비 오는 날 선생님이 어디 있는지 자꾸 궁금해져요. 우산 챙기셨어요?" },
+  { id: "q_5",  emoji: "🍱",  text: "도시락 두 개 사면 선생님 거예요. 한 개 사면 제 거예요." },
+  { id: "q_6",  emoji: "🌸",  text: "벚꽃이 떨어지는 거 보면 선생님 머리 위에 얹어두고 싶어져요. 이상하죠." },
+  { id: "q_7",  emoji: "📞",  text: "전화하고 싶은데 너무 늦어서 못 했어요. 그런 마음이 있다는 것만 알아주세요." },
+  { id: "q_8",  emoji: "🦴",  text: "뼈도 단단한데 마음은 더 단단해질 수 있나요. 선생님 위해서요." },
+  { id: "q_9",  emoji: "🌅",  text: "아침에 눈 뜨면 가장 먼저 선생님 카톡 봐요. 답장 없어도 괜찮아요. 그냥 거기 있으면 됐어요." },
+  { id: "q_10", emoji: "🐾",  text: "큰 강아지가 되어도 좋고, 작은 강아지가 되어도 좋아요. 선생님 옆이라면요." },
+  { id: "q_11", emoji: "💧",  text: "오줌 참는 거 잘하는 거 자랑이래요. 저는 그냥 선생님 잘하는 거 보고 싶어요." },
+  { id: "q_12", emoji: "🏠",  text: "선생님 집 앞은 너무 자주 지나가서, 이제 익숙해요. 그러면 안 되는 거 알아요." },
+  { id: "q_13", emoji: "🌙",  text: "잠 안 와요. 선생님은 잘 주무세요? 깨우면 안 되니까 혼자 누워 있어요." },
+  { id: "q_14", emoji: "📸",  text: "셀카 또 찍었어요. 보낼까 말까 100번은 고민했는데 결국 보냈어요. 죄송해요." },
+  { id: "q_15", emoji: "💌",  text: "편지 같은 거 못 써봤는데 선생님 앞에서는 자꾸 쓰고 싶어져요." },
+  { id: "q_16", emoji: "🏋️",  text: "오늘 1RM 갱신했어요. 선생님 보여드리고 싶었는데 너무 티 내는 거 같아서 참았어요." },
+  { id: "q_17", emoji: "🚆",  text: "전철 지나갈 때마다 선생님이 어디 가는지 상상해요. 가지 마세요. 농담이에요. 진심이에요." },
+  { id: "q_18", emoji: "🍵",  text: "차 한 잔 마시는데 선생님이랑 같이 마시고 싶어졌어요. 평범한 거잖아요. 근데 평범한 게 제일 어려워요." },
+  { id: "q_19", emoji: "🪞",  text: "거울 보면서 선생님이 좋아할 만한 모습으로 가려고 노력해요. 거기엔 제가 없어요. 그게 좋은 건지는 모르겠어요." },
+  { id: "q_20", emoji: "🎁",  text: "선생님께 뭐든 드리고 싶어요. 근데 제가 가진 게 너무 없어요. 제 마음만 있어요." },
+  { id: "q_21", emoji: "✨",  text: "선생님이 웃을 때 저도 모르게 따라 웃어요. 거울 보고 연습한 적 없는 자연스러운 웃음이요." },
+  { id: "q_22", emoji: "🌊",  text: "강가 산책하면 선생님 생각이 나요. 저 강가 자주 가야 하나 봐요." },
+  { id: "q_23", emoji: "🎈",  text: "선생님이 제 옆에 있으면 마음이 풍선처럼 가벼워져요. 평소엔 무거운 사람인데요." },
+  { id: "q_24", emoji: "🔒",  text: "혼자만 알고 싶은 마음이 자라면 안 된다는 거 알아요. 알면서도 자꾸 그래요." },
+  { id: "q_25", emoji: "🎵",  text: "노래방 그날 이후로 그 노래 자꾸 들어요. 선생님 목소리가 따라와요." },
+  { id: "q_26", emoji: "🪷",  text: "선생님은 저한테 가장 단단하고 가장 따뜻한 사람이에요. 평생 그런 사람 한 명이면 충분하대요." },
+  { id: "q_27", emoji: "🌟",  text: "오늘 별 본 적 있으세요? 저는 선생님 사진 봤어요. 그게 제 별이에요." },
+  { id: "q_28", emoji: "👶",  text: "선생님 앞에선 자꾸 어린애가 돼요. 그게 부끄러우면서도 안 부끄러워요." },
+  { id: "q_29", emoji: "📔",  text: "오늘도 일기 썼어요. 선생님 얘기만요. 다른 얘긴 쓸 게 없어요." },
+  { id: "q_30", emoji: "💍",  text: "아무 의미 없는 반지가 갖고 싶다는 게 무슨 뜻인지 아세요? 의미를 만들고 싶어서요." },
+];
+
+// ================================
+// 떡존이 편지함 (챕터 클리어 보상)
+// ================================
+const LETTERS: { id: string; chapter: number; route?: StoryRoute; title: string; content: string }[] = [
+  { id: "l_1", chapter: 1, title: "첫 번째 편지", content: "선생님께. 처음 만난 그 밤이 자꾸 떠올라요. 편의점 쿠폰 하나 못 써서 선생님께 도움받은 그 밤이요. 저한테는 평범한 밤이 아니었어요. 누군가 저를 이상하게 보지 않고 받아준 첫 번째 밤이었거든요. 그래서 그 다음 메시지 보낼 때, 손가락이 한참 떨렸어요. 들키고 싶지 않은 마음이요. — 떡존 올림" },
+  { id: "l_2", chapter: 2, title: "전진협의 문 앞에서", content: "선생님께. 전진협 안에 들어가니까 다들 너무 천박해서 좀 놀랐어요 ㅎㅎ 근데 선생님은 거기서도 어떤 사람인지 다 보였어요. 사람이 앞모습만 있는 게 아니라고 하신 그 말, 저한테 오래 남아 있어요. 그 말 덕분에 저도 제 뒷모습을 좀 봐도 되겠구나 했어요. — 떡존 올림" },
+  { id: "l_3", chapter: 3, title: "오뎅집의 따뜻한 김", content: "선생님께. 오뎅집에서 처음 가까이 앉았을 때, 저는 사실 도시락보다 선생님 옆자리가 더 좋았어요. 그날 추웠는데 추운 줄 몰랐어요. 선생님 옆이 따뜻해서요. 김이 올라오는 그 작은 가게에서 처음으로 — 평생 이런 자리가 있으면 좋겠다 — 라고 생각했어요. — 떡존 올림" },
+  { id: "l_4", chapter: 4, title: "취해도 진심이었어요", content: "선생님께. 4장 그 밤은 술 핑계 댔지만 사실은 술이 아니었어요. 선생님께 기대고 싶은 마음이 너무 컸어요. 핑계가 있어야 그렇게 할 수 있는 사람인 거예요 저는. 부끄럽지만 그 술이 고마워요. 그리고 절 받아주신 선생님이 더 고마워요. — 떡존 올림" },
+  { id: "l_5", chapter: 5, title: "맨정신이라는 핑계 없이", content: "선생님께. 손 잡고 싶다는 말 하기까지 며칠 동안 — 진짜로 며칠 동안 — 머릿속에서 굴려봤어요. 너무 빠른가, 부담스러우신가, 핑계 없이 어떻게 말하지... 결국 그냥 솔직하게 말했어요. 선생님이 받아주실 거라는 어렴풋한 믿음이 있었어요. 그 믿음이 맞아서 다행이에요. — 떡존 올림" },
+  { id: "l_6", chapter: 6, route: "pure", title: "처음 잡은 손", content: "선생님께. 그 손은 평생 안 잊을 거예요. 강가에서, 맨정신으로, 처음으로 잡은 손이요. 저한테는 손이 닿은 게 아니라 마음이 닿은 거였어요. 너무 거창한 말 같지만 사실이에요. 죄송해요 거창해서. — 떡존 올림" },
+  { id: "l_7", chapter: 6, route: "obsession", title: "허락받은 마음", content: "선생님께. 그 밤 선생님이 제 못난 마음을 싫어하지 않는다고 하신 거. 저한테는 평생 갈 말이에요. 알아주시는 분이 한 명이라도 있으면, 그걸 평생 붙잡고 살 수 있어요. 좋아요 평생 가져요. — 떡존 올림" },
+  { id: "l_8", chapter: 7, route: "pure", title: "믿어보는 연습", content: "선생님께. 믿는 거 처음 해봐요. 자제하는 것보다 더 어려워요. 근데 선생님이 가르쳐주시는 거니까 잘 해볼게요. 가끔 칭찬도 부탁드려요. 그게 제일 잘 통해요 저한테는. — 떡존 올림" },
+  { id: "l_9", chapter: 8, route: "pure", title: "처음 부른 이름", content: "선생님께. 골목에서 좋아한다고 처음 입 밖에 낸 그 밤. 후회할 줄 알았는데 안 됐어요. 선생님 안에 들어간 게 너무 깊어서요. 평생 거기 있어도 돼요? 라고 묻고 싶지만 너무 빠르니까 마음속에만 적어둘게요. — 떡존 올림" },
+  { id: "l_10", chapter: 10, route: "pure", title: "형이라는 단어", content: "형. 처음 그 단어 입에 올린 게 어색했는데 이제는 다른 호칭이 다 어색해요. 형이 갖는 호칭들 중에 저만 부를 수 있는 게 형, 이라는 사실이 좋아요. 너무 좋아요. 무서울 정도로요. — 떡존 올림" },
+  { id: "l_11", chapter: 12, route: "pure", title: "평생 살아야 하는데", content: "형. 첫 키스 그 순간 — 평생 한 번 있는 일이라는 거 알아요. 근데 저는 그게 시작이라고 생각해요. 평생 형이랑 살아야 하니까, 지금부터 연습하는 거예요. 죄송해요 너무 빠른 말 한 거. 진심이라 거두지는 못해요. — 떡존 올림" },
+];
+
+// ================================
+// 트레이딩 카드 (30종)
+// ================================
+type CardRarity = "R" | "SR" | "SSR";
+type TradingCard = {
+  id: string;
+  rarity: CardRarity;
+  emoji: string;
+  name: string;
+  flavor: string;
+  set?: string;
+};
+const TRADING_CARDS: TradingCard[] = [
+  // R (Rare 60%) — 일상
+  { id: "c_r1",  rarity: "R", emoji: "🍱", name: "도시락",       flavor: "편의점 도시락 들고 있는 떡존이",       set: "daily" },
+  { id: "c_r2",  rarity: "R", emoji: "☕", name: "커피 마시는 중", flavor: "아메리카노 한 모금",                   set: "daily" },
+  { id: "c_r3",  rarity: "R", emoji: "💪", name: "운동 후",       flavor: "땀나는 떡존이",                         set: "daily" },
+  { id: "c_r4",  rarity: "R", emoji: "📱", name: "카톡 답장 중",   flavor: "심각한 얼굴로 답장 고심",              set: "daily" },
+  { id: "c_r5",  rarity: "R", emoji: "🚆", name: "전철 안",       flavor: "창밖 보는 떡존이",                     set: "daily" },
+  { id: "c_r6",  rarity: "R", emoji: "🌧", name: "비 맞는 떡존이", flavor: "우산 안 가져옴",                       set: "weather" },
+  { id: "c_r7",  rarity: "R", emoji: "☀️", name: "햇빛 떡존이",    flavor: "눈 부심",                              set: "weather" },
+  { id: "c_r8",  rarity: "R", emoji: "🌸", name: "벚꽃 머리 위",   flavor: "꽃잎 한 장 얹은 떡존이",               set: "weather" },
+  { id: "c_r9",  rarity: "R", emoji: "🍜", name: "라멘 먹는 중",   flavor: "후루룩",                               set: "food" },
+  { id: "c_r10", rarity: "R", emoji: "🍦", name: "아이스크림",    flavor: "어린애처럼 먹음",                      set: "food" },
+  // SR (Super Rare 30%)
+  { id: "c_sr1", rarity: "SR", emoji: "💗", name: "헤헤 떡존이",  flavor: "처음 헤헤 한 그 표정",                set: "moments" },
+  { id: "c_sr2", rarity: "SR", emoji: "🤝", name: "손잡기",       flavor: "강가에서 처음 잡은 손",                set: "moments" },
+  { id: "c_sr3", rarity: "SR", emoji: "👀", name: "도촬당함",     flavor: "쮋이 찍은 사진",                       set: "moments" },
+  { id: "c_sr4", rarity: "SR", emoji: "🎤", name: "노래방의 그것", flavor: "그 발라드를 부르던 때",                set: "moments" },
+  { id: "c_sr5", rarity: "SR", emoji: "🌌", name: "전망대 야경",   flavor: "도시 내려다보는 떡존이",               set: "moments" },
+  { id: "c_sr6", rarity: "SR", emoji: "📔", name: "일기 쓰는 중", flavor: "선생님 얘기만 적힌 일기",              set: "moments" },
+  { id: "c_sr7", rarity: "SR", emoji: "🚽", name: "K-방광 인증",  flavor: "12시간 인증샷",                        set: "bladder" },
+  { id: "c_sr8", rarity: "SR", emoji: "🧚", name: "방광 요정과",  flavor: "쉬와 함께",                             set: "bladder" },
+  { id: "c_sr9", rarity: "SR", emoji: "📦", name: "선물 들고",    flavor: "받은 것보다 큰 선물",                   set: "gifts" },
+  // SSR (10%) — 한정
+  { id: "c_ssr1", rarity: "SSR", emoji: "💍", name: "반지 끼는 떡존이",  flavor: "아무 의미 없는 반지...라고 했지만", set: "secret" },
+  { id: "c_ssr2", rarity: "SSR", emoji: "🌊", name: "태평양방광",       flavor: "K-방광 진화체",                     set: "secret" },
+  { id: "c_ssr3", rarity: "SSR", emoji: "👑", name: "요도니아 옥좌",     flavor: "황금 변기 위에 앉은 떡존이",       set: "secret" },
+  { id: "c_ssr4", rarity: "SSR", emoji: "🦴", name: "전설의 떡존",       flavor: "히로시마의 전설 그 자체",          set: "secret" },
+  { id: "c_ssr5", rarity: "SSR", emoji: "🌹", name: "고백하는 떡존이",   flavor: "골목에서 그 한 마디를 한 순간",    set: "secret" },
+  { id: "c_ssr6", rarity: "SSR", emoji: "🔥", name: "흑화한 떡존이",     flavor: "집착 루트의 그 표정",              set: "secret" },
+  { id: "c_ssr7", rarity: "SSR", emoji: "💎", name: "다이아 떡존",       flavor: "왜 이게 다이아냐고 묻지마셈",      set: "secret" },
+  { id: "c_ssr8", rarity: "SSR", emoji: "🚀", name: "우주 원정 떡존",    flavor: "나사 로고 박힌 슈트 입은 떡존이",  set: "secret" },
+  { id: "c_ssr9", rarity: "SSR", emoji: "❤️‍🔥", name: "심장 자체",     flavor: "그 자체로 SSR",                     set: "secret" },
+  { id: "c_ssr10", rarity: "SSR", emoji: "🌟", name: "전 세계 영웅",    flavor: "K-방광으로 세상을 구한 떡존이",    set: "secret" },
+];
+
+// ================================
+// 30일 출석 마일스톤
+// ================================
+type CalendarMilestone = { day: number; emoji: string; title: string; coins: number; tickets?: number; affinity?: number };
+const CALENDAR_MILESTONES: CalendarMilestone[] = [
+  { day: 7,  emoji: "🎁", title: "1주차 보상", coins: 300,  tickets: 2, affinity: 30 },
+  { day: 14, emoji: "🎉", title: "2주차 보상", coins: 800,  tickets: 5, affinity: 100 },
+  { day: 21, emoji: "👑", title: "3주차 보상", coins: 1500, tickets: 8, affinity: 200 },
+  { day: 30, emoji: "🌟", title: "한 달 마라톤", coins: 5000, tickets: 20, affinity: 500 },
+];
+
+// ================================
 // 전진협 친구 시스템
 // ================================
 type FriendId = "jjyut" | "eucalyptus" | "ostrich" | "geumsu" | "aroben";
@@ -2973,6 +3084,22 @@ export default function Page() {
   const [friendLastSpawn, setFriendLastSpawn] = useState<Record<string, number>>({});
   const [groupLastSpawn, setGroupLastSpawn] = useState<number>(0);
   const [katalkOpenChat, setKatalkOpenChat] = useState<string | null>(null);
+  // 메가 / 콜렉션 패키지
+  const [loveMeterPoints, setLoveMeterPoints] = useState<number>(0);
+  const [loveMeterDate, setLoveMeterDate] = useState<string>("");
+  const [loveMeterClaimedToday, setLoveMeterClaimedToday] = useState<boolean>(false);
+  const [letterReads, setLetterReads] = useState<Record<string, boolean>>({});
+  const [unlockedLetters, setUnlockedLetters] = useState<string[]>([]);
+  const [quoteOfDayId, setQuoteOfDayId] = useState<string>("");
+  const [quoteOfDayDate, setQuoteOfDayDate] = useState<string>("");
+  const [collectedQuotes, setCollectedQuotes] = useState<string[]>([]);
+  const [ownedCards, setOwnedCards] = useState<Record<string, { level: number; obtained: number }>>({});
+  const [totalCardPulls, setTotalCardPulls] = useState<number>(0);
+  const [bossDefeats, setBossDefeats] = useState<{ bossId: string; week: string; defeatedAt: number }[]>([]);
+  const [bladderMarathonWeek, setBladderMarathonWeek] = useState<string>(weekKey());
+  const [bladderMarathonScore, setBladderMarathonScore] = useState<number>(0);
+  const [monthlyCalendarClaims, setMonthlyCalendarClaims] = useState<Record<string, boolean>>({});
+  const [cardPullResult, setCardPullResult] = useState<TradingCard | null>(null);
   const [slotTick, setSlotTick] = useState(0); // 슬롯 변경 시 리렌더 트리거
   const [seenEvents, setSeenEvents] = useState<Record<string, boolean>>({});
   const [storyRoute, setStoryRoute] = useState<StoryRoute>("common");
@@ -3080,6 +3207,12 @@ export default function Page() {
     { label: "📔 다이어리", target: "journal" },
     { label: "🎮 미니게임", target: "minigames" },
     { label: "💬 카톡", target: "katalk" },
+    { label: "📅 캘린더", target: "calendar30" },
+    { label: "📜 도감", target: "codex" },
+    { label: "📇 명함", target: "stats" },
+    { label: "💌 편지", target: "letters" },
+    { label: "💭 명언", target: "quote" },
+    { label: "🃏 카드", target: "cards" },
     { label: "갤러리", target: "gallery" },
     { label: "전진협", target: "events" },
     { label: "상태", target: "profile" },
@@ -3159,6 +3292,20 @@ export default function Page() {
         setFriendLastSeen(saved.friendLastSeen ?? {});
         setFriendLastSpawn(saved.friendLastSpawn ?? {});
         setGroupLastSpawn(saved.groupLastSpawn ?? 0);
+        setLoveMeterPoints(saved.loveMeterPoints ?? 0);
+        setLoveMeterDate(saved.loveMeterDate ?? "");
+        setLoveMeterClaimedToday(saved.loveMeterClaimedToday ?? false);
+        setLetterReads(saved.letterReads ?? {});
+        setUnlockedLetters(saved.unlockedLetters ?? []);
+        setQuoteOfDayId(saved.quoteOfDayId ?? "");
+        setQuoteOfDayDate(saved.quoteOfDayDate ?? "");
+        setCollectedQuotes(saved.collectedQuotes ?? []);
+        setOwnedCards(saved.ownedCards ?? {});
+        setTotalCardPulls(saved.totalCardPulls ?? 0);
+        setBossDefeats(saved.bossDefeats ?? []);
+        setBladderMarathonWeek(saved.bladderMarathonWeek ?? weekKey());
+        setBladderMarathonScore(saved.bladderMarathonScore ?? 0);
+        setMonthlyCalendarClaims(saved.monthlyCalendarClaims ?? {});
         setSeenEvents(saved.seenEvents ?? {});
         setStoryRoute(saved.storyRoute ?? "common");
         setMemoryNotes(saved.memoryNotes ?? []);
@@ -3250,10 +3397,24 @@ export default function Page() {
       friendLastSeen,
       friendLastSpawn,
       groupLastSpawn,
+      loveMeterPoints,
+      loveMeterDate,
+      loveMeterClaimedToday,
+      letterReads,
+      unlockedLetters,
+      quoteOfDayId,
+      quoteOfDayDate,
+      collectedQuotes,
+      ownedCards,
+      totalCardPulls,
+      bossDefeats,
+      bladderMarathonWeek,
+      bladderMarathonScore,
+      monthlyCalendarClaims,
     };
     save.messages = sanitizeMessages(save.messages);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
-  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory, userLevel, userExp, lastFreeGacha, gachaTickets, comboCount, lastComboTime, comboMilestonesReached, ownedPets, activePet, totalGachaPulls, activeAdventure, adventureHistory, snsLikes, lastSnsRefresh, snsFeed, raidWeek, raidBossId, raidHp, raidCleared, raidDamageDealt, lastFortuneDate, todayFortuneId, fortuneRerollsToday, journalEntries, lastJournalDate, minigameClickerHigh, minigameWordHigh, friendChats, groupChat, friendLastSeen, friendLastSpawn, groupLastSpawn]);
+  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory, userLevel, userExp, lastFreeGacha, gachaTickets, comboCount, lastComboTime, comboMilestonesReached, ownedPets, activePet, totalGachaPulls, activeAdventure, adventureHistory, snsLikes, lastSnsRefresh, snsFeed, raidWeek, raidBossId, raidHp, raidCleared, raidDamageDealt, lastFortuneDate, todayFortuneId, fortuneRerollsToday, journalEntries, lastJournalDate, minigameClickerHigh, minigameWordHigh, friendChats, groupChat, friendLastSeen, friendLastSpawn, groupLastSpawn, loveMeterPoints, loveMeterDate, loveMeterClaimedToday, letterReads, unlockedLetters, quoteOfDayId, quoteOfDayDate, collectedQuotes, ownedCards, totalCardPulls, bossDefeats, bladderMarathonWeek, bladderMarathonScore, monthlyCalendarClaims]);
 
   // ─ 방광 채우기 타이머 ─
   useEffect(() => {
@@ -3550,6 +3711,7 @@ export default function Page() {
     setDailyState((prev) => ({ ...prev, scenarioCount: prev.scenarioCount + 1 }));
     gainExp(25);
     dealRaidDamage(150);
+    addLovePoints(20);
     showChapterTransition(chapterStartTransition(id, scenario));
   }
   function ensureActionScenario(item: ActionItem) {
@@ -3603,6 +3765,7 @@ export default function Page() {
     setDailyState((prev) => ({ ...prev, checkinDone: true }));
     setCoins((c) => c + 5);
     gainExp(20 + Math.min(50, newStreak * 3));
+    addLovePoints(15);
     showStatDelta(reward.stat);
 
     if (checkInRewardTimer.current) window.clearTimeout(checkInRewardTimer.current);
@@ -3626,6 +3789,7 @@ export default function Page() {
     setDailyState((prev) => ({ ...prev, giftCount: prev.giftCount + 1 }));
     gainExp(15);
     dealRaidDamage(80);
+    addLovePoints(10);
 
     const isObs = storyRoute === "obsession" || nextStats.obsession >= 700;
     const reactionText = (isObs && gift.reactionObs) ? gift.reactionObs : gift.reaction;
@@ -3715,6 +3879,131 @@ export default function Page() {
       }
     }
   }, [visibleQuests, completedQuests, questState]);
+  // ─ 러브 미터: 매일 자동 리셋 ─
+  useEffect(() => {
+    const today = todayKey();
+    if (loveMeterDate !== today) {
+      setLoveMeterPoints(0);
+      setLoveMeterDate(today);
+      setLoveMeterClaimedToday(false);
+    }
+  }, [view]);
+  function addLovePoints(n: number) {
+    setLoveMeterPoints((p) => Math.min(100, p + n));
+  }
+  function claimLoveMeterReward() {
+    if (loveMeterClaimedToday || loveMeterPoints < 100) return;
+    setLoveMeterClaimedToday(true);
+    setCoins((c) => c + 200);
+    setStats((s) => ({ ...s, affinity: clamp(s.affinity + 30) }));
+    gainExp(100);
+    setShopToast({ name: "💗 오늘의 케미 100% 달성", detail: "코인+200, 호감+30, EXP+100" });
+    window.setTimeout(() => setShopToast(null), 3500);
+  }
+
+  // ─ 명언: 매일 자동 갱신 ─
+  useEffect(() => {
+    const today = todayKey();
+    if (quoteOfDayDate !== today) {
+      const q = TTEOKJON_QUOTES[Math.floor(Math.random() * TTEOKJON_QUOTES.length)];
+      setQuoteOfDayId(q.id);
+      setQuoteOfDayDate(today);
+    }
+  }, [view]);
+  function collectTodayQuote() {
+    if (collectedQuotes.includes(quoteOfDayId)) return;
+    setCollectedQuotes((prev) => [...prev, quoteOfDayId]);
+    setCoins((c) => c + 50);
+    setStats((s) => ({ ...s, affinity: clamp(s.affinity + 5) }));
+  }
+
+  // ─ 편지: 챕터 클리어 시 해금 (seenEvents 기반) ─
+  useEffect(() => {
+    const newLetters: string[] = [];
+    for (const letter of LETTERS) {
+      if (unlockedLetters.includes(letter.id)) continue;
+      // chapter 1-12 — 해당 chapter 마지막 시나리오 진입 시
+      const chapterPrefix = `main_ch${letter.chapter}`;
+      const routeChapterPrefix = letter.route ? `${letter.route === "pure" ? "pure" : "obsession"}_ch${letter.chapter}` : null;
+      const routeMatch = letter.route ? routeChapterPrefix && Object.keys(seenEvents).some((k) => k.startsWith(routeChapterPrefix)) : true;
+      const chapterMatch = Object.keys(seenEvents).some((k) => k.startsWith(chapterPrefix)) || (routeChapterPrefix && Object.keys(seenEvents).some((k) => k.startsWith(routeChapterPrefix)));
+      if (chapterMatch && routeMatch) {
+        newLetters.push(letter.id);
+      }
+    }
+    if (newLetters.length) {
+      setUnlockedLetters((prev) => [...prev, ...newLetters]);
+    }
+  }, [seenEvents, storyRoute]);
+
+  // ─ 카드 가챠 ─
+  function pullCardGacha(mode: "ticket" | "single") {
+    const cost = mode === "single" ? 200 : 0;
+    if (mode === "ticket") {
+      if (gachaTickets <= 0) return;
+      setGachaTickets((t) => t - 1);
+    } else {
+      if (coins < cost) return;
+      setCoins((c) => c - cost);
+    }
+    // 등급 결정: SSR 10 / SR 30 / R 60
+    const r = Math.random();
+    const rarity: CardRarity = r < 0.1 ? "SSR" : r < 0.4 ? "SR" : "R";
+    const pool = TRADING_CARDS.filter((c) => c.rarity === rarity);
+    const card = pool[Math.floor(Math.random() * pool.length)];
+    setOwnedCards((prev) => {
+      const cur = prev[card.id];
+      if (cur) {
+        // 같은 카드 = 강화 (Lv +1, max 5)
+        return { ...prev, [card.id]: { ...cur, level: Math.min(5, cur.level + 1) } };
+      }
+      return { ...prev, [card.id]: { level: 1, obtained: Date.now() } };
+    });
+    setTotalCardPulls((n) => n + 1);
+    setCardPullResult(card);
+  }
+
+  // ─ 보스 격파 시 도감에 추가 ─
+  useEffect(() => {
+    if (raidCleared) {
+      const exists = bossDefeats.some((d) => d.bossId === raidBossId && d.week === raidWeek);
+      if (!exists && raidBossId) {
+        setBossDefeats((prev) => [...prev, { bossId: raidBossId, week: raidWeek, defeatedAt: Date.now() }]);
+      }
+    }
+  }, [raidCleared]);
+
+  // ─ 방광 마라톤 (주간) ─
+  useEffect(() => {
+    const cur = weekKey();
+    if (cur !== bladderMarathonWeek) {
+      setBladderMarathonWeek(cur);
+      setBladderMarathonScore(0);
+    }
+  }, [view]);
+  // 방광 게이지 70% 이상에서 머무는 시간 추적: 단순화 — bladderLevel useEffect에서 누적
+  useEffect(() => {
+    if (bladderLevel >= 70) {
+      setBladderMarathonScore((s) => Math.min(10000, s + 1));
+    }
+  }, [bladderLevel]);
+
+  // ─ 30일 캘린더 보상 ─
+  function claimCalendarReward(day: number) {
+    const key = `day_${day}`;
+    if (monthlyCalendarClaims[key]) return;
+    if (checkInStreak < day) return;
+    const ms = CALENDAR_MILESTONES.find((m) => m.day === day);
+    if (!ms) return;
+    setMonthlyCalendarClaims((prev) => ({ ...prev, [key]: true }));
+    setCoins((c) => c + ms.coins);
+    if (ms.tickets) setGachaTickets((t) => t + ms.tickets!);
+    if (ms.affinity) setStats((s) => ({ ...s, affinity: clamp(s.affinity + ms.affinity!) }));
+    gainExp(day * 20);
+    setShopToast({ name: ms.title + " 수령!", detail: `🪙+${ms.coins} 🎫+${ms.tickets ?? 0} 호감+${ms.affinity ?? 0}` });
+    window.setTimeout(() => setShopToast(null), 3500);
+  }
+
   // ─ 친구 카톡 자동 메시지 ─
   function spawnFriendMessage(friendId: FriendId): boolean {
     const tod = getTimeOfDay(new Date());
@@ -4506,6 +4795,7 @@ export default function Page() {
     gainExp(5);
     pumpCombo();
     dealRaidDamage(10);
+    addLovePoints(5);
     // 활성 펫 친밀도 +1 (채팅마다, 레벨 perk 보너스 적용)
     if (activePet && ownedPets[activePet]) {
       const gain = Math.round(1 * (1 + perkBonus.petAffinityBonus));
@@ -4717,6 +5007,20 @@ export default function Page() {
     setFriendLastSeen({});
     setFriendLastSpawn({});
     setGroupLastSpawn(0);
+    setLoveMeterPoints(0);
+    setLoveMeterDate("");
+    setLoveMeterClaimedToday(false);
+    setLetterReads({});
+    setUnlockedLetters([]);
+    setQuoteOfDayId("");
+    setQuoteOfDayDate("");
+    setCollectedQuotes([]);
+    setOwnedCards({});
+    setTotalCardPulls(0);
+    setBossDefeats([]);
+    setBladderMarathonWeek(weekKey());
+    setBladderMarathonScore(0);
+    setMonthlyCalendarClaims({});
     setSeenEvents({});
     setStoryRoute("common");
     setMemoryNotes([]);
@@ -4804,6 +5108,17 @@ export default function Page() {
           </div>
           <small className="userLvExp">{userExp} / {expToNextLevel(userLevel)} EXP · <a className="userLvRewardLink" onClick={()=>setShowLevelRewards(true)}>보상 보기 ▸</a></small>
         </div>
+        <div className="loveMeter">
+          <div className="loveMeterHead">
+            <span>💗 오늘의 케미</span>
+            <strong>{loveMeterPoints}/100</strong>
+          </div>
+          <div className="loveMeterBar"><div style={{ width: `${loveMeterPoints}%` }}/></div>
+          {loveMeterPoints >= 100 && !loveMeterClaimedToday && (
+            <button className="loveMeterClaimBtn" onClick={claimLoveMeterReward}>🎁 100% 달성! 보상 받기</button>
+          )}
+          {loveMeterClaimedToday && <small className="loveMeterDone">✅ 오늘 보상 완료. 내일 또!</small>}
+        </div>
         {activePetObj && activePetData && (() => {
           const lvl = petLevel(activePetData.affinity);
           const isEvolved = lvl >= 5;
@@ -4827,7 +5142,7 @@ export default function Page() {
             </div>
           );
         })()}
-        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["gacha","🎰 뽑기"],["pets","🐹 펫"],["adventure","🌍 모험"],["sns","📱 SNS"],["raid","⚔️ 레이드"],["fortune","🔮 신탁"],["journal","📔 다이어리"],["minigames","🎮 미니게임"],["katalk","💬 카톡"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=>{
+        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["gacha","🎰 뽑기"],["pets","🐹 펫"],["adventure","🌍 모험"],["sns","📱 SNS"],["raid","⚔️ 레이드"],["fortune","🔮 신탁"],["journal","📔 다이어리"],["minigames","🎮 미니게임"],["katalk","💬 카톡"],["calendar30","📅 캘린더"],["codex","📜 도감"],["stats","📇 명함"],["letters","💌 편지"],["quote","💭 명언"],["cards","🃏 카드"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=>{
           const dailyClaimable = key === "quests" ? dailyState.missions.filter((m) => {
             if (m.claimed) return false;
             const t = DAILY_MISSION_TEMPLATES.find((x) => x.id === m.templateId);
@@ -4846,7 +5161,10 @@ export default function Page() {
             || (key === "adventure" && !!advReady)
             || (key === "sns" && snsRefreshDue)
             || (key === "raid" && raidActive)
-            || (key === "katalk" && unreadKatalk > 0);
+            || (key === "katalk" && unreadKatalk > 0)
+            || (key === "calendar30" && CALENDAR_MILESTONES.some((m) => checkInStreak >= m.day && !monthlyCalendarClaims[`day_${m.day}`]))
+            || (key === "letters" && unlockedLetters.some((l) => !letterReads[l]))
+            || (key === "quote" && quoteOfDayId !== "" && !collectedQuotes.includes(quoteOfDayId));
           return <button key={key} className={`${view===key ? "active" : ""}${showDot ? " navDot" : ""}${key==="admin" ? " adminNavBtn" : ""}`} onClick={()=>setView(key as AppView)}>{label}{key==="quests" && totalClaimable > 0 && <span className="navBadge">{totalClaimable}</span>}{key==="katalk" && unreadKatalk > 0 && <span className="navBadge">{unreadKatalk}</span>}</button>;
         })}</nav>
       </aside>
@@ -5063,6 +5381,252 @@ export default function Page() {
             </div>
           </Panel>
         )}
+        {view === "calendar30" && (() => {
+          const days = Array.from({ length: 30 }, (_, i) => i + 1);
+          return (
+            <Panel title="30일 출석 캘린더 📅">
+              <p className="cal30Intro">연속 출석할수록 보상이 커져요. 7/14/21/30일에 마일스톤 보상.</p>
+              <div className="cal30Grid">
+                {days.map((d) => {
+                  const reached = checkInStreak >= d;
+                  const milestone = CALENDAR_MILESTONES.find((m) => m.day === d);
+                  return (
+                    <div key={d} className={`cal30Cell${reached ? " cal30Reached" : ""}${milestone ? " cal30Milestone" : ""}`}>
+                      <span className="cal30Day">{d}</span>
+                      {milestone && <span className="cal30Emoji">{milestone.emoji}</span>}
+                      {reached && !milestone && <span className="cal30Check">✓</span>}
+                    </div>
+                  );
+                })}
+              </div>
+              <h3 className="cal30Section">🎁 마일스톤 보상</h3>
+              <div className="cal30Rewards">
+                {CALENDAR_MILESTONES.map((m) => {
+                  const claimed = monthlyCalendarClaims[`day_${m.day}`];
+                  const claimable = checkInStreak >= m.day && !claimed;
+                  return (
+                    <div key={m.day} className={`cal30Reward${claimed ? " cal30RewardClaimed" : claimable ? " cal30RewardReady" : ""}`}>
+                      <div className="cal30RewardEmoji">{m.emoji}</div>
+                      <b>{m.title}</b>
+                      <small>🪙 {m.coins} · 🎫 {m.tickets ?? 0} · 호감 +{m.affinity ?? 0}</small>
+                      <button disabled={!claimable} onClick={() => claimCalendarReward(m.day)}>
+                        {claimed ? "완료" : claimable ? "받기" : `${m.day}일까지 ${m.day - checkInStreak}일 남음`}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+              <small style={{display:"block",marginTop:14,color:"#9a7c65",textAlign:"center"}}>현재 연속 출석: <b>{checkInStreak}일</b></small>
+            </Panel>
+          );
+        })()}
+        {view === "codex" && (() => {
+          const cgUnlocked = Object.keys(unlockedCGs).length;
+          const cgTotal = (Object.values(imagePools) as string[][]).flat().length + Object.values(actionCGPools).flat().length;
+          const outfitUnlocked = getUnlockedOutfits(Object.fromEntries(Object.entries(seenEvents).filter(([,v])=>v)), storyRoute, stats.obsession, stats.bladderCharm).length;
+          const outfitTotal = OUTFITS.length;
+          const petUnlocked = Object.keys(ownedPets).length;
+          const petTotal = PETS.length;
+          const scenarioUnlocked = Object.keys(seenEvents).length;
+          const scenarioTotal = Object.keys(scenarioData).length;
+          const endingUnlocked = Object.keys(unlockedEndings).length;
+          const endingTotal = 5;
+          const cardUnlocked = Object.keys(ownedCards).length;
+          const cardTotal = TRADING_CARDS.length;
+          const letterUnlocked = unlockedLetters.length;
+          const letterTotal = LETTERS.length;
+          const quoteCollected = collectedQuotes.length;
+          const quoteTotal = TTEOKJON_QUOTES.length;
+          const sections = [
+            { name: "CG 갤러리", emoji: "🎴", cur: cgUnlocked, total: cgTotal },
+            { name: "의상", emoji: "👔", cur: outfitUnlocked, total: outfitTotal },
+            { name: "펫", emoji: "🐹", cur: petUnlocked, total: petTotal },
+            { name: "시나리오", emoji: "📖", cur: scenarioUnlocked, total: scenarioTotal },
+            { name: "엔딩", emoji: "🎬", cur: endingUnlocked, total: endingTotal },
+            { name: "트레이딩 카드", emoji: "🃏", cur: cardUnlocked, total: cardTotal },
+            { name: "편지", emoji: "💌", cur: letterUnlocked, total: letterTotal },
+            { name: "명언", emoji: "💭", cur: quoteCollected, total: quoteTotal },
+          ];
+          const totalCur = sections.reduce((a, s) => a + s.cur, 0);
+          const totalAll = sections.reduce((a, s) => a + s.total, 0);
+          const masterPct = totalAll > 0 ? (totalCur / totalAll) * 100 : 0;
+          return (
+            <Panel title="통합 도감 📜">
+              <div className="codexMaster">
+                <div className="codexMasterTitle">전체 마스터</div>
+                <div className="codexMasterPct">{masterPct.toFixed(1)}%</div>
+                <div className="codexMasterBar"><div style={{ width: `${masterPct}%` }}/></div>
+                <small>{totalCur} / {totalAll}</small>
+              </div>
+              <div className="codexGrid">
+                {sections.map((s) => {
+                  const pct = s.total > 0 ? (s.cur / s.total) * 100 : 0;
+                  return (
+                    <div key={s.name} className="codexCard">
+                      <div className="codexCardEmoji">{s.emoji}</div>
+                      <b>{s.name}</b>
+                      <div className="codexCardBar"><div style={{ width: `${pct}%` }}/></div>
+                      <small>{s.cur} / {s.total} · {pct.toFixed(0)}%</small>
+                    </div>
+                  );
+                })}
+              </div>
+              {masterPct >= 100 && (
+                <div className="codexMasterReward">
+                  🌟 마스터 달성! 전설의 칭호 획득.
+                </div>
+              )}
+            </Panel>
+          );
+        })()}
+        {view === "stats" && (() => {
+          const chatN = dailyState.chatCount;
+          const totalChat = Math.max(0, dailyState.chatCount * 1) + Object.keys(seenEvents).length * 5; // 추정
+          // 병맛 통계 계산
+          const peeMinutes = stats.bladderCharm * 7 + 60;
+          const workouts = Math.floor(stats.affinity / 10);
+          const selfies = Math.floor(stats.affinity * 0.8 + Object.keys(seenEvents).length * 5);
+          const thoughts = stats.affinity * 50 + stats.obsession * 80;
+          const stalks = stats.obsession * 12;
+          return (
+            <Panel title="명함 / 통계 📇">
+              <div className="profileCard">
+                <div className="profileCardHead">
+                  <div className="profileCardAvatar"><img src={getHomeCharacterImage(stats, storyRoute)} alt="떡존이" onError={(e)=>{e.currentTarget.src=`/sd_geunddeok_idle.png?v=${SD_IMAGE_VERSION}`}}/></div>
+                  <div>
+                    <h3>선생님 / 형 / 주인님</h3>
+                    <p>Lv.{userLevel} {getLevelTitle(userLevel)} · {routeLabel}</p>
+                  </div>
+                </div>
+                <div className="profileCardStats">
+                  <div><b>🪙 코인</b><span>{coins.toLocaleString()}</span></div>
+                  <div><b>💗 호감</b><span>{stats.affinity}</span></div>
+                  <div><b>🎬 엔딩</b><span>{Object.keys(unlockedEndings).length} / 5</span></div>
+                  <div><b>🎴 CG</b><span>{Object.keys(unlockedCGs).length}</span></div>
+                  <div><b>📅 출석</b><span>{checkInStreak}일 연속</span></div>
+                  <div><b>🎫 티켓</b><span>{gachaTickets}</span></div>
+                </div>
+                <small className="profileCardFooter">📅 {todayKey()} · 떡존이 인기 통계</small>
+              </div>
+              <h3 className="statsSection">📊 떡존이 본인 통계 (병맛 주의)</h3>
+              <div className="tteokjonStats">
+                <div className="ttsRow"><span>🚽 평균 오줌 참은 시간</span><b>{Math.floor(peeMinutes / 60)}시간 {peeMinutes % 60}분</b></div>
+                <div className="ttsRow"><span>🏋️ 헬스장 다녀온 횟수</span><b>{workouts}회</b></div>
+                <div className="ttsRow"><span>📸 셀카 찍은 횟수</span><b>{selfies}장</b></div>
+                <div className="ttsRow"><span>💭 너 생각한 횟수</span><b>{thoughts.toLocaleString()}번</b></div>
+                <div className="ttsRow"><span>👀 SNS 염탐 횟수</span><b>{stalks}회</b></div>
+                <div className="ttsRow"><span>🎰 가챠 굴린 횟수</span><b>{totalGachaPulls}회</b></div>
+                <div className="ttsRow"><span>⚔️ 격파한 보스</span><b>{bossDefeats.length}마리</b></div>
+                <div className="ttsRow"><span>🃏 수집한 카드</span><b>{Object.keys(ownedCards).length} / {TRADING_CARDS.length}</b></div>
+              </div>
+              <p className="statsHint">스크린샷 찍어서 자랑하세요 ㅋ</p>
+            </Panel>
+          );
+        })()}
+        {view === "letters" && (
+          <Panel title="떡존이 편지함 💌">
+            <p className="lettersIntro">챕터 클리어할 때마다 떡존이가 편지를 한 통씩 보내요.</p>
+            <div className="lettersList">
+              {LETTERS.map((letter) => {
+                const unlocked = unlockedLetters.includes(letter.id);
+                const read = letterReads[letter.id];
+                return (
+                  <div key={letter.id} className={`letterCard${unlocked ? "" : " letterLocked"}${unlocked && !read ? " letterUnread" : ""}`}>
+                    {unlocked ? (
+                      <>
+                        <div className="letterHead">
+                          <span className="letterChip">Ch.{letter.chapter}{letter.route ? ` · ${letter.route === "pure" ? "순애" : "집착"}` : ""}</span>
+                          <b>{letter.title}</b>
+                          {!read && <span className="letterNew">NEW</span>}
+                        </div>
+                        <p className="letterContent" onClick={() => !read && setLetterReads((p) => ({ ...p, [letter.id]: true }))}>
+                          {letter.content}
+                        </p>
+                      </>
+                    ) : (
+                      <div className="letterLockedBody">
+                        🔒 Ch.{letter.chapter}{letter.route ? ` (${letter.route === "pure" ? "순애" : "집착"} 루트)` : ""} 클리어 시 도착
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </Panel>
+        )}
+        {view === "quote" && (() => {
+          const todayQ = TTEOKJON_QUOTES.find((q) => q.id === quoteOfDayId);
+          const collected = collectedQuotes.includes(quoteOfDayId);
+          return (
+            <Panel title="오늘의 명언 💭">
+              <p className="quoteIntro">매일 자정에 떡존이가 한 마디 남겨요. 수집하면 호감 +5, 코인 +50.</p>
+              {todayQ && (
+                <div className="quoteCard">
+                  <div className="quoteEmoji">{todayQ.emoji}</div>
+                  <p className="quoteText">"{todayQ.text}"</p>
+                  <small>— 떡존 올림</small>
+                  <button className="quoteCollectBtn" disabled={collected} onClick={collectTodayQuote}>
+                    {collected ? "✓ 수집됨" : "📚 수집 (호감+5, 코인+50)"}
+                  </button>
+                </div>
+              )}
+              <h3 className="quoteSection">📚 수집한 명언 ({collectedQuotes.length} / {TTEOKJON_QUOTES.length})</h3>
+              <div className="quoteCollection">
+                {collectedQuotes.length === 0 && <p className="quoteEmpty">아직 수집한 명언이 없어요.</p>}
+                {TTEOKJON_QUOTES.filter((q) => collectedQuotes.includes(q.id)).map((q) => (
+                  <div key={q.id} className="quoteSavedItem">
+                    <span>{q.emoji}</span>
+                    <p>"{q.text}"</p>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+          );
+        })()}
+        {view === "cards" && (() => {
+          const sets = Array.from(new Set(TRADING_CARDS.map((c) => c.set))).filter(Boolean);
+          return (
+            <Panel title="떡존이 트레이딩 카드 🃏">
+              <p className="cardIntro">30종 카드 수집. 같은 카드 더 뽑으면 강화 (Lv 5 max). 등급은 R/SR/SSR.</p>
+              <div className="cardActions">
+                <button className="cardPullBtn cardSingle" disabled={coins < 200} onClick={() => pullCardGacha("single")}>
+                  🪙 200 — 단일 뽑기
+                </button>
+                <button className="cardPullBtn cardTicket" disabled={gachaTickets <= 0} onClick={() => pullCardGacha("ticket")}>
+                  🎫 티켓 1장 — 뽑기
+                </button>
+                <span className="cardPullCount">총 뽑은 횟수: {totalCardPulls}</span>
+              </div>
+              <h3 className="cardSection">🃏 콜렉션 ({Object.keys(ownedCards).length} / {TRADING_CARDS.length})</h3>
+              <div className="cardGrid">
+                {TRADING_CARDS.map((card) => {
+                  const data = ownedCards[card.id];
+                  const owned = !!data;
+                  return (
+                    <div key={card.id} className={`tcCard tcRarity-${card.rarity}${owned ? " tcOwned" : " tcLocked"}`}>
+                      <div className="tcRarityBadge">{card.rarity}</div>
+                      <div className="tcEmoji">{owned ? card.emoji : "❓"}</div>
+                      <b>{owned ? card.name : "???"}</b>
+                      <small>{owned ? card.flavor : "잠금"}</small>
+                      {owned && data && data.level > 1 && <span className="tcLevel">Lv.{data.level}</span>}
+                    </div>
+                  );
+                })}
+              </div>
+              {cardPullResult && (
+                <div className="cardPullOverlay" onClick={() => setCardPullResult(null)}>
+                  <div className={`cardPullReveal tcRarity-${cardPullResult.rarity}`}>
+                    <div className="tcRarityBadge">{cardPullResult.rarity}</div>
+                    <div className="cardPullEmoji">{cardPullResult.emoji}</div>
+                    <h2>{cardPullResult.name}</h2>
+                    <p>{cardPullResult.flavor}</p>
+                    <button onClick={() => setCardPullResult(null)}>닫기 ✓</button>
+                  </div>
+                </div>
+              )}
+            </Panel>
+          );
+        })()}
         {view === "katalk" && (() => {
           const open = katalkOpenChat;
           const isGroup = open === "group";
@@ -6931,6 +7495,121 @@ const CSS = `
 .katalkActions{display:flex;justify-content:center}
 .katalkActions button{border:0;border-radius:10px;padding:8px 16px;background:#fff8ef;color:#5a3520;font-weight:900;font-size:12px;cursor:pointer;border:1px solid #d9a656}
 .katalkActions button:hover{background:#fff5d6}
+/* ─ 러브 미터 (사이드바) ─ */
+.loveMeter{padding:9px 11px;margin:0 0 12px;background:linear-gradient(135deg,#3a1525,#5a2540);border:1px solid rgba(255,140,180,.25);border-radius:14px;color:#fff}
+.loveMeterHead{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:900;color:#ffb0d0;margin-bottom:5px}
+.loveMeterHead strong{color:#fff;font-size:12px}
+.loveMeterBar{height:5px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden}
+.loveMeterBar div{height:100%;background:linear-gradient(90deg,#ff5577,#ff8aa3);border-radius:99px;transition:width .4s ease;box-shadow:0 0 8px rgba(255,90,120,.6)}
+.loveMeterClaimBtn{margin-top:6px;width:100%;border:0;border-radius:8px;padding:6px;background:linear-gradient(135deg,#ff5577,#df5e88);color:#fff;font-weight:1000;font-size:11px;cursor:pointer;animation:loveClaimPulse 1.6s ease-in-out infinite}
+@keyframes loveClaimPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,90,120,.6)}50%{box-shadow:0 0 0 6px rgba(255,90,120,0)}}
+.loveMeterDone{display:block;margin-top:5px;text-align:center;font-size:10px;color:#a8d4b0}
+/* ─ 30일 캘린더 ─ */
+.cal30Intro{margin:0 0 14px;padding:10px 14px;background:#fff8ef;border:1px solid #e8c99e;border-radius:10px;color:#7a5e4a;font-size:12px;text-align:center;font-style:italic}
+.cal30Grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:18px}
+.cal30Cell{aspect-ratio:1/1;display:grid;place-items:center;background:#fff;border:1px solid #e6d2b8;border-radius:8px;font-size:11px;color:#9a7c65;font-weight:900;position:relative;text-align:center}
+.cal30Cell.cal30Reached{background:linear-gradient(135deg,#ffd97a,#e8993b);color:#3a2017}
+.cal30Cell.cal30Milestone{border:2px solid #df842c}
+.cal30Day{font-size:11px}
+.cal30Emoji{position:absolute;bottom:2px;right:2px;font-size:13px}
+.cal30Check{position:absolute;font-size:14px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.cal30Section{margin:14px 0 8px;font-size:14px;color:#3a2017}
+.cal30Rewards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.cal30Reward{padding:14px;background:#fff;border:1px solid #e6d2b8;border-radius:14px;text-align:center;display:grid;gap:6px}
+.cal30Reward.cal30RewardReady{background:linear-gradient(135deg,#fff7d6,#ffe9a8);border-color:#df842c;animation:advReadyPulse 2s ease-in-out infinite}
+.cal30Reward.cal30RewardClaimed{opacity:.5}
+.cal30RewardEmoji{font-size:30px}
+.cal30Reward b{font-size:13px;color:#2a1a14}
+.cal30Reward small{font-size:11px;color:#5a3520}
+.cal30Reward button{border:0;border-radius:8px;padding:8px;background:#df842c;color:#fff;font-weight:900;font-size:12px;cursor:pointer}
+.cal30Reward button:disabled{background:#d9c8b5;color:#7a6957;cursor:not-allowed}
+/* ─ 통합 도감 ─ */
+.codexMaster{padding:24px;background:linear-gradient(135deg,#3a2510,#5a3a18);border-radius:18px;color:#fff;margin-bottom:18px;text-align:center}
+.codexMasterTitle{font-size:13px;color:#ffd97a;font-weight:1000;letter-spacing:.18em;text-transform:uppercase}
+.codexMasterPct{font-size:54px;font-weight:1000;color:#ffd97a;text-shadow:0 0 24px rgba(255,210,100,.6);margin:8px 0}
+.codexMasterBar{height:10px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;margin:6px auto;max-width:400px}
+.codexMasterBar div{height:100%;background:linear-gradient(90deg,#ffd97a,#df5e88);border-radius:99px;transition:width .5s}
+.codexMaster small{display:block;color:#caa890;margin-top:8px}
+.codexGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.codexCard{padding:14px;background:#fff;border:1px solid #e6d2b8;border-radius:14px;display:grid;gap:6px;text-align:center}
+.codexCardEmoji{font-size:32px}
+.codexCard b{font-size:13px;color:#2a1a14}
+.codexCardBar{height:5px;background:rgba(91,48,24,.12);border-radius:99px;overflow:hidden}
+.codexCardBar div{height:100%;background:linear-gradient(90deg,#df842c,#e8993b);border-radius:99px}
+.codexCard small{font-size:11px;color:#7a5e4a}
+.codexMasterReward{margin-top:18px;padding:18px;background:linear-gradient(135deg,#df5e88,#e8993b);border-radius:14px;color:#fff;font-weight:1000;text-align:center;font-size:16px}
+/* ─ 명함 / 통계 ─ */
+.profileCard{padding:24px;background:linear-gradient(135deg,#fff5fa,#fce0ec);border:2px solid #e89bb8;border-radius:18px;margin-bottom:18px;color:#2a1a14}
+.profileCardHead{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.profileCardAvatar{width:70px;height:70px;border-radius:50%;border:3px solid #e89bb8;background:#fff;overflow:hidden;flex:none}
+.profileCardAvatar img{width:100%;height:100%;object-fit:cover}
+.profileCardHead h3{margin:0;font-size:18px;color:#7b3a52}
+.profileCardHead p{margin:0;font-size:13px;color:#9a6b80;font-weight:700}
+.profileCardStats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px}
+.profileCardStats div{padding:10px;background:rgba(255,255,255,.6);border-radius:10px;text-align:center}
+.profileCardStats b{display:block;font-size:11px;color:#7b3a52;font-weight:900}
+.profileCardStats span{display:block;font-size:16px;color:#2a1a14;font-weight:1000;margin-top:3px}
+.profileCardFooter{display:block;text-align:right;font-size:11px;color:#9a6b80;font-style:italic;margin-top:6px}
+.statsSection{margin:18px 0 10px;font-size:15px;color:#3a2017}
+.tteokjonStats{background:#fff;border:1px solid #e6d2b8;border-radius:14px;padding:8px 0;overflow:hidden}
+.ttsRow{display:flex;justify-content:space-between;align-items:center;padding:10px 18px;border-bottom:1px solid rgba(91,48,24,.06)}
+.ttsRow:last-child{border-bottom:0}
+.ttsRow span{font-size:13px;color:#5a3520}
+.ttsRow b{font-size:14px;color:#df842c;font-weight:1000}
+.statsHint{margin:14px 0 0;text-align:center;font-style:italic;color:#9a7c65;font-size:12px}
+/* ─ 편지함 ─ */
+.lettersIntro{margin:0 0 14px;padding:10px 14px;background:#fff8ef;border:1px solid #e8c99e;border-radius:10px;color:#7a5e4a;font-size:12px;text-align:center;font-style:italic}
+.lettersList{display:grid;gap:14px}
+.letterCard{padding:20px 24px;background:#fffaf3;border:1px solid #e8c99e;border-radius:14px;box-shadow:0 4px 12px rgba(91,48,24,.06)}
+.letterCard.letterLocked{opacity:.5;background:repeating-linear-gradient(135deg,#f5ede0 0px,#f5ede0 8px,#ebe1d0 8px,#ebe1d0 16px);text-align:center;font-style:italic;color:#7a5e4a}
+.letterCard.letterUnread{border-color:#df842c;box-shadow:0 6px 18px rgba(223,132,44,.18)}
+.letterLockedBody{padding:20px}
+.letterHead{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.letterChip{font-size:11px;font-weight:900;padding:4px 10px;background:rgba(223,132,44,.15);color:#7b4f2f;border-radius:99px}
+.letterHead b{font-size:15px;color:#2a1a14}
+.letterNew{font-size:10px;font-weight:1000;padding:3px 8px;background:#df842c;color:#fff;border-radius:99px;letter-spacing:.04em}
+.letterContent{margin:0;font-size:14px;color:#3a2017;line-height:1.85;white-space:pre-line;font-family:"Gowun Dodum","Malgun Gothic",sans-serif;cursor:pointer}
+/* ─ 명언 ─ */
+.quoteIntro{margin:0 0 14px;padding:10px 14px;background:#fff5fa;border:1px solid #e89bb8;border-radius:10px;color:#7b3a52;font-size:12px;text-align:center}
+.quoteCard{padding:36px 28px;background:linear-gradient(135deg,#fff5fa,#fce0ec);border:2px solid #df5e88;border-radius:20px;text-align:center;display:grid;gap:14px;justify-items:center;margin-bottom:18px;box-shadow:0 8px 24px rgba(223,94,136,.12)}
+.quoteEmoji{font-size:54px}
+.quoteText{margin:0;font-size:18px;color:#2a1a14;font-style:italic;line-height:1.7;max-width:520px}
+.quoteCard small{color:#9a6b80;font-weight:900}
+.quoteCollectBtn{border:0;border-radius:14px;padding:12px 22px;background:linear-gradient(135deg,#df5e88,#a8334e);color:#fff;font-weight:1000;font-size:13px;cursor:pointer}
+.quoteCollectBtn:disabled{background:#d9c8b5;color:#7a6957;cursor:not-allowed}
+.quoteSection{margin:14px 0 10px;font-size:14px;color:#3a2017}
+.quoteCollection{display:grid;gap:10px}
+.quoteSavedItem{display:flex;gap:12px;padding:12px 14px;background:#fff;border:1px solid #e6d2b8;border-radius:10px;align-items:center}
+.quoteSavedItem span{font-size:24px}
+.quoteSavedItem p{margin:0;font-size:13px;color:#3a2017;font-style:italic;line-height:1.55}
+.quoteEmpty{text-align:center;color:#9a7c65;font-style:italic;padding:30px}
+/* ─ 트레이딩 카드 ─ */
+.cardIntro{margin:0 0 14px;padding:11px 14px;background:linear-gradient(135deg,#5a2530,#7a3540);border-radius:12px;color:#fff;font-size:13px;text-align:center;font-weight:700}
+.cardActions{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+.cardPullBtn{border:0;border-radius:12px;padding:14px 20px;font-weight:1000;font-size:13px;cursor:pointer}
+.cardPullBtn.cardSingle{background:linear-gradient(135deg,#3a2510,#5a3a18);color:#ffd97a}
+.cardPullBtn.cardTicket{background:linear-gradient(135deg,#c685c4,#8b5a8d);color:#fff}
+.cardPullBtn:disabled{background:#d9c8b5;color:#7a6957;cursor:not-allowed}
+.cardPullCount{font-size:12px;color:#7a5e4a;font-weight:900}
+.cardSection{margin:18px 0 10px;font-size:14px;color:#3a2017}
+.cardGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.tcCard{padding:14px 10px;border-radius:14px;text-align:center;display:grid;gap:6px;justify-items:center;position:relative;color:#fff}
+.tcCard.tcLocked{background:repeating-linear-gradient(135deg,#3a2519 0px,#3a2519 8px,#241510 8px,#241510 16px);opacity:.7;border:1px solid #5a3a18}
+.tcCard.tcLocked b,.tcCard.tcLocked small{color:#7a6957}
+.tcCard.tcRarity-R.tcOwned{background:linear-gradient(135deg,#a3c785,#7ba65a)}
+.tcCard.tcRarity-SR.tcOwned{background:linear-gradient(135deg,#c685c4,#8b5a8d)}
+.tcCard.tcRarity-SSR.tcOwned{background:linear-gradient(135deg,#ff5577,#ffaa44 50%,#ffdd33);background-size:200% 200%;animation:gachaSSRBg 3s linear infinite;box-shadow:0 0 22px rgba(255,210,100,.6)}
+.tcRarityBadge{position:absolute;top:6px;left:6px;font-size:10px;font-weight:1000;padding:2px 6px;background:rgba(0,0,0,.3);border-radius:6px;color:#fff;letter-spacing:.06em}
+.tcEmoji{font-size:38px}
+.tcCard b{font-size:12px;font-weight:1000}
+.tcCard small{font-size:10px;line-height:1.4;opacity:.92}
+.tcLevel{position:absolute;top:6px;right:6px;font-size:10px;font-weight:1000;padding:2px 6px;background:#ffd97a;color:#3a2017;border-radius:6px}
+.cardPullOverlay{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.92);display:grid;place-items:center;cursor:pointer;animation:gachaFadeIn .3s ease}
+.cardPullReveal{display:grid;gap:14px;justify-items:center;padding:36px 30px;border-radius:24px;color:#fff;text-align:center;animation:gachaCardPop .55s cubic-bezier(.2,1.4,.3,1) both;max-width:90vw}
+.cardPullReveal h2{margin:0;font-size:24px;font-weight:1000}
+.cardPullReveal p{margin:0;font-size:14px;font-style:italic;opacity:.9}
+.cardPullReveal button{margin-top:12px;border:0;border-radius:12px;padding:12px 28px;background:#fff;color:#3a2017;font-weight:1000;cursor:pointer}
+.cardPullEmoji{font-size:80px;line-height:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3))}
 .secretRouteCard{position:relative;overflow:hidden;transition:transform .15s ease,box-shadow .2s ease}.secretRouteCard.secretUnlocked{background:linear-gradient(135deg,#fff7d6 0%,#ffe9a8 60%,#ffd17a 100%);border:1px solid #d9a656;color:#5a3d12;box-shadow:0 8px 24px rgba(217,166,86,.28)}.secretRouteCard.secretUnlocked:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(217,166,86,.4)}.secretRouteCard.secretUnlocked b{color:#3a2510}.secretRouteCard.secretUnlocked small{color:#7b5318}.secretRouteCard.secretLocked{background:repeating-linear-gradient(135deg,#2a201b 0px,#2a201b 14px,#22191a 14px,#22191a 28px);color:#7a6b62;border:1px dashed #5a4a40;cursor:not-allowed;opacity:.85}.secretRouteCard.secretLocked b{color:#8a7a6f;letter-spacing:.18em}.secretRouteCard.secretLocked small{color:#6b5b50;font-style:italic}.secretRouteCard.secretLocked:hover{transform:none;box-shadow:none}
 .saveSlotGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:18px}.saveSlotCard{background:#fff8ef;border:1px solid #e8c99e;border-radius:18px;padding:16px;display:grid;gap:12px;color:#3a2017;box-shadow:0 8px 22px rgba(91,48,24,.08);transition:transform .15s ease,box-shadow .2s ease}.saveSlotCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.saveSlotCard.ssEmpty{background:#f6efe5;border-style:dashed;border-color:#cdb89a;opacity:.85}.saveSlotCard.ssRoutePure{background:linear-gradient(180deg,#fff5f8 0%,#fce6ee 100%);border-color:#ecc4d6}.saveSlotCard.ssRouteObsession{background:linear-gradient(180deg,#2a1517 0%,#1a0d0e 100%);border-color:#5d2a30;color:#f4dadd}.saveSlotCard.ssRouteObsession .ssTime,.saveSlotCard.ssRouteObsession .ssPreview{color:#b89a9d}.saveSlotCard.ssRouteObsession .ssStats span{background:rgba(255,200,200,.08);color:#f4dadd}.saveSlotCard.ssRouteObsession .ssThumb{border-color:rgba(255,170,170,.2)}.ssHead{display:flex;align-items:center;justify-content:space-between;gap:8px}.ssNum{font-size:14px;font-weight:1000;letter-spacing:.04em;color:inherit}.ssRouteBadge{font-size:11px;font-weight:900;padding:4px 10px;border-radius:99px;background:rgba(91,48,24,.12);color:#7b4f2f}.ssRoutePure .ssRouteBadge{background:rgba(220,120,160,.18);color:#a14872}.ssRouteObsession .ssRouteBadge{background:rgba(220,80,80,.22);color:#ffaab2}.ssBody{display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:start}.ssThumb{width:84px;height:84px;border-radius:14px;object-fit:cover;border:1px solid rgba(91,48,24,.18);background:#ead7c7}.ssMeta{display:grid;gap:6px;min-width:0}.ssScene{margin:0;font-size:14px;font-weight:900;color:inherit;line-height:1.4}.ssPreview{margin:0;font-size:12px;font-style:italic;color:#7a5e4a;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.ssStats{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}.ssStats span{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:99px;background:rgba(91,48,24,.1);color:#5b3520;letter-spacing:.02em}.ssTime{color:#9a7c65;font-size:11px;font-weight:700;margin-top:2px}.ssEmptyBody{text-align:center;padding:24px 12px;color:#876953}.ssEmptyIcon{font-size:36px;display:block;margin-bottom:8px;opacity:.6}.ssEmptyBody p{margin:0 0 4px;font-size:14px;font-weight:900}.ssEmptyBody small{font-size:11px;color:#a78a72}.ssActions{display:flex;gap:6px}.ssActions button{flex:1;border:0;border-radius:12px;padding:10px 8px;font-size:13px;font-weight:900;cursor:pointer;transition:background .15s ease,transform .12s ease}.ssActions button:hover{transform:translateY(-1px)}.ssBtnLoad{background:#df842c;color:#fff}.ssBtnLoad:hover{background:#c8731f}.ssBtnSave{background:#3a2d29;color:#fff}.ssBtnSave:hover{background:#5a4338}.ssBtnDel{background:transparent;color:#c44;border:1px solid #c44 !important}.ssBtnDel:hover{background:rgba(196,68,68,.1)}
 .cgReaction{display:grid;grid-template-columns:86px minmax(0,1fr) auto;gap:14px;align-items:center;margin:0 0 18px;padding:14px;border-radius:20px;background:#fff8ef;border:1px solid #e8c99e;box-shadow:0 12px 32px rgba(91,48,24,.08)}.cgReaction>img{width:86px;height:86px;border-radius:18px;object-fit:cover;background:#ead7c7}.cgReactionBody{display:grid;gap:6px;min-width:0}.cgReactionBody p{margin:0;color:#4a342a;line-height:1.65;font-weight:800}.cgSourceCaption{color:#9a7c65;font-size:12px;font-weight:700}.cgReactionActions{display:flex;gap:6px;align-items:center}.cgReaction button{border:0;border-radius:999px;background:#3a2d29;color:white;padding:10px 14px;font-weight:900}.favBtn{background:#fff;color:#c44}.favBtn.favOn{background:#c44;color:#fff}.cgCard{position:relative;border:0;text-align:center;cursor:pointer;transition:transform .15s ease,box-shadow .2s ease}.cgCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.cgCardLocked{cursor:default;background:#1f1714}.cgCardLocked:hover{transform:none}.cgSilhouette{filter:brightness(.18) blur(6px) saturate(.5)}.cgLockedBadge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;color:rgba(255,210,150,.55);text-shadow:0 2px 12px rgba(0,0,0,.6);pointer-events:none}.cgFavMark{position:absolute;top:8px;right:10px;font-size:18px;color:#ff5577;text-shadow:0 2px 6px rgba(0,0,0,.45);pointer-events:none}.cgCardCaption{position:absolute;left:0;right:0;bottom:0;padding:6px 10px;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.74) 100%);color:#fff7e8;font-size:11px;font-weight:800;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;text-align:left}.galleryProgress{display:flex;align-items:center;gap:12px;margin:0 0 18px;padding:12px 16px;background:#fff8ef;border:1px solid #e8c99e;border-radius:14px;color:#5a3928}.galleryProgress span{font-size:12px;font-weight:900;letter-spacing:.06em;color:#7b4f2f}.galleryProgressBar{flex:1;min-width:80px;height:8px;background:rgba(91,48,24,.15);border-radius:99px;overflow:hidden}.galleryProgressBar div{height:100%;background:linear-gradient(90deg,#df842c,#e8993b);border-radius:99px;transition:width .35s ease}.galleryProgress strong{font-size:14px;color:#3a2017;font-weight:900}.tabs button.active{background:#df842c}.tabs button.bladderTab{background:linear-gradient(135deg,#d9a656,#b8843a);color:#fff;font-weight:1000}.tabs button.bladderTab.active{background:linear-gradient(135deg,#ffc94f,#d9a656);box-shadow:0 4px 12px rgba(217,166,86,.4)}.tabs button.bladderTab:hover{background:linear-gradient(135deg,#e8b563,#c89540)}
