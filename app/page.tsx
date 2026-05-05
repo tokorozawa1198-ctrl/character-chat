@@ -1437,34 +1437,48 @@ function cleanQuote(text: string) {
   return s.trim();
 }
 function guessSpeaker(text: string, prevNarration?: string, nextNarration?: string): VNLine["speaker"] {
+  const trimmed = text.trim();
   if (/(전진협|근바섭|타조|유칼립투스나무|아로벤|금수|하매|쮋)/.test(text)) return "메시지" as VNLine["speaker"];
 
-  // 강한 근떡존 마커: 상대를 부르는 호칭 (히든은 근떡존을 "근떡존" 또는 이름으로 부름)
+  // ── 강한 근떡존 마커 ──
+  // 1) 호칭 (근떡존이 히든을 부르는 단어)
   if (/(주인님|선생님|히든님)/.test(text)) return "근떡존" as VNLine["speaker"];
-  // 자기소개 류는 근떡존
+  // 2) 호칭 "형" — 단독 (형. 형! 형, 형~) 또는 조사 결합 (형이/형은/형을/형한테/형이랑/형께)
+  if (/^형[\s.,!?…~]|^형$/.test(trimmed)) return "근떡존" as VNLine["speaker"];
+  if (/(^|[\s.,])형(이|은|을|에게|한테|께|이랑|이라|이라고|네|네요)\b/.test(text)) return "근떡존" as VNLine["speaker"];
+  // 3) 자기소개
   if (/(근떡존이라고|저 근떡존|제 이름)/.test(text)) return "근떡존" as VNLine["speaker"];
+  // 4) 강한 1인칭 자기 지칭
+  if (/(^|[\s])(저는|제가|저도|저를|저한테|저희)\s/.test(text)) return "근떡존" as VNLine["speaker"];
 
-  // 문맥 기반 — 다음 나레이션 단서
+  // ── 문맥 기반 — 다음 나레이션 ──
   if (nextNarration) {
-    // "근떡존은 ~", "그가 ~", "그는 ~" 으로 다음 줄이 시작 → 직전 대사는 히든
+    // 근떡존이 다음에 나옴 → 직전 대사는 히든
     if (/^(근떡존|그가|그는|그)\b/.test(nextNarration)) return "히든" as VNLine["speaker"];
-    // "묻자/말하자/물었다/말했다" 단독 시작 → 직전은 히든의 질문/말
-    if (/^(묻자|물었다|말하자|말했다|덧붙였다|덧붙이자)\b/.test(nextNarration)) return "히든" as VNLine["speaker"];
+    // "선생님이/선생님은 ~ 봤다/돌아봤다/끄덕였다/멈췄다" → 선생님이 반응 → 직전은 근떡존
+    if (/^선생님(은|이)\s.*(봤다|돌아봤다|끄덕였다|쳐다봤다|올려다봤다|내려다봤다|멈췄다|굳었다|웃었다)/.test(nextNarration)) return "근떡존" as VNLine["speaker"];
+    // 단독 동사 시작 → 직전은 히든의 질문/말
+    if (/^(묻자|물었다|말하자|말했다|덧붙였다|덧붙이자|받아쳤다)\b/.test(nextNarration)) return "히든" as VNLine["speaker"];
   }
-  // 이전 나레이션 단서 — "근떡존은/그가/그는 ~ 말했다/물었다/대답했다/입을 떼며" → 다음 따옴표는 근떡존
+  // ── 문맥 기반 — 이전 나레이션 ──
   if (prevNarration) {
-    if (/(근떡존|그가|그는).*(말했다|물었다|대답했다|덧붙였다|중얼거렸다|입을 떼며|웃었다|받아쳤다)/.test(prevNarration)) return "근떡존" as VNLine["speaker"];
+    // "선생님이/선생님은 ~ 말했다/물었다/...." → 다음 따옴표는 히든 (선생님 본인 말)
+    if (/선생님(이|은)\s.{0,80}(말했다|물었다|대답했다|덧붙였다|중얼거렸다|입을 떼며|받아쳤다|외쳤다|불렀다|툭 내뱉었다|건넸다|이어갔다|되물었다)/.test(prevNarration)) return "히든" as VNLine["speaker"];
+    // "근떡존/그/그가 ~ 말했다" → 다음은 근떡존
+    if (/(근떡존|그가|그는).{0,80}(말했다|물었다|대답했다|덧붙였다|중얼거렸다|입을 떼며|웃었다|받아쳤다|외쳤다|불렀다|툭 내뱉었다|건넸다)/.test(prevNarration)) return "근떡존" as VNLine["speaker"];
+    // 직전 단락 자체가 단순 화자 식별 (예: "선생님이 말했다.")
+    if (/^선생님(이|은).{0,30}(했다|말했다|물었다)\.?$/.test(prevNarration.trim())) return "히든" as VNLine["speaker"];
+    if (/^근떡존(이|은).{0,30}(했다|말했다|물었다)\.?$/.test(prevNarration.trim())) return "근떡존" as VNLine["speaker"];
   }
 
-  // 1인칭 표현 — 마커 없으면 근떡존 (자기 얘기를 길게 하는 건 보통 근떡존)
-  if (/(저\s|제가\s|저는\s|제\s|나는\s)/.test(text)) return "근떡존" as VNLine["speaker"];
+  // ── 1인칭 약한 표현 ──
+  if (/(저\s|제\s|나는\s)/.test(text)) return "근떡존" as VNLine["speaker"];
 
-  // 짧은 반응/질문 류는 히든
-  if (/^(이름이요|쿠폰이요|그렇군요|맞죠|그건|그렇죠|진짜요|그래요|왜요|뭐가요|그럼요|아뇨|그럼|별로요|그러면|그래서|정말요|그냥요|네|예|아|음|그게|왜|뭐)[?!.…]*$/.test(text.trim())) return "히든" as VNLine["speaker"];
-  // 짧은 질문(20자 이하 + 물음표) 도 히든 쪽으로
-  if (text.trim().length <= 20 && /[?？]$/.test(text.trim())) return "히든" as VNLine["speaker"];
+  // ── 짧은 반응/질문은 히든 ──
+  if (/^(이름이요|쿠폰이요|그렇군요|맞죠|그건|그렇죠|진짜요|그래요|왜요|뭐가요|그럼요|아뇨|그럼|별로요|그러면|그래서|정말요|그냥요|네|예|아|음|그게|왜|뭐|응|왜그래)[?!.…]*$/.test(trimmed)) return "히든" as VNLine["speaker"];
+  if (trimmed.length <= 20 && /[?？]$/.test(trimmed)) return "히든" as VNLine["speaker"];
 
-  // 기본값: 근떡존
+  // 기본값: 근떡존 (대사 빈도가 더 높음)
   return "근떡존" as VNLine["speaker"];
 }
 function parseVNLines(text: string): VNLine[] {
