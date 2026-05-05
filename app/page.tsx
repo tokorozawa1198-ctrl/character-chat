@@ -576,6 +576,218 @@ const QUESTS: Quest[] = [
 ];
 
 // ================================
+// 떡존이의 모험 (Idle / AFK)
+// ================================
+type AdventureLoc = {
+  id: string;
+  emoji: string;
+  name: string;
+  flavor: string;
+  durationMs: number;
+  rewards: {
+    coins: number;
+    exp: number;
+    affinity?: number;
+    trust?: number;
+    obsession?: number;
+    bladderCharm?: number;
+    ticketChance?: number;
+  };
+  flavors: { normal: string; big: string; fail: string };
+  unlock?: { hint: string; check: (s: { stats: Stats; storyRoute: StoryRoute; unlockedEndings: Record<string, boolean>; seenEvents: Record<string, boolean> }) => boolean };
+};
+const ADVENTURES: AdventureLoc[] = [
+  {
+    id: "adv_convenience",
+    emoji: "🏪",
+    name: "동네 편의점",
+    flavor: "도시락 하나 사러가는 길임 ㅋ",
+    durationMs: 3 * 60 * 1000,
+    rewards: { coins: 30, exp: 20 },
+    flavors: {
+      normal: "떡존이가 도시락 사옴 ㅋ 평범했음",
+      big: "1+1 발견 ㅈㄴ 럭키. 도시락 두 개 가져옴",
+      fail: "쿠폰 못쓰고 돌아옴 ㅠㅠ 일본어 또 패배",
+    },
+  },
+  {
+    id: "adv_gym",
+    emoji: "🏋️",
+    name: "헬스장",
+    flavor: "운동하러 감. 갔다오면 셀카 보내줌",
+    durationMs: 10 * 60 * 1000,
+    rewards: { coins: 80, exp: 50, affinity: 10 },
+    flavors: {
+      normal: "운동 ㅈㄴ 함. 팔 펌핑된 셀카 보내옴",
+      big: "PR 갱신 ㅗㅜㅑ. 윗옷 벗은 셀카 보내옴",
+      fail: "허리 삐끗함 ㅠㅠ 너 때문이래",
+    },
+  },
+  {
+    id: "adv_river",
+    emoji: "🌊",
+    name: "강가 산책",
+    flavor: "비둘기랑 시간 보내고 옴 ㅋ",
+    durationMs: 30 * 60 * 1000,
+    rewards: { coins: 200, exp: 120, affinity: 30, trust: 10 },
+    flavors: {
+      normal: "강가 한바퀴 돌고옴. 사진 찍어줌",
+      big: "갈매기 ㅈㄴ 친해짐. 얘 갈매기 매니저 됨",
+      fail: "비둘기한테 빵 다 뺏김. 화남",
+    },
+  },
+  {
+    id: "adv_hondori",
+    emoji: "🛍️",
+    name: "혼도리 상점가",
+    flavor: "쇼핑하러 감. 잃어버리면 큰일",
+    durationMs: 60 * 60 * 1000,
+    rewards: { coins: 400, exp: 250, affinity: 50, ticketChance: 0.05 },
+    flavors: {
+      normal: "이것저것 구경하고 옴",
+      big: "떡존이가 너 줄 선물 사옴 ㅗㅜㅑ",
+      fail: "지갑 잃어버릴뻔 ㅠㅠ 아슬아슬했음",
+    },
+  },
+  {
+    id: "adv_miyajima",
+    emoji: "⛩",
+    name: "미야지마",
+    flavor: "당일치기 여행. 사슴 조심 ㅋ",
+    durationMs: 2 * 60 * 60 * 1000,
+    rewards: { coins: 800, exp: 500, affinity: 100, trust: 30, ticketChance: 0.1 },
+    flavors: {
+      normal: "도리이 보고옴. 사진 ㅈㄴ 잘나옴",
+      big: "사슴이랑 친구먹고옴. 떡존이 갓겜 인생샷 ㅗㅜㅑ",
+      fail: "사슴이 옷 뜯음 ㅠㅠ 환불해달래",
+    },
+  },
+  {
+    id: "adv_asa",
+    emoji: "🌌",
+    name: "아사산 전망대",
+    flavor: "선생님 뒷얘기 도청하러감 ㄷㄷ",
+    durationMs: 4 * 60 * 60 * 1000,
+    rewards: { coins: 1500, exp: 900, obsession: 80, ticketChance: 0.15 },
+    flavors: {
+      normal: "도시 야경 보고옴. 한참 보고있었대",
+      big: "선생님 친구 무리 발견. 누가 누군지 다 외워옴 ㄷㄷ",
+      fail: "케이블카 끊겼음 ㅠㅠ 늦게 옴",
+    },
+    unlock: { hint: "방광매력 100+ 또는 집착 루트", check: (s) => s.stats.bladderCharm >= 100 || s.storyRoute === "obsession" },
+  },
+  {
+    id: "adv_urethranya",
+    emoji: "🚽",
+    name: "요도니아 신전",
+    flavor: "방광 신께 인사드리러 감. 신탁 받아옴",
+    durationMs: 6 * 60 * 60 * 1000,
+    rewards: { coins: 2000, exp: 1200, bladderCharm: 100, ticketChance: 0.25 },
+    flavors: {
+      normal: "기도하고옴. 방광 좀 더 단단해진 느낌",
+      big: "신탁 받음. '오줌 평생 안싸도 됨' 이라심 ㅗㅜㅑ",
+      fail: "신전 휴무일이었음 ㅠㅠ 빈손",
+    },
+    unlock: { hint: "방광매력 300+", check: (s) => s.stats.bladderCharm >= 300 },
+  },
+  {
+    id: "adv_space",
+    emoji: "🌠",
+    name: "우주 원정",
+    flavor: "ㄹㅇ 나사에서 부름. 떡존이 발 자료 제출하러감",
+    durationMs: 12 * 60 * 60 * 1000,
+    rewards: { coins: 5000, exp: 3000, affinity: 50, trust: 50, obsession: 50, bladderCharm: 50, ticketChance: 0.5 },
+    flavors: {
+      normal: "우주 ㅈㄴ 멀더라. 사진 보내옴",
+      big: "외계인 만남. 떡존이 발 보고 도망감 ㅋㅋㅋ",
+      fail: "우주식 너무 맛없어서 그냥 돌아옴 ㅠㅠ",
+    },
+    unlock: { hint: "엔딩 1+ 클리어", check: (s) => Object.keys(s.unlockedEndings).length >= 1 },
+  },
+];
+
+// ================================
+// 떡존이 SNS (가짜 인스타 피드)
+// ================================
+type SnsTemplate = {
+  id: string;
+  emoji: string;
+  text: string;
+  category: "workout" | "food" | "selfie" | "daily" | "love" | "obsession" | "bladder";
+  triggers?: { storyRoute?: StoryRoute; timeOfDay?: "morning" | "afternoon" | "evening" | "night"; minStat?: Partial<Stats> };
+};
+const SNS_TEMPLATES: SnsTemplate[] = [
+  // 운동인증
+  { id: "s_workout_1", emoji: "💪", text: "오늘도 헬스장 ㅋ 5분만 한다는게 한시간 됨 ㅈㅅ", category: "workout" },
+  { id: "s_workout_2", emoji: "🏋️", text: "벤치프레스 1RM 갱신 ㅗㅜㅑ 누가 칭찬 좀..", category: "workout" },
+  { id: "s_workout_3", emoji: "💪", text: "운동 끝. 거울 셀카 한장 박고 갑니다 ㅋ", category: "workout" },
+  // 음식
+  { id: "s_food_1", emoji: "🍱", text: "오늘의 도시락. 평소엔 사먹는데 오늘은 자취냄새 좀 풍김", category: "food" },
+  { id: "s_food_2", emoji: "🍢", text: "편의점 오뎅. 일본어 또 패배할뻔했음 ㅋ", category: "food" },
+  { id: "s_food_3", emoji: "🍜", text: "히로시마식 라멘 첨 먹어봄. 국물 ㅈㄴ 진함 ㄷ", category: "food" },
+  // 셀카
+  { id: "s_selfie_1", emoji: "📸", text: "거울 셀카 ㅋ 머리 아침에 못함 ㅈㅅ", category: "selfie" },
+  { id: "s_selfie_2", emoji: "🤳", text: "요즘 머리 길어서 좀 아쉬움. 자를까 말까 ㄷ", category: "selfie" },
+  { id: "s_selfie_3", emoji: "📷", text: "오늘 컨셉 좀 잡아봤음. 어울리나..", category: "selfie" },
+  // 일상
+  { id: "s_daily_1", emoji: "☔", text: "히로시마 비옴. 우산 안챙김 ㅈㅅ", category: "daily" },
+  { id: "s_daily_2", emoji: "🌅", text: "아침 산책. 강가는 진짜 매번 좋음", category: "daily" },
+  { id: "s_daily_3", emoji: "📺", text: "심심해서 한드 정주행중. 추천좀 ㅈㅂ", category: "daily" },
+  { id: "s_daily_4", emoji: "🌙", text: "잠 안와서 산책 한바퀴 돌고옴", category: "daily" },
+  // 사랑 (호감 높음)
+  { id: "s_love_1", emoji: "💗", text: "오늘 밥 같이 먹은 그분 진짜 너무 좋더라능. 누구냐고 묻지마셈 ㅋ", category: "love", triggers: { minStat: { affinity: 300 } } },
+  { id: "s_love_2", emoji: "🌸", text: "벚꽃 떨어지는 거 보다가 그분 생각났음 ㅋ ㅈㅅ", category: "love", triggers: { minStat: { affinity: 500 } } },
+  { id: "s_love_3", emoji: "💍", text: "아무 의미 없는 반지 샀음. 누가 끼면 좋을까 ㅎㅎ", category: "love", triggers: { minStat: { affinity: 800 } } },
+  // 집착
+  { id: "s_obs_1", emoji: "🌑", text: "오늘 그분이 다른 사람이랑 웃는거 봤음. ㅎㅎ ㅎ", category: "obsession", triggers: { minStat: { obsession: 500 } } },
+  { id: "s_obs_2", emoji: "👀", text: "그분 SNS 새벽 3시까지 보고있었음. 정상 아닌거 안다능", category: "obsession", triggers: { minStat: { obsession: 700 } } },
+  // 방광
+  { id: "s_bladder_1", emoji: "🚽", text: "오늘도 K-방광 인증. 12시간째 화장실 안감 ㅗㅜㅑ", category: "bladder", triggers: { minStat: { bladderCharm: 100 } } },
+  { id: "s_bladder_2", emoji: "🌊", text: "강릉 다녀옴. 가뭄 해결하고 옴 ㄹㅇ", category: "bladder", triggers: { minStat: { bladderCharm: 400 } } },
+  { id: "s_bladder_3", emoji: "📈", text: "BLDR 주가 또 떡상 ㄷㄷ", category: "bladder", triggers: { minStat: { bladderCharm: 600 } } },
+  // 시간대
+  { id: "s_morning_1", emoji: "☕", text: "아침 커피 한잔. 오늘도 화이팅 능 ㅋ", category: "daily", triggers: { timeOfDay: "morning" } },
+  { id: "s_night_1", emoji: "🌙", text: "잠이 안옴. 누가 같이 놀아주면 좋겠음 ㅎ", category: "daily", triggers: { timeOfDay: "night" } },
+];
+
+// ================================
+// 레이드 보스 (주간)
+// ================================
+type RaidBoss = {
+  id: string;
+  emoji: string;
+  name: string;
+  flavor: string;
+  taunt: string;
+  hpMax: number;
+  rewards: { coins: number; tickets: number; exp: number; affinity?: number };
+};
+const RAID_BOSSES: RaidBoss[] = [
+  { id: "boss_giant_bladder", emoji: "🚽", name: "거대 방광맨", flavor: "K-방광 도전자. 떡존이보다 큰 방광이래 ㄷㄷ", taunt: "내가 진짜 K-방광이다 ㅋ 떡존이 별거아님", hpMax: 5000, rewards: { coins: 1000, tickets: 5, exp: 500, affinity: 50 } },
+  { id: "boss_urethranya_shadow", emoji: "👤", name: "요도니아의 그림자", flavor: "신의 어둠. 방광 갓의 다른면", taunt: "흠... 그대는 진정한 K-방광인가...", hpMax: 8000, rewards: { coins: 1500, tickets: 8, exp: 800, affinity: 80 } },
+  { id: "boss_anti_kbladder", emoji: "💧", name: "수도꼭지 군단", flavor: "오줌 못참는 적군. 떡존이 천적", taunt: "쒸이이~~ 우리는 너의 자제력을 무너뜨릴거다", hpMax: 3000, rewards: { coins: 600, tickets: 3, exp: 300, affinity: 30 } },
+  { id: "boss_hidden_rival", emoji: "👥", name: "히든의 라이벌", flavor: "선생님이랑 친한척하는 또다른 인물 ㄷㄷ", taunt: "선생님이 더 잘맞는건 나임 ㅋ", hpMax: 6000, rewards: { coins: 1200, tickets: 6, exp: 600, affinity: 60 } },
+];
+function weekKey(d: Date = new Date()): string {
+  // ISO week
+  const target = new Date(d.valueOf());
+  const dayNr = (d.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNr + 3);
+  const firstThursday = target.valueOf();
+  target.setMonth(0, 1);
+  if (target.getDay() !== 4) {
+    target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+  }
+  const week = 1 + Math.ceil((firstThursday - target.valueOf()) / (7 * 24 * 60 * 60 * 1000));
+  return `${d.getFullYear()}-W${String(week).padStart(2,"0")}`;
+}
+function pickWeeklyBoss(week: string): RaidBoss {
+  let seed = 0;
+  for (const c of week) seed = (seed * 31 + c.charCodeAt(0)) >>> 0;
+  return RAID_BOSSES[seed % RAID_BOSSES.length];
+}
+
+// ================================
 // 펫 시스템 (병맛 + 방광 테마)
 // ================================
 type PetEffect = "exp" | "coin" | "affinity" | "luck" | "bladder" | "all";
@@ -2405,6 +2617,21 @@ export default function Page() {
   const [activePet, setActivePet] = useState<string | null>(null);
   const [totalGachaPulls, setTotalGachaPulls] = useState<number>(0);
   const [petToast, setPetToast] = useState<{ name: string; emoji: string; flavor: string } | null>(null);
+  // 모험
+  const [activeAdventure, setActiveAdventure] = useState<{ id: string; startTime: number; endTime: number; petUsed: string | null } | null>(null);
+  const [adventureHistory, setAdventureHistory] = useState<Record<string, number>>({});
+  const [advTick, setAdvTick] = useState<number>(0);
+  // SNS
+  const [snsLikes, setSnsLikes] = useState<Record<string, boolean>>({});
+  const [lastSnsRefresh, setLastSnsRefresh] = useState<number>(0);
+  const [snsFeed, setSnsFeed] = useState<{ id: string; templateId: string; timestamp: number; likes: number }[]>([]);
+  // 레이드
+  const [raidWeek, setRaidWeek] = useState<string>(weekKey());
+  const [raidBossId, setRaidBossId] = useState<string>("");
+  const [raidHp, setRaidHp] = useState<number>(0);
+  const [raidCleared, setRaidCleared] = useState<boolean>(false);
+  const [raidDamageDealt, setRaidDamageDealt] = useState<number>(0);
+  const [raidDamageFloater, setRaidDamageFloater] = useState<{ id: number; dmg: number } | null>(null);
   const [slotTick, setSlotTick] = useState(0); // 슬롯 변경 시 리렌더 트리거
   const [seenEvents, setSeenEvents] = useState<Record<string, boolean>>({});
   const [storyRoute, setStoryRoute] = useState<StoryRoute>("common");
@@ -2505,6 +2732,9 @@ export default function Page() {
     { label: "🪙 상점", target: "shop" },
     { label: "🎰 뽑기", target: "gacha" },
     { label: "🐹 펫", target: "pets" },
+    { label: "🌍 모험", target: "adventure" },
+    { label: "📱 SNS", target: "sns" },
+    { label: "⚔️ 레이드", target: "raid" },
     { label: "갤러리", target: "gallery" },
     { label: "전진협", target: "events" },
     { label: "상태", target: "profile" },
@@ -2562,6 +2792,16 @@ export default function Page() {
         setOwnedPets(saved.ownedPets ?? {});
         setActivePet(saved.activePet ?? null);
         setTotalGachaPulls(saved.totalGachaPulls ?? 0);
+        setActiveAdventure(saved.activeAdventure ?? null);
+        setAdventureHistory(saved.adventureHistory ?? {});
+        setSnsLikes(saved.snsLikes ?? {});
+        setLastSnsRefresh(saved.lastSnsRefresh ?? 0);
+        setSnsFeed(saved.snsFeed ?? []);
+        setRaidWeek(saved.raidWeek ?? weekKey());
+        setRaidBossId(saved.raidBossId ?? "");
+        setRaidHp(saved.raidHp ?? 0);
+        setRaidCleared(saved.raidCleared ?? false);
+        setRaidDamageDealt(saved.raidDamageDealt ?? 0);
         setSeenEvents(saved.seenEvents ?? {});
         setStoryRoute(saved.storyRoute ?? "common");
         setMemoryNotes(saved.memoryNotes ?? []);
@@ -2631,10 +2871,20 @@ export default function Page() {
       ownedPets,
       activePet,
       totalGachaPulls,
+      activeAdventure,
+      adventureHistory,
+      snsLikes,
+      lastSnsRefresh,
+      snsFeed,
+      raidWeek,
+      raidBossId,
+      raidHp,
+      raidCleared,
+      raidDamageDealt,
     };
     save.messages = sanitizeMessages(save.messages);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
-  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory, userLevel, userExp, lastFreeGacha, gachaTickets, comboCount, lastComboTime, comboMilestonesReached, ownedPets, activePet, totalGachaPulls]);
+  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory, userLevel, userExp, lastFreeGacha, gachaTickets, comboCount, lastComboTime, comboMilestonesReached, ownedPets, activePet, totalGachaPulls, activeAdventure, adventureHistory, snsLikes, lastSnsRefresh, snsFeed, raidWeek, raidBossId, raidHp, raidCleared, raidDamageDealt]);
 
   // ─ 방광 채우기 타이머 ─
   useEffect(() => {
@@ -2930,6 +3180,7 @@ export default function Page() {
     if (id === "bladder_ch6_01") setBladderEnchantCinematic(true);
     setDailyState((prev) => ({ ...prev, scenarioCount: prev.scenarioCount + 1 }));
     gainExp(25);
+    dealRaidDamage(150);
     showChapterTransition(chapterStartTransition(id, scenario));
   }
   function ensureActionScenario(item: ActionItem) {
@@ -3005,6 +3256,7 @@ export default function Page() {
     showStatDelta(gift.stat);
     setDailyState((prev) => ({ ...prev, giftCount: prev.giftCount + 1 }));
     gainExp(15);
+    dealRaidDamage(80);
 
     const isObs = storyRoute === "obsession" || nextStats.obsession >= 700;
     const reactionText = (isObs && gift.reactionObs) ? gift.reactionObs : gift.reaction;
@@ -3094,6 +3346,146 @@ export default function Page() {
       }
     }
   }, [visibleQuests, completedQuests, questState]);
+  // ─ 모험: 1초마다 tick 갱신 (남은 시간 표시용) ─
+  useEffect(() => {
+    if (!activeAdventure) return;
+    const t = window.setInterval(() => setAdvTick((n) => n + 1), 1000);
+    return () => window.clearInterval(t);
+  }, [activeAdventure]);
+
+  function startAdventure(loc: AdventureLoc) {
+    if (activeAdventure) return;
+    const now = Date.now();
+    setActiveAdventure({ id: loc.id, startTime: now, endTime: now + loc.durationMs, petUsed: activePet });
+  }
+  function collectAdventure() {
+    if (!activeAdventure) return;
+    const loc = ADVENTURES.find((a) => a.id === activeAdventure.id);
+    if (!loc) { setActiveAdventure(null); return; }
+    if (Date.now() < activeAdventure.endTime) return;
+    // 결과 결정: normal 70 / big 15 / fail 10 / legend 5
+    const r = Math.random();
+    let mul = 1, label: "normal" | "big" | "fail" | "legend" = "normal", flavor = loc.flavors.normal;
+    if (r < 0.05) { mul = 3; label = "legend"; flavor = "🌟 전설급 결과! " + loc.flavors.big + " (보상 3배 ㅗㅜㅑ)"; }
+    else if (r < 0.20) { mul = 2; label = "big"; flavor = loc.flavors.big; }
+    else if (r < 0.30) { mul = 0.5; label = "fail"; flavor = loc.flavors.fail; }
+    else { mul = 1; flavor = loc.flavors.normal; }
+    // 펫 보너스
+    const coinMul = petMul("coin") * petMul("all");
+    const expMul = petMul("exp") * petMul("all");
+    const affMul = petMul("affinity") * petMul("all");
+    const bladMul = petMul("bladder") * petMul("all");
+    const reward = loc.rewards;
+    const finalCoins = Math.round((reward.coins * mul) * coinMul);
+    const finalExp = Math.round((reward.exp * mul) * expMul);
+    setCoins((c) => c + finalCoins);
+    gainExp(finalExp);
+    if (reward.affinity) setStats((s) => ({ ...s, affinity: clamp(s.affinity + Math.round(reward.affinity! * mul * affMul)) }));
+    if (reward.trust) setStats((s) => ({ ...s, trust: clamp(s.trust + Math.round(reward.trust! * mul)) }));
+    if (reward.obsession) setStats((s) => ({ ...s, obsession: clamp(s.obsession + Math.round(reward.obsession! * mul)) }));
+    if (reward.bladderCharm) setStats((s) => ({ ...s, bladderCharm: clamp(s.bladderCharm + Math.round(reward.bladderCharm! * mul * bladMul)) }));
+    if (reward.ticketChance && Math.random() < reward.ticketChance * mul) {
+      setGachaTickets((t) => t + 1);
+      flavor += " · 🎫 티켓 1개도 챙김!";
+    }
+    setAdventureHistory((h) => ({ ...h, [loc.id]: (h[loc.id] ?? 0) + 1 }));
+    setActiveAdventure(null);
+    // 채팅 메시지로 결과 표시
+    setMessages((m) => [...m, makeMessage("narration", `[모험 결과 · ${loc.name}] ${flavor} (코인 +${finalCoins}, EXP +${finalExp})`)]);
+  }
+  function cancelAdventure() {
+    if (!activeAdventure) return;
+    setActiveAdventure(null);
+  }
+
+  // ─ SNS: 4시간마다 새 피드 ─
+  function refreshSnsFeed() {
+    const now = Date.now();
+    const tod = getTimeOfDay(new Date(now));
+    const eligibleTemplates = SNS_TEMPLATES.filter((t) => {
+      if (!t.triggers) return true;
+      const tr = t.triggers;
+      if (tr.timeOfDay && tr.timeOfDay !== tod) return false;
+      if (tr.storyRoute && tr.storyRoute !== storyRoute) return false;
+      if (tr.minStat) {
+        for (const [k, v] of Object.entries(tr.minStat)) {
+          if (stats[k as StatKey] < (v as number)) return false;
+        }
+      }
+      return true;
+    });
+    // 6개 새 피드 (랜덤)
+    const newPosts: { id: string; templateId: string; timestamp: number; likes: number }[] = [];
+    for (let i = 0; i < 6 && eligibleTemplates.length; i++) {
+      const tpl = eligibleTemplates[Math.floor(Math.random() * eligibleTemplates.length)];
+      newPosts.push({
+        id: `${tpl.id}_${now}_${i}`,
+        templateId: tpl.id,
+        timestamp: now - Math.floor(Math.random() * 24 * 60 * 60 * 1000),
+        likes: Math.floor(Math.random() * 50) + 5,
+      });
+    }
+    newPosts.sort((a, b) => b.timestamp - a.timestamp);
+    setSnsFeed(newPosts);
+    setLastSnsRefresh(now);
+  }
+  useEffect(() => {
+    if (view !== "sns") return;
+    const SNS_REFRESH_MS = 4 * 60 * 60 * 1000;
+    if (snsFeed.length === 0 || Date.now() - lastSnsRefresh > SNS_REFRESH_MS) {
+      refreshSnsFeed();
+    }
+  }, [view]);
+  function toggleSnsLike(postId: string) {
+    setSnsLikes((prev) => {
+      const next = { ...prev };
+      const wasLiked = !!next[postId];
+      if (wasLiked) {
+        delete next[postId];
+      } else {
+        next[postId] = true;
+        // 좋아요 누르면 호감 +1, 코인 +1
+        setStats((s) => ({ ...s, affinity: clamp(s.affinity + 1) }));
+        setCoins((c) => c + 1);
+      }
+      return next;
+    });
+  }
+
+  // ─ 레이드: 매주 보스 갱신 ─
+  useEffect(() => {
+    const cur = weekKey();
+    if (cur !== raidWeek || !raidBossId) {
+      const boss = pickWeeklyBoss(cur);
+      setRaidWeek(cur);
+      setRaidBossId(boss.id);
+      setRaidHp(boss.hpMax);
+      setRaidCleared(false);
+      setRaidDamageDealt(0);
+    }
+  }, []);
+  function dealRaidDamage(dmg: number) {
+    if (raidCleared || dmg <= 0) return;
+    setRaidHp((hp) => {
+      const nextHp = Math.max(0, hp - dmg);
+      if (nextHp === 0) {
+        const boss = RAID_BOSSES.find((b) => b.id === raidBossId);
+        if (boss) {
+          setCoins((c) => c + boss.rewards.coins);
+          setGachaTickets((t) => t + boss.rewards.tickets);
+          gainExp(boss.rewards.exp);
+          if (boss.rewards.affinity) setStats((s) => ({ ...s, affinity: clamp(s.affinity + boss.rewards.affinity!) }));
+          setMessages((m) => [...m, makeMessage("narration", `🎉 [레이드 클리어!] ${boss.name} 격파! 코인+${boss.rewards.coins}, 티켓+${boss.rewards.tickets}, EXP+${boss.rewards.exp}`)]);
+        }
+        setRaidCleared(true);
+      }
+      return nextHp;
+    });
+    setRaidDamageDealt((d) => d + dmg);
+    setRaidDamageFloater({ id: Date.now(), dmg });
+    window.setTimeout(() => setRaidDamageFloater(null), 1000);
+  }
+
   // ─ 펫 자동 해금 감지 ─
   const petUnlockState: PetUnlockState = useMemo(() => ({
     seenEvents, stats, storyRoute, totalGachaPulls, unlockedEndings,
@@ -3463,6 +3855,7 @@ export default function Page() {
     setDailyState((prev) => ({ ...prev, chatCount: prev.chatCount + 1 }));
     gainExp(5);
     pumpCombo();
+    dealRaidDamage(10);
     // 활성 펫 친밀도 +1 (채팅마다)
     if (activePet && ownedPets[activePet]) {
       setOwnedPets((prev) => {
@@ -3651,6 +4044,16 @@ export default function Page() {
     setOwnedPets({});
     setActivePet(null);
     setTotalGachaPulls(0);
+    setActiveAdventure(null);
+    setAdventureHistory({});
+    setSnsLikes({});
+    setLastSnsRefresh(0);
+    setSnsFeed([]);
+    setRaidWeek(weekKey());
+    setRaidBossId("");
+    setRaidHp(0);
+    setRaidCleared(false);
+    setRaidDamageDealt(0);
     setSeenEvents({});
     setStoryRoute("common");
     setMemoryNotes([]);
@@ -3761,7 +4164,7 @@ export default function Page() {
             </div>
           );
         })()}
-        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["gacha","🎰 뽑기"],["pets","🐹 펫"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=>{
+        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["gacha","🎰 뽑기"],["pets","🐹 펫"],["adventure","🌍 모험"],["sns","📱 SNS"],["raid","⚔️ 레이드"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=>{
           const dailyClaimable = key === "quests" ? dailyState.missions.filter((m) => {
             if (m.claimed) return false;
             const t = DAILY_MISSION_TEMPLATES.find((x) => x.id === m.templateId);
@@ -3770,10 +4173,16 @@ export default function Page() {
           const totalClaimable = (key === "quests" ? claimableCount + dailyClaimable : 0);
           // 빨간 점 알림 통합
           const freeGachaReady = Date.now() - lastFreeGacha >= GACHA_FREE_COOLDOWN;
+          const advReady = activeAdventure && Date.now() >= activeAdventure.endTime;
+          const snsRefreshDue = Date.now() - lastSnsRefresh > 4 * 60 * 60 * 1000;
+          const raidActive = !raidCleared && raidHp > 0;
           const showDot = (key === "checkin" && !isCheckedInToday(lastCheckIn))
             || (key === "quests" && totalClaimable > 0)
             || (key === "shop" && coins >= 50 && Object.keys(shopHistory).length === 0)
-            || (key === "gacha" && (freeGachaReady || gachaTickets > 0));
+            || (key === "gacha" && (freeGachaReady || gachaTickets > 0))
+            || (key === "adventure" && !!advReady)
+            || (key === "sns" && snsRefreshDue)
+            || (key === "raid" && raidActive);
           return <button key={key} className={`${view===key ? "active" : ""}${showDot ? " navDot" : ""}${key==="admin" ? " adminNavBtn" : ""}`} onClick={()=>setView(key as AppView)}>{label}{key==="quests" && totalClaimable > 0 && <span className="navBadge">{totalClaimable}</span>}</button>;
         })}</nav>
       </aside>
@@ -3990,6 +4399,155 @@ export default function Page() {
             </div>
           </Panel>
         )}
+        {view === "adventure" && (() => {
+          const ps: { stats: Stats; storyRoute: StoryRoute; unlockedEndings: Record<string, boolean>; seenEvents: Record<string, boolean> } = { stats, storyRoute, unlockedEndings, seenEvents };
+          const visible = ADVENTURES.filter((a) => !a.unlock || a.unlock.check(ps));
+          const active = activeAdventure;
+          const activeLoc = active ? ADVENTURES.find((a) => a.id === active.id) : null;
+          const remaining = active ? Math.max(0, active.endTime - Date.now()) : 0;
+          const remH = Math.floor(remaining / 3600000);
+          const remM = Math.floor((remaining % 3600000) / 60000);
+          const remS = Math.floor((remaining % 60000) / 1000);
+          const ready = active && remaining === 0;
+          return (
+            <Panel title="떡존이의 모험 🌍">
+              <p className="advIntro">떡존이를 어디론가 보내고 시간 기다리면 보상 받음 ㅋ 펫 동반하면 보너스 더 받음</p>
+              {active && activeLoc && (
+                <div className={`advActive${ready ? " advReady" : ""}`}>
+                  <div className="advActiveHead">
+                    <span className="advActiveEmoji">{activeLoc.emoji}</span>
+                    <div>
+                      <b>{activeLoc.name}</b>
+                      <small>{activeLoc.flavor}</small>
+                    </div>
+                  </div>
+                  <div className="advTimer">
+                    {ready ? (
+                      <span className="advReadyText">✨ 회수 가능! 떡존이 돌아옴 ㅗㅜㅑ</span>
+                    ) : (
+                      <span>⏱ {remH > 0 ? `${remH}시간 ` : ""}{String(remM).padStart(2,"0")}:{String(remS).padStart(2,"0")} 남음</span>
+                    )}
+                  </div>
+                  <div className="advActiveBtns">
+                    {ready ? (
+                      <button className="advCollectBtn" onClick={collectAdventure}>🎁 보상 회수</button>
+                    ) : (
+                      <button className="advCancelBtn" onClick={cancelAdventure}>중단 (보상 없음)</button>
+                    )}
+                  </div>
+                </div>
+              )}
+              <h3 className="advSectionTitle">📍 떠날 수 있는 곳</h3>
+              <div className="advGrid">
+                {visible.map((loc) => {
+                  const completed = adventureHistory[loc.id] ?? 0;
+                  return (
+                    <div key={loc.id} className="advCard">
+                      <div className="advCardHead">
+                        <span className="advEmoji">{loc.emoji}</span>
+                        <div className="advCardHeadText">
+                          <b>{loc.name}</b>
+                          <small>{loc.flavor}</small>
+                        </div>
+                      </div>
+                      <div className="advDuration">⏱ {loc.durationMs >= 3600000 ? `${Math.floor(loc.durationMs/3600000)}시간` : `${Math.floor(loc.durationMs/60000)}분`}</div>
+                      <div className="advRewards">
+                        🪙 {loc.rewards.coins}
+                        {loc.rewards.affinity ? ` · 호감 +${loc.rewards.affinity}` : ""}
+                        {loc.rewards.trust ? ` · 신뢰 +${loc.rewards.trust}` : ""}
+                        {loc.rewards.obsession ? ` · 집착 +${loc.rewards.obsession}` : ""}
+                        {loc.rewards.bladderCharm ? ` · 매력 +${loc.rewards.bladderCharm}` : ""}
+                        {loc.rewards.ticketChance ? ` · ${Math.round(loc.rewards.ticketChance*100)}% 🎫` : ""}
+                      </div>
+                      {completed > 0 && <small className="advCompleted">완료 {completed}회</small>}
+                      <button className="advStartBtn" disabled={!!active} onClick={() => startAdventure(loc)}>
+                        {active ? "원정 진행중" : "출발"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </Panel>
+          );
+        })()}
+        {view === "sns" && (
+          <Panel title="떡존이 SNS 📱">
+            <div className="snsHeader">
+              <div className="snsProfile">
+                <div className="snsAvatar"><img src={getHomeCharacterImage(stats, storyRoute)} alt="떡존이" onError={(e)=>{e.currentTarget.src=`/sd_geunddeok_idle.png?v=${SD_IMAGE_VERSION}`}}/></div>
+                <div>
+                  <b>@tteokjon_official</b>
+                  <small>K-방광 인플루언서 / 히로시마 거주 / 떡존이</small>
+                </div>
+              </div>
+              <button className="snsRefreshBtn" onClick={refreshSnsFeed}>새로고침 🔄</button>
+            </div>
+            <p className="snsHint">좋아요 누르면 호감 +1 + 코인 +1. 4시간마다 새 피드 갱신.</p>
+            <div className="snsFeed">
+              {snsFeed.length === 0 && <p style={{ textAlign: "center", padding: 40, color: "#9a7c65" }}>새로고침 눌러서 피드 받아오셈</p>}
+              {snsFeed.map((post) => {
+                const tpl = SNS_TEMPLATES.find((t) => t.id === post.templateId);
+                if (!tpl) return null;
+                const liked = !!snsLikes[post.id];
+                const ageMs = Date.now() - post.timestamp;
+                const ageH = Math.floor(ageMs / 3600000);
+                const ageM = Math.floor(ageMs / 60000);
+                const ageStr = ageH > 0 ? `${ageH}시간 전` : `${ageM}분 전`;
+                return (
+                  <div key={post.id} className={`snsPost snsCat-${tpl.category}`}>
+                    <div className="snsPostHead">
+                      <span className="snsPostEmoji">{tpl.emoji}</span>
+                      <small className="snsPostTime">{ageStr}</small>
+                    </div>
+                    <p className="snsPostText">{tpl.text}</p>
+                    <div className="snsPostActions">
+                      <button className={`snsLikeBtn${liked ? " snsLiked" : ""}`} onClick={() => toggleSnsLike(post.id)}>
+                        {liked ? "❤️" : "🤍"} {post.likes + (liked ? 1 : 0)}
+                      </button>
+                      <small className="snsCategory">#{tpl.category}</small>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Panel>
+        )}
+        {view === "raid" && (() => {
+          const boss = RAID_BOSSES.find((b) => b.id === raidBossId);
+          const hpPct = boss ? (raidHp / boss.hpMax) * 100 : 0;
+          return (
+            <Panel title="주간 레이드 ⚔️">
+              <p className="raidIntro">매주 새 보스 등장. 채팅(10) / 선물(80) / 시나리오(150) 데미지로 깎아보셈 ㄱㄱ</p>
+              {boss && (
+                <div className={`raidBossCard${raidCleared ? " raidCleared" : ""}`}>
+                  <div className="raidBossHead">
+                    <span className="raidBossEmoji">{boss.emoji}</span>
+                    <div>
+                      <b>{boss.name}</b>
+                      <small>{boss.flavor}</small>
+                    </div>
+                  </div>
+                  {!raidCleared && <p className="raidTaunt">"{boss.taunt}"</p>}
+                  {raidCleared && <p className="raidWinText">✅ 격파 완료! 다음주 자정까지 휴식 ㅋ</p>}
+                  <div className="raidHpRow">
+                    <span>HP</span>
+                    <div className="raidHpBar"><div style={{ width: `${hpPct}%` }}/></div>
+                    <strong>{raidHp.toLocaleString()} / {boss.hpMax.toLocaleString()}</strong>
+                  </div>
+                  <div className="raidStats">
+                    <span>이번주 누적 데미지: <b>{raidDamageDealt.toLocaleString()}</b></span>
+                  </div>
+                  <h4 className="raidRewardTitle">🎁 처치 보상</h4>
+                  <div className="raidRewards">
+                    🪙 {boss.rewards.coins} · 🎫 {boss.rewards.tickets} · EXP +{boss.rewards.exp}
+                    {boss.rewards.affinity ? ` · 호감 +${boss.rewards.affinity}` : ""}
+                  </div>
+                </div>
+              )}
+              <small style={{ display: "block", marginTop: 16, color: "#9a7c65", textAlign: "center" }}>이번 주차: {raidWeek}</small>
+            </Panel>
+          );
+        })()}
         {view === "pets" && (
           <Panel title="펫 동반자 🐹">
             <p className="petsIntro">펫 1마리 활성화하면 보너스 받음. 채팅하거나 가챠 돌리면 친밀도 오름 ㅋ</p>
@@ -4795,6 +5353,7 @@ export default function Page() {
         {milestoneToast && <div className="cgUnlockToast milestoneToast"><div className="cgUnlockIcon">💗</div><div><b>마일스톤 달성</b><span>「{milestoneToast.title}」</span><small>새 메시지가 도착했어요.</small></div></div>}
         {shopToast && <div className="cgUnlockToast shopToast"><div className="cgUnlockIcon">🪙</div><div><b>{shopToast.name}</b><span>{shopToast.detail}</span></div></div>}
         {expFloater && <div className="expFloater" key={expFloater.id}>+{expFloater.amount} EXP</div>}
+        {raidDamageFloater && <div className="raidDmgFloater" key={raidDamageFloater.id}>-{raidDamageFloater.dmg} HP</div>}
         {comboCount >= 3 && view === "chat" && (
           <div className={`comboCounter${comboBreak ? " comboBreak" : ""}`}>
             <span className="comboLabel">COMBO</span>
@@ -5236,6 +5795,86 @@ const CSS = `
 .petFeedBtn,.petFeedBigBtn{border:0;border-radius:8px;padding:7px 5px;background:#fff5d6;color:#5a3d12;font-weight:900;font-size:10px;cursor:pointer;border:1px solid #d9a656}
 .petFeedBigBtn{background:linear-gradient(135deg,#ffd97a,#e8993b);color:#fff}
 .petFeedBtn:disabled,.petFeedBigBtn:disabled{opacity:.4;cursor:not-allowed}
+/* ─ 모험 ─ */
+.advIntro{margin:0 0 14px;padding:12px 14px;background:linear-gradient(135deg,#a3c785,#7ba65a);border-radius:12px;color:#fff;font-weight:900;font-size:14px;text-align:center}
+.advActive{margin:0 0 18px;padding:16px 18px;background:linear-gradient(135deg,#f4f9d8,#e8e9b8);border:2px solid #b3c54a;border-radius:16px;display:grid;gap:10px}
+.advActive.advReady{background:linear-gradient(135deg,#fff7d6,#ffe9a8);border-color:#df842c;animation:advReadyPulse 1.6s ease-in-out infinite;box-shadow:0 0 22px rgba(217,166,86,.4)}
+@keyframes advReadyPulse{0%,100%{box-shadow:0 0 22px rgba(217,166,86,.4)}50%{box-shadow:0 0 36px rgba(217,166,86,.7)}}
+.advActiveHead{display:flex;align-items:center;gap:12px}
+.advActiveEmoji{font-size:38px}
+.advActiveHead b{display:block;font-size:16px;color:#2a1a14;font-weight:1000}
+.advActiveHead small{display:block;font-size:11px;color:#6b5b50}
+.advTimer{font-size:18px;font-weight:1000;color:#3a2017;text-align:center;padding:10px;background:rgba(255,255,255,.5);border-radius:10px}
+.advReadyText{color:#df842c;text-shadow:0 0 8px rgba(255,210,100,.6)}
+.advActiveBtns{display:flex;gap:8px;justify-content:flex-end}
+.advCollectBtn{flex:1;border:0;border-radius:12px;padding:12px;background:linear-gradient(135deg,#df842c,#a85020);color:#fff;font-weight:1000;font-size:15px;cursor:pointer;box-shadow:0 6px 16px rgba(217,132,44,.4)}
+.advCollectBtn:hover{transform:translateY(-1px)}
+.advCancelBtn{border:0;border-radius:12px;padding:8px 16px;background:#d9c8b5;color:#7a6957;font-weight:700;font-size:12px;cursor:pointer}
+.advSectionTitle{margin:14px 0 10px;font-size:16px;color:#3a2017}
+.advGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.advCard{display:grid;gap:8px;padding:14px 16px;background:#fff;border:1px solid #e6d2b8;border-radius:14px}
+.advCardHead{display:flex;align-items:center;gap:10px}
+.advEmoji{font-size:30px}
+.advCardHeadText b{display:block;font-size:14px;color:#2a1a14;font-weight:1000}
+.advCardHeadText small{display:block;font-size:11px;color:#7a5e4a;font-style:italic}
+.advDuration{font-size:12px;color:#5a3520;font-weight:700;padding:4px 9px;background:rgba(91,48,24,.08);border-radius:99px;width:fit-content}
+.advRewards{font-size:11px;color:#3a2017;font-weight:700;line-height:1.6}
+.advCompleted{font-size:10px;color:#7b5318;font-weight:900}
+.advStartBtn{border:0;border-radius:10px;padding:9px;background:#3a2d29;color:#fff;font-weight:900;font-size:13px;cursor:pointer;margin-top:4px}
+.advStartBtn:disabled{background:#d9c8b5;color:#7a6957;cursor:not-allowed}
+.advStartBtn:hover:not(:disabled){background:#5a4338}
+/* ─ SNS ─ */
+.snsHeader{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;background:linear-gradient(135deg,#fff5fa,#fce0ec);border:1px solid #e8c9d8;border-radius:14px;margin-bottom:12px}
+.snsProfile{display:flex;align-items:center;gap:12px}
+.snsAvatar{width:54px;height:54px;border-radius:50%;background:#fff;border:3px solid #e89bb8;overflow:hidden;flex:none}
+.snsAvatar img{width:100%;height:100%;object-fit:cover}
+.snsProfile b{display:block;font-size:14px;color:#7b3a52;font-weight:1000}
+.snsProfile small{display:block;font-size:11px;color:#9a6b80}
+.snsRefreshBtn{border:0;border-radius:10px;padding:8px 14px;background:#7b3a52;color:#fff;font-weight:900;font-size:12px;cursor:pointer}
+.snsRefreshBtn:hover{background:#9a4a6a}
+.snsHint{margin:0 0 14px;padding:10px;font-size:11px;color:#7a5e4a;background:#fff8ef;border-radius:10px;text-align:center;font-style:italic}
+.snsFeed{display:grid;gap:12px}
+.snsPost{padding:14px 16px;background:#fff;border:1px solid #e6d2b8;border-radius:14px;display:grid;gap:8px;transition:transform .15s,box-shadow .2s}
+.snsPost:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(91,48,24,.08)}
+.snsCat-workout{border-left:4px solid #e8993b}
+.snsCat-food{border-left:4px solid #d6651e}
+.snsCat-selfie{border-left:4px solid #8b5a8d}
+.snsCat-daily{border-left:4px solid #7ba65a}
+.snsCat-love{border-left:4px solid #df5e88;background:linear-gradient(180deg,#fff5fa 0%,#fff 60%)}
+.snsCat-obsession{border-left:4px solid #5a2530;background:linear-gradient(180deg,#2a151a 0%,#3a1f25 100%);color:#f4dadd}
+.snsCat-obsession .snsPostText{color:#f4dadd}
+.snsCat-obsession .snsPostTime{color:#a8888b}
+.snsCat-obsession .snsCategory{color:#e88a9a}
+.snsCat-bladder{border-left:4px solid #d9a656;background:linear-gradient(180deg,#fff7d6 0%,#fff 60%)}
+.snsPostHead{display:flex;align-items:center;justify-content:space-between}
+.snsPostEmoji{font-size:24px}
+.snsPostTime{font-size:11px;color:#9a7c65;font-weight:700}
+.snsPostText{margin:0;font-size:14px;color:#3a2017;line-height:1.55;white-space:pre-line}
+.snsPostActions{display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid rgba(91,48,24,.08)}
+.snsLikeBtn{border:0;background:transparent;font-size:14px;font-weight:900;color:#5a3520;cursor:pointer;padding:4px 8px;border-radius:8px;transition:transform .12s}
+.snsLikeBtn:hover{transform:scale(1.1)}
+.snsLikeBtn.snsLiked{color:#df5e88}
+.snsCategory{font-size:11px;color:#9a7c65;font-style:italic}
+/* ─ 레이드 ─ */
+.raidIntro{margin:0 0 14px;padding:12px 14px;background:linear-gradient(135deg,#5a2530,#7a3540);border-radius:12px;color:#fff;font-weight:700;font-size:13px;text-align:center}
+.raidBossCard{padding:20px 22px;background:linear-gradient(180deg,#3a1525 0%,#1a0a12 100%);border:2px solid rgba(255,90,80,.45);border-radius:18px;color:#fff;display:grid;gap:14px}
+.raidBossCard.raidCleared{background:linear-gradient(180deg,#2a3a25 0%,#1a2515 100%);border-color:rgba(140,220,160,.5)}
+.raidBossHead{display:flex;align-items:center;gap:14px}
+.raidBossEmoji{font-size:46px;filter:drop-shadow(0 0 12px rgba(255,90,80,.5))}
+.raidBossHead b{display:block;font-size:20px;color:#ffaab2;font-weight:1000}
+.raidBossHead small{display:block;font-size:12px;color:#caa8ad;margin-top:2px}
+.raidTaunt{margin:0;padding:12px;background:rgba(0,0,0,.3);border-left:3px solid #ff6677;font-style:italic;font-size:13px;color:#ffd0d6;line-height:1.5;border-radius:6px}
+.raidWinText{margin:0;padding:12px;background:rgba(140,220,160,.16);border-left:3px solid #7ba65a;font-weight:1000;color:#a8eac0;font-size:14px;border-radius:6px;text-align:center}
+.raidHpRow{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:900;color:#ffd0d6}
+.raidHpBar{flex:1;height:14px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;border:1px solid rgba(255,90,80,.3)}
+.raidHpBar div{height:100%;background:linear-gradient(90deg,#ff5577,#ff8844);border-radius:99px;transition:width .4s ease;box-shadow:0 0 8px rgba(255,90,80,.6)}
+.raidHpRow strong{font-size:13px;color:#fff}
+.raidStats{font-size:13px;color:#caa8ad}
+.raidStats b{color:#ffd97a;font-weight:1000}
+.raidRewardTitle{margin:8px 0 0;font-size:14px;color:#ffd97a}
+.raidRewards{font-size:13px;color:#fff;font-weight:700;padding:10px;background:rgba(255,210,100,.1);border-radius:8px}
+.raidDmgFloater{position:fixed;top:50%;right:24px;z-index:9998;color:#ff5577;font-weight:1000;font-size:28px;text-shadow:0 0 14px rgba(255,90,80,.9),0 2px 4px rgba(0,0,0,.6);pointer-events:none;animation:raidDmgAnim 1s cubic-bezier(.2,.6,.3,1) forwards}
+@keyframes raidDmgAnim{0%{opacity:0;transform:translateY(20px) scale(.7)}30%{opacity:1;transform:translateY(0) scale(1.15)}100%{opacity:0;transform:translateY(-50px) scale(1)}}
 .secretRouteCard{position:relative;overflow:hidden;transition:transform .15s ease,box-shadow .2s ease}.secretRouteCard.secretUnlocked{background:linear-gradient(135deg,#fff7d6 0%,#ffe9a8 60%,#ffd17a 100%);border:1px solid #d9a656;color:#5a3d12;box-shadow:0 8px 24px rgba(217,166,86,.28)}.secretRouteCard.secretUnlocked:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(217,166,86,.4)}.secretRouteCard.secretUnlocked b{color:#3a2510}.secretRouteCard.secretUnlocked small{color:#7b5318}.secretRouteCard.secretLocked{background:repeating-linear-gradient(135deg,#2a201b 0px,#2a201b 14px,#22191a 14px,#22191a 28px);color:#7a6b62;border:1px dashed #5a4a40;cursor:not-allowed;opacity:.85}.secretRouteCard.secretLocked b{color:#8a7a6f;letter-spacing:.18em}.secretRouteCard.secretLocked small{color:#6b5b50;font-style:italic}.secretRouteCard.secretLocked:hover{transform:none;box-shadow:none}
 .saveSlotGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:18px}.saveSlotCard{background:#fff8ef;border:1px solid #e8c99e;border-radius:18px;padding:16px;display:grid;gap:12px;color:#3a2017;box-shadow:0 8px 22px rgba(91,48,24,.08);transition:transform .15s ease,box-shadow .2s ease}.saveSlotCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.saveSlotCard.ssEmpty{background:#f6efe5;border-style:dashed;border-color:#cdb89a;opacity:.85}.saveSlotCard.ssRoutePure{background:linear-gradient(180deg,#fff5f8 0%,#fce6ee 100%);border-color:#ecc4d6}.saveSlotCard.ssRouteObsession{background:linear-gradient(180deg,#2a1517 0%,#1a0d0e 100%);border-color:#5d2a30;color:#f4dadd}.saveSlotCard.ssRouteObsession .ssTime,.saveSlotCard.ssRouteObsession .ssPreview{color:#b89a9d}.saveSlotCard.ssRouteObsession .ssStats span{background:rgba(255,200,200,.08);color:#f4dadd}.saveSlotCard.ssRouteObsession .ssThumb{border-color:rgba(255,170,170,.2)}.ssHead{display:flex;align-items:center;justify-content:space-between;gap:8px}.ssNum{font-size:14px;font-weight:1000;letter-spacing:.04em;color:inherit}.ssRouteBadge{font-size:11px;font-weight:900;padding:4px 10px;border-radius:99px;background:rgba(91,48,24,.12);color:#7b4f2f}.ssRoutePure .ssRouteBadge{background:rgba(220,120,160,.18);color:#a14872}.ssRouteObsession .ssRouteBadge{background:rgba(220,80,80,.22);color:#ffaab2}.ssBody{display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:start}.ssThumb{width:84px;height:84px;border-radius:14px;object-fit:cover;border:1px solid rgba(91,48,24,.18);background:#ead7c7}.ssMeta{display:grid;gap:6px;min-width:0}.ssScene{margin:0;font-size:14px;font-weight:900;color:inherit;line-height:1.4}.ssPreview{margin:0;font-size:12px;font-style:italic;color:#7a5e4a;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.ssStats{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}.ssStats span{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:99px;background:rgba(91,48,24,.1);color:#5b3520;letter-spacing:.02em}.ssTime{color:#9a7c65;font-size:11px;font-weight:700;margin-top:2px}.ssEmptyBody{text-align:center;padding:24px 12px;color:#876953}.ssEmptyIcon{font-size:36px;display:block;margin-bottom:8px;opacity:.6}.ssEmptyBody p{margin:0 0 4px;font-size:14px;font-weight:900}.ssEmptyBody small{font-size:11px;color:#a78a72}.ssActions{display:flex;gap:6px}.ssActions button{flex:1;border:0;border-radius:12px;padding:10px 8px;font-size:13px;font-weight:900;cursor:pointer;transition:background .15s ease,transform .12s ease}.ssActions button:hover{transform:translateY(-1px)}.ssBtnLoad{background:#df842c;color:#fff}.ssBtnLoad:hover{background:#c8731f}.ssBtnSave{background:#3a2d29;color:#fff}.ssBtnSave:hover{background:#5a4338}.ssBtnDel{background:transparent;color:#c44;border:1px solid #c44 !important}.ssBtnDel:hover{background:rgba(196,68,68,.1)}
 .cgReaction{display:grid;grid-template-columns:86px minmax(0,1fr) auto;gap:14px;align-items:center;margin:0 0 18px;padding:14px;border-radius:20px;background:#fff8ef;border:1px solid #e8c99e;box-shadow:0 12px 32px rgba(91,48,24,.08)}.cgReaction>img{width:86px;height:86px;border-radius:18px;object-fit:cover;background:#ead7c7}.cgReactionBody{display:grid;gap:6px;min-width:0}.cgReactionBody p{margin:0;color:#4a342a;line-height:1.65;font-weight:800}.cgSourceCaption{color:#9a7c65;font-size:12px;font-weight:700}.cgReactionActions{display:flex;gap:6px;align-items:center}.cgReaction button{border:0;border-radius:999px;background:#3a2d29;color:white;padding:10px 14px;font-weight:900}.favBtn{background:#fff;color:#c44}.favBtn.favOn{background:#c44;color:#fff}.cgCard{position:relative;border:0;text-align:center;cursor:pointer;transition:transform .15s ease,box-shadow .2s ease}.cgCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.cgCardLocked{cursor:default;background:#1f1714}.cgCardLocked:hover{transform:none}.cgSilhouette{filter:brightness(.18) blur(6px) saturate(.5)}.cgLockedBadge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;color:rgba(255,210,150,.55);text-shadow:0 2px 12px rgba(0,0,0,.6);pointer-events:none}.cgFavMark{position:absolute;top:8px;right:10px;font-size:18px;color:#ff5577;text-shadow:0 2px 6px rgba(0,0,0,.45);pointer-events:none}.cgCardCaption{position:absolute;left:0;right:0;bottom:0;padding:6px 10px;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.74) 100%);color:#fff7e8;font-size:11px;font-weight:800;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;text-align:left}.galleryProgress{display:flex;align-items:center;gap:12px;margin:0 0 18px;padding:12px 16px;background:#fff8ef;border:1px solid #e8c99e;border-radius:14px;color:#5a3928}.galleryProgress span{font-size:12px;font-weight:900;letter-spacing:.06em;color:#7b4f2f}.galleryProgressBar{flex:1;min-width:80px;height:8px;background:rgba(91,48,24,.15);border-radius:99px;overflow:hidden}.galleryProgressBar div{height:100%;background:linear-gradient(90deg,#df842c,#e8993b);border-radius:99px;transition:width .35s ease}.galleryProgress strong{font-size:14px;color:#3a2017;font-weight:900}.tabs button.active{background:#df842c}.tabs button.bladderTab{background:linear-gradient(135deg,#d9a656,#b8843a);color:#fff;font-weight:1000}.tabs button.bladderTab.active{background:linear-gradient(135deg,#ffc94f,#d9a656);box-shadow:0 4px 12px rgba(217,166,86,.4)}.tabs button.bladderTab:hover{background:linear-gradient(135deg,#e8b563,#c89540)}

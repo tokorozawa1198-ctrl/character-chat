@@ -1,7 +1,7 @@
 "use client";
 
 export type Role = "user" | "assistant" | "narration";
-export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests" | "shop" | "gacha" | "pets";
+export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests" | "shop" | "gacha" | "pets" | "adventure" | "sns" | "raid";
 export type ScenarioKind = "normal" | "jealousy" | "obsession" | "confinement" | "yandere";
 export type ScenarioCategory = "main" | "action" | "special" | "after" | "side";
 export type StatKey = "affinity" | "jealousy" | "obsession" | "trust" | "bladderCharm";
@@ -121,6 +121,19 @@ export type SaveData = {
   ownedPets?: Record<string, { level: number; affinity: number; obtained: number }>;
   activePet?: string | null;
   totalGachaPulls?: number;
+  // 모험
+  activeAdventure?: { id: string; startTime: number; endTime: number; petUsed: string | null } | null;
+  adventureHistory?: Record<string, number>;
+  // SNS
+  snsLikes?: Record<string, boolean>;
+  lastSnsRefresh?: number;
+  snsFeed?: { id: string; templateId: string; timestamp: number; likes: number }[];
+  // 레이드
+  raidWeek?: string;       // YYYY-Www
+  raidBossId?: string;
+  raidHp?: number;
+  raidCleared?: boolean;
+  raidDamageDealt?: number;
 };
 export type DailyMission = {
   templateId: string;
