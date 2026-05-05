@@ -101,4 +101,5 @@ export type SaveData = {
   unlockedAchievements?: Record<string, number>; // id -> 해금 timestamp
   lastBladderRelief?: number;    // 마지막 화장실 허락 timestamp
   bladderPopupThreshold?: number; // 마지막 팝업을 띄운 % 임계값
+  cgFavorites?: Record<string, boolean>; // CG 즐겨찾기
 };

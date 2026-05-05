@@ -1653,6 +1653,8 @@ export default function Page() {
   const [currentPortrait, setCurrentPortrait] = useState("/oppa1.png");
   const [galleryTab, setGalleryTab] = useState<GalleryTab>("all");
   const [unlockedCGs, setUnlockedCGs] = useState<Record<string, boolean>>({});
+  const [cgFavorites, setCgFavorites] = useState<Record<string, boolean>>({});
+  const [slotTick, setSlotTick] = useState(0); // 슬롯 변경 시 리렌더 트리거
   const [seenEvents, setSeenEvents] = useState<Record<string, boolean>>({});
   const [storyRoute, setStoryRoute] = useState<StoryRoute>("common");
   const [memoryNotes, setMemoryNotes] = useState<MemoryNote[]>([]);
@@ -1783,6 +1785,7 @@ export default function Page() {
         setCurrentPortrait(saved.currentPortrait ?? "/oppa1.png");
         setGalleryTab(saved.galleryTab ?? "all");
         setUnlockedCGs(saved.unlockedCGs ?? {});
+        setCgFavorites(saved.cgFavorites ?? {});
         setSeenEvents(saved.seenEvents ?? {});
         setStoryRoute(saved.storyRoute ?? "common");
         setMemoryNotes(saved.memoryNotes ?? []);
@@ -1834,10 +1837,11 @@ export default function Page() {
       unlockedAchievements,
       lastBladderRelief,
       bladderPopupThreshold,
+      cgFavorites,
     };
     save.messages = sanitizeMessages(save.messages);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
-  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold]);
+  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites]);
 
   // ─ 방광 채우기 타이머 ─
   useEffect(() => {
@@ -2406,15 +2410,47 @@ export default function Page() {
     const py = (event.clientY - rect.top) / rect.height - 0.5;
     setHomeTilt({ x: -py * 5, y: px * 5 });
   }
+  function readSlotData(slot: number): SaveData | null {
+    try {
+      const raw = localStorage.getItem(SLOT_KEY(slot));
+      if (!raw) return null;
+      return JSON.parse(raw) as SaveData;
+    } catch {
+      return null;
+    }
+  }
   function saveSlot(slot: number) {
+    const existing = readSlotData(slot);
+    if (existing && !confirm(`${slot}번 슬롯에 이미 저장된 게 있어요. 덮어쓸까요?`)) return;
     localStorage.setItem(SLOT_KEY(slot), localStorage.getItem(STORAGE_KEY) ?? "");
+    setSlotTick((n) => n + 1);
     alert(`${slot}번 슬롯 저장 완료`);
   }
   function loadSlot(slot: number) {
     const raw = localStorage.getItem(SLOT_KEY(slot));
     if (!raw) return alert("빈 슬롯이에요.");
+    if (!confirm(`${slot}번 슬롯을 불러올까요? 현재 진행 상황은 사라집니다 (다른 슬롯에 저장 안 했다면).`)) return;
     localStorage.setItem(STORAGE_KEY, raw);
     location.reload();
+  }
+  function deleteSlot(slot: number) {
+    const existing = readSlotData(slot);
+    if (!existing) return;
+    if (!confirm(`${slot}번 슬롯을 삭제할까요? 되돌릴 수 없어요.`)) return;
+    localStorage.removeItem(SLOT_KEY(slot));
+    setSlotTick((n) => n + 1);
+  }
+  function formatSavedAt(iso?: string): string {
+    if (!iso) return "";
+    try {
+      const d = new Date(iso);
+      const yy = String(d.getFullYear()).slice(2);
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mi = String(d.getMinutes()).padStart(2, "0");
+      return `${yy}.${mm}.${dd} ${hh}:${mi}`;
+    } catch { return ""; }
   }
   async function resetAll() {
     if (!confirm("초기화하면 저장한 진행과 대화가 모두 지워집니다. 계속할까요?")) return;
@@ -2454,6 +2490,39 @@ export default function Page() {
     if (galleryTab === "action") return actionCGImages;
     return imagePools[galleryTab] ?? imagePools.normal;
   }, [galleryTab]);
+  // CG → 시나리오 매핑 (어디서 본 CG인지 캡션 표시용)
+  const cgScenarioMap = useMemo(() => {
+    const map: Record<string, { title: string; subtitle: string }> = {};
+    const allScenarios: Record<string, Scenario> = { ...scenarioData, ...LOCATION_SCENARIOS };
+    for (const sc of Object.values(allScenarios)) {
+      const imgs = sc.imagePool ?? (sc.image ? [sc.image] : []);
+      for (const img of imgs) {
+        if (img && !map[img]) map[img] = { title: sc.title, subtitle: sc.subtitle };
+      }
+    }
+    // 액션 CG 풀
+    for (const [actionKey, pool] of Object.entries(actionCGPools)) {
+      const item = actionItems.find((it) => it.scenario === `action_${actionKey}`);
+      const label = item ? `액션: ${item.label}` : `액션: ${actionKey}`;
+      for (const img of pool) {
+        if (img && !map[img]) map[img] = { title: label, subtitle: "액션 이벤트" };
+      }
+    }
+    return map;
+  }, []);
+  function toggleCgFavorite(img: string) {
+    setCgFavorites((prev) => {
+      const next = { ...prev };
+      if (next[img]) delete next[img];
+      else next[img] = true;
+      return next;
+    });
+  }
+  const galleryStats = useMemo(() => {
+    const total = galleryImages.length;
+    const unlocked = galleryImages.filter((img) => isAdminMode || unlockedCGs[img]).length;
+    return { total, unlocked };
+  }, [galleryImages, unlockedCGs, isAdminMode]);
   const eventCatalog = Object.values(scenarioData).filter((s) => getScenarioCategory(s.id, s) !== "after");
   const tutorialCards = [
     { title: "대화하기", body: "근떡존과 대화하면 호감, 신뢰, 집착, 질투 수치가 조금씩 변합니다." },
@@ -2543,7 +2612,59 @@ export default function Page() {
         </>}
         {view === "scenarioMenu" && <Panel title="시나리오"><div className="sectionStack"><h3>메인 시나리오</h3><div className="grid">{mainScenarios.map((s)=><button className="cardBtn" key={s.id} onClick={()=>startScenario(s.id)}><b>{s.title}</b><small>{s.subtitle}</small></button>)}</div><h3>기타 / 특수</h3><div className="grid">{sideScenarios.map((s)=><button className="cardBtn" key={s.id} onClick={()=>startScenario(s.id)}><b>{s.title}</b><small>{s.subtitle}</small></button>)}</div></div></Panel>}
         {view === "profile" && <Panel title="상태"><div className="profilePanel"><div className="profileOverview"><div className="profileIllustration"><img key={currentPortrait} className="portraitCrossfade" src={currentPortrait || getHomeCharacterImage(stats, storyRoute)} alt={`${profile.name} 초상`} onError={(e)=>{e.currentTarget.src="/oppa1.png"}}/></div><div className="profileSummary"><h3>{profile.name}</h3><p className="profileTag">Lv.{relLevel.lv} · {relLevel.displayName}</p><div className="profileStatsLine"><span>{routeLabel}</span><span>{currentChapter}장 진행</span>{currentScenario ? <span>{currentScenario.title}</span> : null}</div><div className="profileDetails"><span>나이 {profile.age}</span><span>키 {profile.height}</span><span>{profile.location}</span></div><div className="statusCards"><div className="statusCard"><strong>호감</strong><span>{stats.affinity}%</span><small>{getStatMood("affinity", stats.affinity)}</small></div><div className="statusCard"><strong>질투</strong><span>{stats.jealousy}%</span><small>{getStatMood("jealousy", stats.jealousy)}</small></div><div className="statusCard"><strong>집착</strong><span>{stats.obsession}%</span><small>{getStatMood("obsession", stats.obsession)}</small></div><div className="statusCard"><strong>신뢰</strong><span>{stats.trust}%</span><small>{getStatMood("trust", stats.trust)}</small></div></div><div className="statusNote"><b>{emotionState.label}</b><span>{emotionState.detail}</span><small>{getCurrentStatusText(stats, storyRoute)}</small></div></div></div><div className="memoryPanel"><div><strong>관계 기억 노트</strong><small>{memoryNotes.length}개 저장됨</small></div>{memoryNotes.length ? memoryNotes.slice(-8).reverse().map((note)=><p key={note.id}><b>{note.chapter}장</b>{note.text}</p>) : <p>아직 근떡존이 오래 붙잡고 있을 만한 기억은 없어요.</p>}</div><div className="profileTextBlock"><p>{profile.bio}</p><p>{profile.personality}</p></div><div className="profileMeta"><div><strong>좋아하는 것</strong><p>{profile.likes.join(" · ")}</p></div><div><strong>취미</strong><p>{profile.hobbies.join(" · ")}</p></div><div><strong>키워드</strong><p>{profile.tags.join(" · ")}</p></div></div></div></Panel>}
-        {view === "gallery" && <Panel title="CG 갤러리"><div className="tabs">{(Object.keys(galleryTabLabels) as GalleryTab[]).map((tab)=><button key={tab} onClick={()=>setGalleryTab(tab)}>{galleryTabLabels[tab]}</button>)}</div>{cgReaction && <div className="cgReaction"><img src={cgReaction.img} alt="" onError={(e)=>{e.currentTarget.style.display="none"}}/><p>{cgReaction.text}</p><button onClick={()=>setCgReaction(null)}>닫기</button></div>}<div className="galleryGrid">{galleryImages.map((img)=><button className="cgCard" key={img} onClick={()=>(isAdminMode || unlockedCGs[img]) && setCgReaction({ img, text: getCgReaction(img, stats, storyRoute) })}>{(isAdminMode || unlockedCGs[img]) ? <img src={img} alt="" onError={(e)=>{e.currentTarget.style.display="none"}}/> : <span>LOCKED</span>}</button>)}</div></Panel>}
+        {view === "gallery" && (
+          <Panel title="CG 갤러리">
+            <div className="tabs">{(Object.keys(galleryTabLabels) as GalleryTab[]).map((tab)=><button key={tab} className={galleryTab===tab?"active":""} onClick={()=>setGalleryTab(tab)}>{galleryTabLabels[tab]}</button>)}</div>
+            <div className="galleryProgress">
+              <span>해금 진행도</span>
+              <div className="galleryProgressBar"><div style={{width: `${galleryStats.total ? (galleryStats.unlocked / galleryStats.total) * 100 : 0}%`}}/></div>
+              <strong>{galleryStats.unlocked} / {galleryStats.total}</strong>
+            </div>
+            {cgReaction && (
+              <div className="cgReaction">
+                <img src={cgReaction.img} alt="" onError={(e)=>{e.currentTarget.style.display="none"}}/>
+                <div className="cgReactionBody">
+                  <p>{cgReaction.text}</p>
+                  {cgScenarioMap[cgReaction.img] && (
+                    <small className="cgSourceCaption">📖 {cgScenarioMap[cgReaction.img].title} · {cgScenarioMap[cgReaction.img].subtitle}</small>
+                  )}
+                </div>
+                <div className="cgReactionActions">
+                  <button className={`favBtn${cgFavorites[cgReaction.img]?" favOn":""}`} onClick={()=>toggleCgFavorite(cgReaction.img)} aria-label="즐겨찾기">{cgFavorites[cgReaction.img] ? "♥" : "♡"}</button>
+                  <button onClick={()=>setCgReaction(null)}>닫기</button>
+                </div>
+              </div>
+            )}
+            <div className="galleryGrid">
+              {galleryImages.map((img) => {
+                const unlocked = isAdminMode || unlockedCGs[img];
+                const isFav = !!cgFavorites[img];
+                const source = cgScenarioMap[img];
+                return (
+                  <button
+                    className={`cgCard${unlocked ? " cgCardUnlocked" : " cgCardLocked"}${isFav ? " cgCardFav" : ""}`}
+                    key={img}
+                    onClick={() => unlocked && setCgReaction({ img, text: getCgReaction(img, stats, storyRoute) })}
+                  >
+                    {unlocked ? (
+                      <>
+                        <img src={img} alt="" onError={(e)=>{e.currentTarget.style.display="none"}}/>
+                        {isFav && <span className="cgFavMark">♥</span>}
+                        {source && <span className="cgCardCaption">{source.title}</span>}
+                      </>
+                    ) : (
+                      <>
+                        <img src={img} alt="" className="cgSilhouette" aria-hidden onError={(e)=>{e.currentTarget.style.display="none"}}/>
+                        <span className="cgLockedBadge">🔒</span>
+                        <span className="cgCardCaption">미해금 · ???</span>
+                      </>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </Panel>
+        )}
         {view === "events" && <Panel title="전진협 / 이벤트 도감"><div className="grid">{eventCatalog.map((s)=><button className="cardBtn" key={s.id} onClick={()=>(isAdminMode || seenEvents[s.id]) && startScenario(s.id)}><b>{(isAdminMode || seenEvents[s.id]) ? s.title : "미해금 · ???"}</b><small>{(isAdminMode || seenEvents[s.id]) ? s.subtitle : "해당 이벤트를 보면 도감에 기록돼요."}</small></button>)}</div></Panel>}
         {view === "gift" && (
           <Panel title="선물하기">
@@ -3028,7 +3149,60 @@ export default function Page() {
           );
         })()}
 
-        {view === "save" && <Panel title="저장"><div className="grid">{[1,2,3].map((slot)=><div className="cardBtn" key={slot}><b>슬롯 {slot}</b><button onClick={()=>saveSlot(slot)}>저장</button><button onClick={()=>loadSlot(slot)}>불러오기</button></div>)}</div><button className="bigBtn dangerBtn" onClick={resetAll}>전체 초기화</button></Panel>}
+        {view === "save" && (
+          <Panel title="저장">
+            <div className="saveSlotGrid" data-tick={slotTick}>
+              {[1, 2, 3].map((slot) => {
+                const data = readSlotData(slot);
+                const route = data?.storyRoute ?? "common";
+                const routeKlass = route === "pure" ? "ssRoutePure" : route === "obsession" ? "ssRouteObsession" : "ssRouteCommon";
+                return (
+                  <div className={`saveSlotCard ${routeKlass}${data ? " ssFilled" : " ssEmpty"}`} key={slot}>
+                    <div className="ssHead">
+                      <span className="ssNum">슬롯 {slot}</span>
+                      {data && <span className="ssRouteBadge">{data.routeLabel ?? "공통 루트"}</span>}
+                    </div>
+                    {data ? (
+                      <>
+                        <div className="ssBody">
+                          <img className="ssThumb" src={data.saveThumbnail || "/oppa1.png"} alt="" onError={(e)=>{e.currentTarget.src="/oppa1.png"}}/>
+                          <div className="ssMeta">
+                            <p className="ssScene">{(data.currentScenarioId && (scenarioData[data.currentScenarioId]?.title ?? LOCATION_SCENARIOS[data.currentScenarioId]?.title)) ?? "자유 대화"}</p>
+                            {data.lastMessagePreview && <p className="ssPreview">"{data.lastMessagePreview}"</p>}
+                            <div className="ssStats">
+                              <span>호감 {data.stats?.affinity ?? 0}</span>
+                              <span>신뢰 {data.stats?.trust ?? 0}</span>
+                              <span>집착 {data.stats?.obsession ?? 0}</span>
+                              <span>질투 {data.stats?.jealousy ?? 0}</span>
+                            </div>
+                            <small className="ssTime">{formatSavedAt(data.savedAt)}</small>
+                          </div>
+                        </div>
+                        <div className="ssActions">
+                          <button className="ssBtnLoad" onClick={() => loadSlot(slot)}>불러오기</button>
+                          <button className="ssBtnSave" onClick={() => saveSlot(slot)}>덮어쓰기</button>
+                          <button className="ssBtnDel" onClick={() => deleteSlot(slot)}>삭제</button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="ssEmptyBody">
+                          <span className="ssEmptyIcon">📁</span>
+                          <p>비어 있는 슬롯</p>
+                          <small>현재 진행 상황을 여기에 저장할 수 있어요.</small>
+                        </div>
+                        <div className="ssActions">
+                          <button className="ssBtnSave" onClick={() => saveSlot(slot)}>저장</button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <button className="bigBtn dangerBtn" onClick={resetAll}>전체 초기화</button>
+          </Panel>
+        )}
         {view === "settings" && <Panel title="액션"><div className="grid">{actionItems.map((item)=><button className="cardBtn" key={item.label} onClick={()=>runAction(item)}><b>{item.emoji} {item.label}</b><small>{item.text}</small></button>)}</div></Panel>}
 
         {view === "admin" && isAdminMode && (
@@ -3257,7 +3431,8 @@ const CSS = `
 @keyframes pulseDialogue{0%{transform:scale(1)}38%{transform:scale(1.018)}100%{transform:scale(1)}}
 .vnChoices button.lockedChoice{opacity:.48;cursor:not-allowed;background:#1e1714;border:1px solid rgba(255,255,255,.10);color:#7a6560;position:relative;display:grid;gap:4px}.vnChoices button.lockedChoice::before{content:"🔒";position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.7}.condBadge{display:block;font-size:10px;font-weight:900;letter-spacing:.08em;color:#d0a060;opacity:.8;text-transform:uppercase}.lockedMsg{margin:0 0 10px;padding:12px 16px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,200,120,.18);color:#c9a88a;font-size:14px;font-style:italic;text-align:center;animation:fadeLockedMsg .3s ease}
 .emotionBox{display:grid;gap:6px;margin:0 0 14px;padding:13px 14px;border-radius:16px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.1)}.emotionBox span{font-size:16px;font-weight:1000;color:#ffd59b}.emotionBox small{font-size:12px;line-height:1.45;color:#e8d8c8}.emotionBox.danger span{color:#ff8b8b}.emotionBox.warn span{color:#ffbd73}.emotionBox.soft span{color:#aee3b5}.emotionBox.warm span{color:#ffd07a}.statusNote{display:grid;gap:7px}.statusNote b{font-size:18px;color:#7b4f2f}.statusNote span,.statusNote small{line-height:1.6}.memoryPanel{display:grid;gap:10px;background:#fffaf4;border:1px solid #e8d2b6;border-radius:20px;padding:20px}.memoryPanel>div{display:flex;justify-content:space-between;gap:10px;align-items:center}.memoryPanel strong{font-size:18px;color:#5b3828}.memoryPanel small{color:#9a7c65}.memoryPanel p{margin:0;padding:12px 14px;border-radius:14px;background:#fff;border:1px solid rgba(216,184,148,.55);color:#4a342a;line-height:1.7}.memoryPanel p b{display:inline-flex;margin-right:8px;color:#d98131}
-.cgReaction{display:grid;grid-template-columns:86px minmax(0,1fr) auto;gap:14px;align-items:center;margin:0 0 18px;padding:14px;border-radius:20px;background:#fff8ef;border:1px solid #e8c99e;box-shadow:0 12px 32px rgba(91,48,24,.08)}.cgReaction img{width:86px;height:86px;border-radius:18px;object-fit:cover;background:#ead7c7}.cgReaction p{margin:0;color:#4a342a;line-height:1.65;font-weight:800}.cgReaction button{border:0;border-radius:999px;background:#3a2d29;color:white;padding:10px 14px;font-weight:900}.cgCard{border:0;text-align:center;cursor:pointer}.cgCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}
+.saveSlotGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:18px}.saveSlotCard{background:#fff8ef;border:1px solid #e8c99e;border-radius:18px;padding:16px;display:grid;gap:12px;color:#3a2017;box-shadow:0 8px 22px rgba(91,48,24,.08);transition:transform .15s ease,box-shadow .2s ease}.saveSlotCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.saveSlotCard.ssEmpty{background:#f6efe5;border-style:dashed;border-color:#cdb89a;opacity:.85}.saveSlotCard.ssRoutePure{background:linear-gradient(180deg,#fff5f8 0%,#fce6ee 100%);border-color:#ecc4d6}.saveSlotCard.ssRouteObsession{background:linear-gradient(180deg,#2a1517 0%,#1a0d0e 100%);border-color:#5d2a30;color:#f4dadd}.saveSlotCard.ssRouteObsession .ssTime,.saveSlotCard.ssRouteObsession .ssPreview{color:#b89a9d}.saveSlotCard.ssRouteObsession .ssStats span{background:rgba(255,200,200,.08);color:#f4dadd}.saveSlotCard.ssRouteObsession .ssThumb{border-color:rgba(255,170,170,.2)}.ssHead{display:flex;align-items:center;justify-content:space-between;gap:8px}.ssNum{font-size:14px;font-weight:1000;letter-spacing:.04em;color:inherit}.ssRouteBadge{font-size:11px;font-weight:900;padding:4px 10px;border-radius:99px;background:rgba(91,48,24,.12);color:#7b4f2f}.ssRoutePure .ssRouteBadge{background:rgba(220,120,160,.18);color:#a14872}.ssRouteObsession .ssRouteBadge{background:rgba(220,80,80,.22);color:#ffaab2}.ssBody{display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:start}.ssThumb{width:84px;height:84px;border-radius:14px;object-fit:cover;border:1px solid rgba(91,48,24,.18);background:#ead7c7}.ssMeta{display:grid;gap:6px;min-width:0}.ssScene{margin:0;font-size:14px;font-weight:900;color:inherit;line-height:1.4}.ssPreview{margin:0;font-size:12px;font-style:italic;color:#7a5e4a;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.ssStats{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}.ssStats span{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:99px;background:rgba(91,48,24,.1);color:#5b3520;letter-spacing:.02em}.ssTime{color:#9a7c65;font-size:11px;font-weight:700;margin-top:2px}.ssEmptyBody{text-align:center;padding:24px 12px;color:#876953}.ssEmptyIcon{font-size:36px;display:block;margin-bottom:8px;opacity:.6}.ssEmptyBody p{margin:0 0 4px;font-size:14px;font-weight:900}.ssEmptyBody small{font-size:11px;color:#a78a72}.ssActions{display:flex;gap:6px}.ssActions button{flex:1;border:0;border-radius:12px;padding:10px 8px;font-size:13px;font-weight:900;cursor:pointer;transition:background .15s ease,transform .12s ease}.ssActions button:hover{transform:translateY(-1px)}.ssBtnLoad{background:#df842c;color:#fff}.ssBtnLoad:hover{background:#c8731f}.ssBtnSave{background:#3a2d29;color:#fff}.ssBtnSave:hover{background:#5a4338}.ssBtnDel{background:transparent;color:#c44;border:1px solid #c44 !important}.ssBtnDel:hover{background:rgba(196,68,68,.1)}
+.cgReaction{display:grid;grid-template-columns:86px minmax(0,1fr) auto;gap:14px;align-items:center;margin:0 0 18px;padding:14px;border-radius:20px;background:#fff8ef;border:1px solid #e8c99e;box-shadow:0 12px 32px rgba(91,48,24,.08)}.cgReaction>img{width:86px;height:86px;border-radius:18px;object-fit:cover;background:#ead7c7}.cgReactionBody{display:grid;gap:6px;min-width:0}.cgReactionBody p{margin:0;color:#4a342a;line-height:1.65;font-weight:800}.cgSourceCaption{color:#9a7c65;font-size:12px;font-weight:700}.cgReactionActions{display:flex;gap:6px;align-items:center}.cgReaction button{border:0;border-radius:999px;background:#3a2d29;color:white;padding:10px 14px;font-weight:900}.favBtn{background:#fff;color:#c44}.favBtn.favOn{background:#c44;color:#fff}.cgCard{position:relative;border:0;text-align:center;cursor:pointer;transition:transform .15s ease,box-shadow .2s ease}.cgCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.cgCardLocked{cursor:default;background:#1f1714}.cgCardLocked:hover{transform:none}.cgSilhouette{filter:brightness(.18) blur(6px) saturate(.5)}.cgLockedBadge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;color:rgba(255,210,150,.55);text-shadow:0 2px 12px rgba(0,0,0,.6);pointer-events:none}.cgFavMark{position:absolute;top:8px;right:10px;font-size:18px;color:#ff5577;text-shadow:0 2px 6px rgba(0,0,0,.45);pointer-events:none}.cgCardCaption{position:absolute;left:0;right:0;bottom:0;padding:6px 10px;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.74) 100%);color:#fff7e8;font-size:11px;font-weight:800;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;text-align:left}.galleryProgress{display:flex;align-items:center;gap:12px;margin:0 0 18px;padding:12px 16px;background:#fff8ef;border:1px solid #e8c99e;border-radius:14px;color:#5a3928}.galleryProgress span{font-size:12px;font-weight:900;letter-spacing:.06em;color:#7b4f2f}.galleryProgressBar{flex:1;min-width:80px;height:8px;background:rgba(91,48,24,.15);border-radius:99px;overflow:hidden}.galleryProgressBar div{height:100%;background:linear-gradient(90deg,#df842c,#e8993b);border-radius:99px;transition:width .35s ease}.galleryProgress strong{font-size:14px;color:#3a2017;font-weight:900}.tabs button.active{background:#df842c}
 @media(max-width:850px){.app{height:auto;min-height:100vh;display:flex;flex-direction:column;overflow:visible}.side{position:sticky;top:0;z-index:20;padding:8px 10px;display:grid;grid-template-columns:1fr;gap:8px;max-height:none;overflow:visible;flex:none;background:#21130f}.profileHead{display:none}.statsBox{margin:0;padding:6px 8px;border-radius:12px}.statBar{margin:3px 0}.statBar div{font-size:10px}.statBar i{height:5px}.nav{display:flex;overflow-x:auto;overflow-y:hidden;gap:8px;flex-wrap:nowrap;padding-bottom:2px}.nav button{white-space:nowrap;padding:10px 13px;border-radius:14px;flex:none}.content{height:auto;min-height:0;flex:1}.coverImg{width:100%;max-width:none;max-height:90dvh;object-position:center center}.coverStartBtn{bottom:48px;font-size:20px;padding:16px 38px}.homeView{padding:18px 14px 24px;display:block;overflow:auto}.homeHeader{margin-bottom:10px}.homeStage{width:100%;height:auto;min-height:min(58dvh,540px);display:grid;place-items:end center}.homeCharacterCard img{width:min(88vw,400px);max-height:48dvh}.homeButtons{grid-template-columns:repeat(2,1fr);gap:10px}.homeButtons button{padding:15px}.homeBubble{top:10px;left:auto;right:4%;width:min(138px,37vw);padding:7px 9px 8px 10px;font-size:8.5px;border-radius:20px}.homeBubble:after{left:14px;bottom:-6px;width:10px;height:10px}.chatArea{padding:16px;display:flex;flex-direction:column;gap:8px}.topBar{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:12px 10px;flex:none}.topBar button{font-size:13px;min-width:120px;padding:10px 13px;white-space:nowrap;flex:0 0 auto}.bubble{font-size:16px;max-width:84%}.msgRow{display:flex;align-items:flex-start;gap:8px;margin:6px 0}.msgRow.assistant{justify-content:flex-start}.msgRow.user{justify-content:flex-end;align-items:flex-end}.inputBar{position:sticky;bottom:0;z-index:3;grid-template-columns:auto 44px minmax(0,1fr) auto;gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom));height:auto}.inputBar input{font-size:16px;height:44px;padding:0 14px}.inputBar button{min-width:48px;height:44px;padding:0 12px;font-size:13px;border-radius:16px}.inputBar .photoBtn{min-width:44px;width:44px;height:44px;padding:0;font-size:18px}.vnTextbox{bottom:10px;width:calc(100vw - 18px)}.vnDialogue{min-height:118px;max-height:32dvh;overflow:auto;padding:17px}.typeText{font-size:16px}.vnImageStage img{width:100%;height:100%;object-fit:contain}.panel{padding:16px}.panel h2{font-size:26px}.grid{grid-template-columns:1fr}.profileOverview{grid-template-columns:1fr !important}.profileIllustration{width:100%;max-width:none}.profileIllustration img{min-height:auto;max-height:none;height:auto}.profileDetails{flex-direction:column}.statusCards{grid-template-columns:1fr}.profileMeta{grid-template-columns:1fr}}
 @media(max-width:850px){.side{padding:4px 7px;gap:4px}.sideHeader{display:flex;align-items:center;gap:8px;min-width:0}.relBadge{flex:0 0 auto;min-width:0}.relBadgeTop{gap:5px;font-size:9px}.relLvLabel{font-size:11px}.relLvName{font-size:9px}.relProgressTrack{height:3px;margin-top:2px}.statsBox{flex:1;min-width:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 8px;padding:4px 6px;border-radius:8px;margin:0}.statBar{margin:0;min-width:0}.statBar div{font-size:8px;line-height:1.1;gap:2px}.statBar i{height:3px;margin-top:2px}.nav{gap:5px;padding-bottom:1px}.nav button{padding:7px 9px;border-radius:10px;font-size:11px;line-height:1;min-height:30px}.topBar{padding:6px 7px}.topBar button{min-width:auto;padding:7px 10px;font-size:12px;border-radius:13px}.chatArea{padding-top:8px}}
 .app.theme-pure .inputBar{background:linear-gradient(180deg,#fff5f6 0%,#fdecef 100%);border-top:1px solid rgba(234,177,191,.45);box-shadow:0 -10px 28px rgba(214,148,166,.12)}.app.theme-pure .inputBar input{background:linear-gradient(180deg,#fffefe 0%,#fff8fa 100%);border:1px solid #efc6d0;color:#6b3f49;box-shadow:0 8px 18px rgba(231,175,190,.12),inset 0 1px 0 rgba(255,255,255,.92)}.app.theme-pure .inputBar input::placeholder{color:#c2919b}.app.theme-pure .inputBar input:focus{border-color:#e29bad;box-shadow:0 0 0 3px rgba(235,170,183,.22),0 10px 22px rgba(214,148,166,.16)}.app.theme-pure .inputBar button{background:linear-gradient(135deg,#f1aab9,#d97f96);color:#fff;border:1px solid rgba(255,255,255,.28);box-shadow:0 10px 22px rgba(213,125,149,.22)}.app.theme-pure .inputBar button:hover{background:linear-gradient(135deg,#f5b7c4,#e18ea2)}
