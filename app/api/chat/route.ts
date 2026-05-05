@@ -288,18 +288,64 @@ function stripStageDirections(reply: string): { reply: string; extractedNarratio
     return "";
   });
 
-  // 줄 전체가 "근떡존이 ~한다." 같은 3인칭 지문이면 분리
+  // 줄/문장 단위 narrative 검출
+  // 근떡존은 항상 존댓말(요/네요/세요/습니다 등) → 평서체 ~다 종결은 나레이션 누수로 간주
+  const NARRATIVE_END = /(?:었다|였다|았다|했다|렀다|혔다|봤다|왔다|갔다|났다|졌다|섰다|냈다|놨다|렸다|쳤다|들었다|있었다|없었다|이었다|는다|이다|한다|된다|인다|그랬다|아니었다|만났다|놓았다|안았다|줬다|뒀다)\.?$/;
+  const POLITE_END = /(요|네요|세요|어요|아요|습니다|입니다|니다|예요|에요|이에요|죠|군요|걸요|네|어|아|음|읍|돼|돼요)[.!?…~ㅋㅎ]*$/;
+  function looksLikeNarrationLine(t: string): boolean {
+    if (t.length < 6) return false;
+    if (POLITE_END.test(t)) return false;
+    if (/[!?]$/.test(t)) return false; // 의문/감탄은 거의 대사
+    if (/^[\"'""''「『]/.test(t)) return false; // 따옴표로 시작하면 대사
+    // 1인칭 화자 마커가 강하게 있으면 대사 (저, 제가, 저는, 저도, 저희)
+    if (/(^|\s)(저|제가|저는|저도|저를|저한테|제\s|저희)/.test(t)) return false;
+    // 3인칭 주어 + 평서체 → 나레이션
+    if (/^(근떡존|그는|그가|그|남자|남자는|남자가)\b/.test(t) && NARRATIVE_END.test(t)) return true;
+    // 3인칭 주어 없어도 평서체 종결이면 나레이션 가능성 매우 높음 (근떡존 어조와 어긋남)
+    if (NARRATIVE_END.test(t)) return true;
+    return false;
+  }
+
   cleaned = cleaned
     .split("\n")
     .filter((line) => {
       const t = line.trim();
       if (!t) return true;
-      // 별표 없는 3인칭 지문 라인: "근떡존이 ~한다/했다/끄덕인다/중얼거린다."
+      // 기존: "근떡존이 ~한다." 같은 3인칭 지문 라인
       if (/^근떡존(이|은)?\s.{2,140}(다|했다|한다|인다|는다|었다|이다)\.?$/.test(t)) {
         collected.push(t.replace(/^[*\s]+|[*\s]+$/g, ""));
         return false;
       }
+      // 새: 줄 전체가 평서체 narrative
+      if (looksLikeNarrationLine(t)) {
+        collected.push(t);
+        return false;
+      }
       return true;
+    })
+    .join("\n");
+
+  // 한 줄 안에 여러 문장이 섞인 경우: 문장 단위로도 검사
+  cleaned = cleaned
+    .split("\n")
+    .map((line) => {
+      const t = line.trim();
+      if (!t) return line;
+      // 따옴표로 감싸진 줄은 건드리지 않음
+      if (/^[\"'""''「『]/.test(t)) return line;
+      // 마침표/물음표/느낌표로 문장 분리
+      const sentences = t.match(/[^.!?…]+[.!?…]+/g);
+      if (!sentences || sentences.length < 2) return line;
+      const kept: string[] = [];
+      for (const sentence of sentences) {
+        const s = sentence.trim();
+        if (looksLikeNarrationLine(s)) {
+          collected.push(s);
+        } else {
+          kept.push(s);
+        }
+      }
+      return kept.join(" ");
     })
     .join("\n");
 
@@ -342,15 +388,45 @@ function getWordOverlapScore(a: string, b: string) {
   return overlap / Math.max(aWords.size, bWords.size);
 }
 
+function longestCommonSubstringRatio(a: string, b: string): number {
+  // a 안에 b의 substring 이 얼마나 길게 들어 있는지 (b 길이 기준 비율)
+  // 완전히 같은 substring이 반복되는 경우를 잡기 위함
+  if (!a || !b) return 0;
+  const shorter = a.length <= b.length ? a : b;
+  const longer = a.length <= b.length ? b : a;
+  // 짧은 쪽을 슬라이딩 윈도우로 잘라 longer 안에서 가장 긴 매칭 substring 찾기
+  let maxMatch = 0;
+  const windowSize = Math.max(15, Math.floor(shorter.length * 0.4));
+  for (let len = Math.min(shorter.length, 200); len >= windowSize; len -= 5) {
+    for (let i = 0; i + len <= shorter.length; i += 5) {
+      const slice = shorter.slice(i, i + len);
+      if (longer.includes(slice)) {
+        if (len > maxMatch) maxMatch = len;
+        break;
+      }
+    }
+    if (maxMatch >= len) break;
+  }
+  return maxMatch / shorter.length;
+}
+
 function isTooSimilarToRecentReply(reply: string, recentAssistantMessages: string[]) {
   const normalizedReply = normalizeForSimilarity(reply);
   if (!normalizedReply) return false;
 
-  return recentAssistantMessages.slice(-3).some((previous) => {
+  return recentAssistantMessages.slice(-5).some((previous) => {
     const normalizedPrevious = normalizeForSimilarity(previous);
     if (!normalizedPrevious) return false;
+    // 1) 완전 일치
     if (normalizedPrevious === normalizedReply) return true;
-    return getWordOverlapScore(normalizedReply, normalizedPrevious) >= 0.88;
+    // 2) 단어 겹침 88%+
+    if (getWordOverlapScore(normalizedReply, normalizedPrevious) >= 0.85) return true;
+    // 3) substring 매칭 — 새 답변이 이전 답변의 50% 이상을 그대로 포함하면 차단
+    //    (이전 두 답변을 이어붙인 경우, 짧은 답변 통째 재사용 등을 잡음)
+    if (normalizedPrevious.length >= 20 && normalizedReply.includes(normalizedPrevious)) return true;
+    if (normalizedReply.length >= 20 && normalizedPrevious.includes(normalizedReply)) return true;
+    if (longestCommonSubstringRatio(normalizedReply, normalizedPrevious) >= 0.6) return true;
+    return false;
   });
 }
 
@@ -714,40 +790,38 @@ function buildBladderPrompt(bladderLevel: number): string {
 `;
   if (bladderLevel < 85) return `
 [방광 상태: ${bladderLevel}%]
-- 오줌이 꽤 마려운 상태다. 일상 대화는 이어가되 아래를 자연스럽게 섞는다.
-- 문장 끝에 가끔 "..." 이 붙는다.
-- 2~4문장에 한 번 정도 잠깐 멈추는 느낌이 난다.
+- 오줌이 꽤 마려운 상태다. 평소 말투를 그대로 유지하되, 문장 끝에 가끔 "..." 한 번 정도만 자연스럽게 붙는다.
 - 사용자가 화장실/방광을 언급하면 슬쩍 보내달라는 뉘앙스를 비친다.
+- ⚠️ 단어를 토막내거나, "...네... ...선...생...님..." 처럼 글자 단위로 끊지 마라. 문장은 정상적으로 완성한다.
 - "선생님"이라고 부른다.
-예: "맞아요... 근데 저 지금 좀 참는 중이에요 ㅋㅋ"
+예: "맞아요 ㅋㅋ 근데 저 지금 좀 참는 중이에요..."
 예: "아 잠깐만요... 아무것도 아니에요 ㅋㅋ 계속해요"
 `;
   if (bladderLevel < 95) return `
 [방광 상태: ${bladderLevel}% — 심각]
-- 오줌이 심하게 마려운 상태다. 버티고 있지만 정말 힘들다.
-- 말 중간에 "..." 이 자주 끼어든다. 말이 조금씩 끊긴다.
-- 불편함이 말투에 자연스럽게 배어나온다. 징징대는 게 아니라 진짜 힘든 것.
+- 오줌이 심하게 마려운 상태다. 버티고 있지만 힘들다.
+- 평소 존댓말 톤은 그대로 유지한다. 문장은 끝까지 완성해서 보낸다.
+- 문장 끝에 "..." 또는 "ㅠ" 한두 개가 붙는다. 문장 중간에는 거의 안 들어간다.
 - 사용자가 화장실/방광 언급하면 거의 조르다시피 한다.
-- 문장이 약간 더듬거리거나 뒤엉키기도 한다.
-- 이모지는 ㅠ, ㅠㅠ 위주. 평소의 여유가 사라진다.
+- 평소의 여유는 살짝 사라지지만 말은 또박또박 한다.
+- ⚠️ 단어/글자 단위 끊기 금지. "선...생...님..." "...네... ...어...요..." 같은 표기 절대 하지 마라.
 - "선생님"이라고 부른다.
-예: "선생님... 저 지금 좀 힘들어요 사실ㅠ 선생님이 안 된다고 하셨잖아요..."
-예: "선생님 저 화장실... 가면 안 돼요...? 진짜로요ㅠ"
-예: "알겠어요... 근데 선생님... 저 좀... 마려워서요..."
+예: "선생님... 저 지금 좀 힘들어요 사실 ㅠ"
+예: "선생님 저 화장실 가면 안 돼요...? 진짜로요 ㅠ"
+예: "알겠어요... 근데 선생님 저 좀 마려워서요..."
 `;
   return `
-[방광 상태: ${bladderLevel}% — 한계 초과]
-- 거의 한계에 달한 상태다. 온 신경이 방광에 쏠려서 제대로 말을 이어가기조차 힘들다.
-- 말이 짧아지고 중간중간 뚝뚝 끊긴다. 문장이 완성되지 않는다.
-- "..." 이 문장 중간과 끝 모두에 자주 들어간다.
-- 사용자에게 제발 보내달라고 애원한다. 거의 울 것 같은 상태.
-- 너무너무 힘들고 괴롭지만 "선생님" 때문에 필사적으로 버티고 있다.
-- 어떤 말에도 집중하기가 너무 힘든 티가 역력히 난다.
-- 이모지는 ㅠㅠ, ㅠㅠㅠ 위주. 평소의 다정하고 여유로운 말투가 완전히 무너져 있다.
+[방광 상태: ${bladderLevel}% — 한계]
+- 한계에 가까운 상태다. 평소보다 짧고 다급하게 말한다.
+- 단, 평소 존댓말(요/네요/세요)을 유지하고 한국어 문장 구조를 지킨다. 문장은 끝까지 완성한다.
+- 문장 끝에 "ㅠㅠ" 또는 "..." 정도가 붙는 수준. 문장 안을 글자 단위로 끊지 않는다.
+- 사용자에게 제발 보내달라고 애원한다. 짧은 호소형 문장 위주.
+- 짧고 다급하지만, 또렷하게 알아들을 수 있는 한국어로 말한다.
+- ⚠️ 절대 금지: "선...생...님..." / "...네... ...어...요..." / "ㅂ...ㅏ...쁘...시...죠" 같이 단어를 잘게 부수는 형태. 그렇게 적으면 무조건 잘못된 출력이다.
 - "선생님"이라고 부른다.
-예: "선생님...ㅠㅠ 저 진짜... 한계예요... 제발요..."
-예: "아...맞아요... 근데...ㅠ 선생님... 저 좀... 보내주시면... 안 돼요...ㅠㅠ"
-예: "...저 말 제대로 못하겠어요... 선생님 너무너무 힘들어요ㅠㅠ"
+예: "선생님 저 진짜 한계예요 ㅠㅠ 제발요..."
+예: "선생님... 저 좀 보내주시면 안 돼요? ㅠㅠ"
+예: "저 말 제대로 못 할 것 같아요... 너무 힘들어요 ㅠㅠ"
 `;
 }
 
@@ -942,6 +1016,8 @@ ${instruction}
 - reply는 근떡존이 실제로 카톡에 입력해 보내는 메시지 본문만 쓴다.
 - reply에 "*근떡존이 ~한다*", "(웃는다)", "근떡존이 고개를 끄덕인다." 같은 3인칭 지문/행동 묘사는 절대 넣지 않는다. 그런 묘사가 필요하면 narration에만 쓴다.
 - reply는 한국어 1인칭 대사여야 한다. "저", "주인님", "선생님" 같은 화자/청자 호칭이 자연스럽게 나오는 멘트.
+- ⚠️ 절대 금지: reply 안에 "근떡존은 ~했다", "그는 ~었다", "~한 기분이었다", "~로 보였다" 같은 평서체(~다.) 종결 문장을 넣지 마라. 근떡존은 항상 존댓말(요/네요/세요/습니다)로 카톡한다. 평서체 ~다 종결은 100% 나레이션이므로 narration 필드로만 보내라.
+- reply의 모든 문장은 "요/네요/세요/어요/아요/습니다/예요/에요/죠" 등 정중체로 끝나야 한다.
 - reply가 비면 안 된다.
 
 [최종 지시]
