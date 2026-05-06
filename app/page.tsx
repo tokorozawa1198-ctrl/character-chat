@@ -8285,6 +8285,120 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 /* 위젯 카드 */
 .app .homeWidget{backdrop-filter:blur(12px)}
 /* ====================================================== */
+/* === 🎨 v2 폴리시 — 큰 숫자 / 티어 / 모달 통일 === */
+/* ====================================================== */
+/* 큰 숫자 디스플레이 폰트 강화 (스탯 값, 호감도, 코인) */
+.app .statusCard span{font-family:var(--font-display) !important;font-size:32px !important;letter-spacing:-0.02em;background:linear-gradient(135deg,var(--accent-gold-light),var(--accent-rose)) !important;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent !important;font-weight:900 !important;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.18))}
+.app .userLvBadge{font-family:var(--font-display) !important;font-size:14px !important;padding:5px 12px !important;letter-spacing:0.01em}
+.app .coinChip{font-family:var(--font-display) !important}
+.app .coinChip b{font-size:15px}
+.app .relLvLabel{font-family:var(--font-display) !important;font-size:13px !important;letter-spacing:0.02em}
+.app .userLvExp{font-family:var(--font-body) !important;font-weight:800}
+.app .questProgressText{font-family:var(--font-display) !important;font-size:13.5px !important}
+/* 패널 진입 애니메이션 */
+.app .panel{animation:panelSlideIn .42s cubic-bezier(.2,.8,.3,1) both}
+@keyframes panelSlideIn{0%{opacity:0;transform:translateY(12px) scale(.99);filter:blur(4px)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+/* 카드 진입 애니메이션 (스태거) */
+.app .cardBtn,.app .questCard,.app .statusCard,.app .galleryGrid > *,.app .petsGrid > *{animation:cardFadeUp .5s cubic-bezier(.2,.8,.3,1) both}
+@keyframes cardFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.app .grid > *:nth-child(2),.app .questGrid > *:nth-child(2){animation-delay:.04s}
+.app .grid > *:nth-child(3),.app .questGrid > *:nth-child(3){animation-delay:.08s}
+.app .grid > *:nth-child(4),.app .questGrid > *:nth-child(4){animation-delay:.12s}
+.app .grid > *:nth-child(5),.app .questGrid > *:nth-child(5){animation-delay:.16s}
+.app .grid > *:nth-child(6),.app .questGrid > *:nth-child(6){animation-delay:.2s}
+.app .grid > *:nth-child(7),.app .questGrid > *:nth-child(7){animation-delay:.24s}
+.app .grid > *:nth-child(8),.app .questGrid > *:nth-child(8){animation-delay:.28s}
+/* 티어 배지 v2 — 홀로그래픽 SSR + 강화된 SR/R */
+.app .gachaTierBadge{font-family:var(--font-display) !important;font-size:13px !important;padding:5px 14px !important;letter-spacing:0.08em;font-weight:900;border-radius:99px;display:inline-block}
+.app .gachaCard-SSR .gachaTierBadge{
+  background:linear-gradient(90deg,#ff3d8a,#f0d896,#b89cff,#6cd6ff,#ff3d8a);
+  background-size:300% 100%;
+  animation:tierShimmer 2.6s linear infinite;
+  color:#fff;
+  text-shadow:0 0 8px rgba(0,0,0,0.4);
+  box-shadow:0 0 14px rgba(240,200,150,0.5),0 0 28px rgba(255,61,138,0.4)
+}
+@keyframes tierShimmer{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+.app .gachaCard-SR .gachaTierBadge{
+  background:linear-gradient(135deg,#b89cff,#7b5fbe);
+  color:#fff;
+  text-shadow:0 0 6px rgba(184,156,255,0.6);
+  box-shadow:0 0 10px rgba(184,156,255,0.4)
+}
+.app .gachaCard-R .gachaTierBadge{
+  background:linear-gradient(135deg,#ffd97a,#d4a843);
+  color:#1a0810;
+  box-shadow:0 0 8px rgba(255,217,122,0.4)
+}
+.app .gachaCard-N .gachaTierBadge{background:linear-gradient(135deg,#a3c785,#7ba65a);color:#fff}
+.app .gachaCard-C .gachaTierBadge{background:#8a7a6f;color:#fff}
+/* 가챠 카드 v2 톤 통일 (와인+골드+로즈+네온) */
+.app .gachaCard-SSR{
+  background:radial-gradient(ellipse at top right,rgba(255,61,138,0.6),transparent 50%),
+             radial-gradient(ellipse at bottom left,rgba(108,214,255,0.5),transparent 50%),
+             linear-gradient(135deg,#3a0a1f 0%,#1a0510 100%) !important;
+  border:1.5px solid #ff7ab0;
+  box-shadow:0 0 40px rgba(255,61,138,0.45),0 0 80px rgba(184,156,255,0.25),inset 0 0 30px rgba(240,200,150,0.08) !important;
+  animation:gachaCardPop .55s cubic-bezier(.2,1.4,.3,1) both,ssrGlow 2.4s ease-in-out infinite !important;
+  background-size:cover !important
+}
+@keyframes ssrGlow{0%,100%{box-shadow:0 0 40px rgba(255,61,138,0.45),0 0 80px rgba(184,156,255,0.25),inset 0 0 30px rgba(240,200,150,0.08)}50%{box-shadow:0 0 60px rgba(255,61,138,0.65),0 0 100px rgba(184,156,255,0.4),inset 0 0 40px rgba(240,200,150,0.16)}}
+.app .gachaCard-SR{
+  background:linear-gradient(135deg,#3a1845 0%,#1a0825 100%) !important;
+  border:1.5px solid rgba(184,156,255,0.6);
+  box-shadow:0 0 24px rgba(184,156,255,0.4),inset 0 0 20px rgba(184,156,255,0.06) !important;
+  color:#fff !important
+}
+.app .gachaCard-R{
+  background:linear-gradient(135deg,#3a2810 0%,#1a1208 100%) !important;
+  border:1.5px solid rgba(255,217,122,0.5);
+  box-shadow:0 0 16px rgba(255,217,122,0.3) !important;
+  color:#fff !important
+}
+.app .gachaCard-N{
+  background:linear-gradient(135deg,#1f2a18 0%,#0f1a0b 100%) !important;
+  border:1px solid rgba(163,199,133,0.4);
+  color:#fff !important
+}
+.app .gachaCard-C{
+  background:linear-gradient(135deg,#2a2520 0%,#15110d 100%) !important;
+  border:1px solid rgba(138,122,111,0.4);
+  color:#fff !important
+}
+.app .gachaCardName{font-family:var(--font-display) !important;font-size:14px !important;color:#fff !important;letter-spacing:-0.01em}
+.app .gachaCardFlavor{color:rgba(255,255,255,0.78) !important;font-size:11.5px !important;line-height:1.5}
+.app .gachaCardEmoji{font-size:42px !important;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.4))}
+/* 가챠 오버레이 v2 */
+.app .gachaOverlay{background:radial-gradient(ellipse at center,rgba(40,15,25,0.85) 0%,rgba(10,5,8,0.95) 100%) !important;backdrop-filter:blur(8px)}
+.app .gachaCloseBtn{font-family:var(--font-display) !important;background:linear-gradient(135deg,#ff7a9c,#d44d6e) !important;color:#fff !important;font-weight:1000;padding:12px 32px;border-radius:14px;box-shadow:0 6px 18px rgba(212,77,110,0.4)}
+.app .gachaCloseBtn:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(212,77,110,0.55)}
+/* 레벨업 모달 v2 — 와인+골드+핑크 통일 */
+.app .levelUpOverlay{background:radial-gradient(ellipse at center,rgba(40,15,25,0.85) 0%,rgba(10,5,8,0.95) 100%);backdrop-filter:blur(8px)}
+.app .levelUpCard{
+  background:radial-gradient(ellipse at center,rgba(60,25,35,0.95) 0%,rgba(20,8,12,0.98) 100%) !important;
+  border:2px solid rgba(255,217,122,0.55) !important;
+  box-shadow:0 0 60px rgba(255,217,122,0.4),0 0 100px rgba(255,61,138,0.2),inset 0 0 30px rgba(255,217,122,0.08) !important
+}
+.app .levelUpLevel{font-family:var(--font-display) !important;font-size:64px !important;background:linear-gradient(135deg,#ffd97a,#ff7a9c) !important;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.02em;filter:drop-shadow(0 4px 16px rgba(255,217,122,0.5))}
+.app .levelUpTitle{font-family:var(--font-display) !important;font-size:20px !important;color:#fff !important;text-shadow:0 0 12px rgba(255,217,122,0.4)}
+.app .levelUpEyebrow{color:#ffd97a !important;font-weight:900;letter-spacing:0.18em;text-shadow:0 0 8px rgba(255,217,122,0.4)}
+.app .levelUpReward{color:#ffd97a !important;font-family:var(--font-display) !important;font-size:14px !important;letter-spacing:0.02em}
+.app .levelUpUnlock{background:linear-gradient(135deg,rgba(255,217,122,0.16),rgba(255,61,138,0.12)) !important;border:1px dashed rgba(255,217,122,0.5) !important}
+.app .levelUpUnlockHead{font-family:var(--font-display) !important;color:#ffd97a !important;font-size:17px !important}
+.app .levelUpUnlockDesc{color:#ffe0b8 !important}
+.app .levelUpRays{background:conic-gradient(from 0deg at center,rgba(255,217,122,0.12) 0deg,transparent 45deg,rgba(255,61,138,0.1) 90deg,transparent 135deg,rgba(184,156,255,0.1) 180deg,transparent 225deg,rgba(255,217,122,0.12) 270deg,transparent 315deg,rgba(255,61,138,0.1) 360deg) !important;animation:levelUpRayRotate 6s linear infinite}
+@keyframes levelUpRayRotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+/* 콤보 토스트 v2 */
+.app .comboToast{background:linear-gradient(135deg,#ff7a9c,#d44d6e) !important;color:#fff !important;font-family:var(--font-display) !important;border:1px solid rgba(255,217,122,0.4) !important;box-shadow:0 8px 24px rgba(212,77,110,0.4) !important}
+/* 업적 토스트 v2 */
+.app .achToast{background:linear-gradient(135deg,rgba(40,15,25,0.95),rgba(20,8,12,0.98)) !important;border:1px solid rgba(255,217,122,0.4) !important}
+.app .achToast b{color:#ffd97a !important;font-family:var(--font-display) !important}
+.app .achToast span{color:#fff !important}
+.app .achToast small{color:#ffb0d0 !important}
+/* 가챠 풀 미리보기 카드 v2 */
+.app .gachaPoolTier{background:linear-gradient(180deg,rgba(40,15,25,0.4),rgba(20,8,12,0.6)) !important;border:1px solid rgba(255,217,122,0.18) !important;backdrop-filter:blur(6px);color:#fff}
+.app .gachaPoolTier ul li{color:rgba(255,255,255,0.85) !important}
+/* ====================================================== */
 /* 디자인 시스템 v2 끝 */
 /* ====================================================== */
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#eee7dc;overflow-x:hidden;overflow-y:auto}button,input{font-family:inherit}nextjs-portal{display:none!important}.coverScreen{height:100dvh;background:radial-gradient(circle at top,#2f2119 0%,#140e0b 54%,#080606 100%);display:grid;place-items:center;position:relative;overflow:hidden}.coverScreen:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,213,141,.06),transparent 24%,rgba(0,0,0,.22));pointer-events:none}.coverImg{width:auto;max-width:min(92vw,1520px);height:auto;max-height:92dvh;object-fit:contain;object-position:center center;filter:saturate(1.02)}.coverStartBtn{position:absolute;left:50%;bottom:62px;transform:translateX(-50%);border:0;border-radius:999px;background:linear-gradient(135deg,#e8993b,#d97a24);color:white;font-size:22px;font-weight:1000;padding:18px 48px;box-shadow:0 16px 40px rgba(217,121,36,.28),inset 0 1px 0 rgba(255,255,255,.28)}
