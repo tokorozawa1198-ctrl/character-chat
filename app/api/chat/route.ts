@@ -228,15 +228,23 @@ const EXAMPLE_MESSAGES = [
 function normalizeMessages(messages: any[]): ClientMessage[] {
   if (!Array.isArray(messages)) return [];
 
-  return messages
+  // 1) 정상화
+  const all = messages
     .filter((message) => message && typeof message.content === "string")
     .filter((message) => message.role === "user" || message.role === "assistant" || message.role === "narration")
     .map((message) => ({
       role: message.role as ChatRole,
       content: String(message.content).trim(),
     }))
-    .filter((message) => message.content)
-    .slice(-32);
+    .filter((message) => message.content);
+
+  // 2) 최근 60개 윈도우. 그 안에서 user/assistant는 모두 보존, narration은 최근 6개로 제한
+  const window = all.slice(-60);
+  const dialogueOnly = window.filter((m) => m.role === "user" || m.role === "assistant");
+  const narrationsOnly = window.filter((m) => m.role === "narration").slice(-6);
+  // 3) 시간순 재조립 — window에서 dialogueOnly + 최근 narration만 남김
+  const keep = new Set([...dialogueOnly, ...narrationsOnly]);
+  return window.filter((m) => keep.has(m));
 }
 
 function isSameUserTurn(a: { role?: string; content?: string } | undefined, message: string) {
@@ -478,18 +486,18 @@ function isTooSimilarToRecentReply(reply: string, recentAssistantMessages: strin
   const normalizedReply = normalizeForSimilarity(reply);
   if (!normalizedReply) return false;
 
-  return recentAssistantMessages.slice(-5).some((previous) => {
+  return recentAssistantMessages.slice(-10).some((previous) => {
     const normalizedPrevious = normalizeForSimilarity(previous);
     if (!normalizedPrevious) return false;
     // 1) 완전 일치
     if (normalizedPrevious === normalizedReply) return true;
-    // 2) 단어 겹침 88%+
-    if (getWordOverlapScore(normalizedReply, normalizedPrevious) >= 0.85) return true;
-    // 3) substring 매칭 — 새 답변이 이전 답변의 50% 이상을 그대로 포함하면 차단
-    //    (이전 두 답변을 이어붙인 경우, 짧은 답변 통째 재사용 등을 잡음)
-    if (normalizedPrevious.length >= 20 && normalizedReply.includes(normalizedPrevious)) return true;
-    if (normalizedReply.length >= 20 && normalizedPrevious.includes(normalizedReply)) return true;
-    if (longestCommonSubstringRatio(normalizedReply, normalizedPrevious) >= 0.6) return true;
+    // 2) 단어 겹침 80%+ (강화: 88 → 80)
+    if (getWordOverlapScore(normalizedReply, normalizedPrevious) >= 0.78) return true;
+    // 3) substring 매칭 — 짧은 답변이 통째로 포함되면 차단
+    if (normalizedPrevious.length >= 15 && normalizedReply.includes(normalizedPrevious)) return true;
+    if (normalizedReply.length >= 15 && normalizedPrevious.includes(normalizedReply)) return true;
+    // 4) 최장 공통 부분 — 50% 이상 겹치면 차단 (강화: 60 → 50)
+    if (longestCommonSubstringRatio(normalizedReply, normalizedPrevious) >= 0.5) return true;
     return false;
   });
 }
@@ -953,7 +961,7 @@ export async function POST(req: NextRequest) {
     const normalizedHistory = normalizeMessages(body.history ?? body.messages ?? []);
     const history = normalizedHistory.map((item) => ({
       role: item.role === "user" ? "user" : "assistant",
-      content: (item.role === "narration" ? `[상황] ${item.content}` : item.content).slice(0, 900),
+      content: (item.role === "narration" ? `[상황] ${item.content}` : item.content).slice(0, 1500),
     }));
 
     const recentUserStyle = history
@@ -964,7 +972,7 @@ export async function POST(req: NextRequest) {
 
     const recentAssistantMessages = history
       .filter((item) => item.role === "assistant")
-      .slice(-6)
+      .slice(-12)
       .map((item) => item.content.trim())
       .filter(Boolean);
 
@@ -1125,14 +1133,14 @@ ${instruction}
       (completion.choices?.[0]?.message as any)?.reasoning_content ||
       "";
     const parsed = parseModelJson(raw);
-    let narration = stripNarrationMarkers(cleanOutput(parsed.narration, 500));
+    let narration = stripNarrationMarkers(cleanOutput(parsed.narration, 900));
     let reply = cleanOutput(parsed.reply, 1000) || cleanOutput(raw, 1000);
 
     // reply에서 *근떡존이 ~한다* 같은 지문 분리. 나레이션 비어있으면 그쪽으로 흡수.
     const stripped = stripStageDirections(reply);
     reply = stripped.reply;
     if (!narration && stripped.extractedNarration) {
-      narration = stripNarrationMarkers(stripped.extractedNarration).slice(0, 500);
+      narration = stripNarrationMarkers(stripped.extractedNarration).slice(0, 900);
     }
 
     // 나레이션이 직전 나레이션과 동일/유사하면 버림

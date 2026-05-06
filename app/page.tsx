@@ -5531,7 +5531,7 @@ export default function Page() {
     const userMessage: Message = { ...makeMessage("user", displayText), ...(photo ? { image: photo } : {}) };
     // history에는 image 필드 제거 (DeepSeek은 vision 미지원, 용량 절약)
     const historyMsg = { id: userMessage.id, role: userMessage.role, content: userMessage.content, time: userMessage.time };
-    const requestHistory = [...messages, historyMsg].slice(-34);
+    const requestHistory = [...messages, historyMsg].slice(-80);
     setMessages((m) => [...m, userMessage]);
     let reply = "";
     let narration = "";
