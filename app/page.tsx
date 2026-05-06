@@ -5864,7 +5864,7 @@ export default function Page() {
           const flatItems: [string, string][] = [["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["katalk","💬 카톡"]];
           const groups: { key: string; label: string; items: [string, string][] }[] = [
             { key: "g_game", label: "🎮 게임", items: [["gacha","🎰 뽑기"],["pets","🐹 펫"],["adventure","🌍 모험"],["sns","📱 SNS"],["raid","⚔️ 레이드"],["minigames","🎲 미니게임"],["fortune","🔮 신탁"]] },
-            { key: "g_content", label: "📚 컨텐츠", items: [["storyMap","🗺 스토리 맵"],["miniMap","🌐 지도"],["gallery","🖼 갤러리"],["codex","📜 도감"],["letters","💌 편지"],["quote","💭 명언"],["cards","🃏 카드"],["journal","📔 다이어리"],["diary","📖 일기"]] },
+            { key: "g_content", label: "📚 컨텐츠", items: [["storyMap","🗺 스토리 맵"],["subScenarios","💝 후일담 / 서브"],["miniMap","🌐 지도"],["gallery","🖼 갤러리"],["codex","📜 도감"],["letters","💌 편지"],["quote","💭 명언"],["cards","🃏 카드"],["journal","📔 다이어리"],["diary","📖 일기"]] },
             { key: "g_etc", label: "⚙️ 기타", items: [["profile","상태"],["achievements","🏆 업적"],["calendar30","📅 캘린더"],["stats","📇 명함"],["seasonPass","🎟 시즌패스"],["events","🍻 전진협"],["gift","🎁 선물"],["checkin","✅ 출석"],["wardrobe","👕 옷장"],["sound","🔊 음향"],["save","💾 저장"],["settings","⚙️ 액션"]] },
           ];
           const renderBtn = ([key, label]: [string, string]) => {
@@ -7631,6 +7631,119 @@ export default function Page() {
           );
         })()}
 
+        {view === "subScenarios" && (() => {
+          // 서브 시나리오 그룹 정의
+          type SubGroup = {
+            id: string;
+            label: string;
+            emoji: string;
+            description: string;
+            unlockHint: string;
+            unlocked: boolean;
+            scenarios: { id: string; title: string; subtitle: string; cleared: boolean }[];
+          };
+          const isCleared = (sid: string) => !!seenEvents[sid];
+          const pureClear = !!unlockedEndings.pure;
+          const obsessionClear = !!unlockedEndings.obsession;
+          const confinementClear = !!unlockedEndings.confinement;
+          const groups: SubGroup[] = [
+            {
+              id: "pure_after",
+              label: "순애 후일담",
+              emoji: "🤍",
+              description: "결혼 후 일상의 잔잔한 행복. 평생 외롭지 않은 사람의 매일.",
+              unlockHint: "순애 엔딩 클리어 후 해금",
+              unlocked: pureClear || isAdminMode,
+              scenarios: [
+                { id: "pure_sub_01",      title: "1편: 결혼 첫날밤",     subtitle: "평생 외롭지 않은 첫 밤",       cleared: isCleared("pure_sub_01") },
+                { id: "pure_sub_kitchen", title: "2편: 새벽 4시의 부엌", subtitle: "외로움과의 작별",             cleared: isCleared("pure_sub_kitchen") },
+                { id: "pure_sub_morning", title: "3편: 현관에서",        subtitle: "출근시키는 아침",              cleared: isCleared("pure_sub_morning") },
+                { id: "pure_sub_hanabi",  title: "특별편: 하나비",       subtitle: "불꽃보다 예뻤던 사람",         cleared: isCleared("pure_sub_hanabi") },
+              ],
+            },
+            {
+              id: "confine_a_marking",
+              label: "감금 A · 체취 마킹",
+              emoji: "🩸",
+              description: "24시간 감금 한 달 후. 떡존이 형의 후각에 자기 체취를 박아두는 결.",
+              unlockHint: "14장 confine_a 진입 후 자동 분기",
+              unlocked: isCleared("confine_a_ch14_02") || isAdminMode,
+              scenarios: [
+                { id: "confine_a_marking_01", title: "1편: 땀에 절어",        subtitle: "첫 마킹",       cleared: isCleared("confine_a_marking_01") },
+                { id: "confine_a_marking_02", title: "2편: 거부",             subtitle: "형의 한 번 반항", cleared: isCleared("confine_a_marking_02") },
+                { id: "confine_a_marking_03", title: "3편: 익숙해지는 자리",  subtitle: "학습된 후각",   cleared: isCleared("confine_a_marking_03") },
+              ],
+            },
+          ];
+          // 추가 예정 그룹 (placeholders)
+          const upcoming: { label: string; emoji: string; route: string }[] = [
+            { label: "집착 루트 서브",   emoji: "🖤", route: "감금 진입 직전 광기" },
+            { label: "강제 결혼 서브",   emoji: "🩶", route: "협박 변주" },
+            { label: "감금 B 서브",      emoji: "⛓️", route: "마조 디테일" },
+            { label: "방광 루트 서브",   emoji: "🚽", route: "K-방광 후일담" },
+          ];
+
+          return (
+            <Panel title="💝 후일담 / 서브 시나리오">
+              <p className="subIntro">엔딩 후의 잔잔한 결, 또는 본편 사이에 끼어드는 작은 결의 시나리오들.</p>
+              {groups.map((g) => {
+                const total = g.scenarios.length;
+                const done = g.scenarios.filter((s) => s.cleared).length;
+                const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+                return (
+                  <div key={g.id} className={`subGroup${g.unlocked ? "" : " subGroupLocked"}`}>
+                    <div className="subGroupHead">
+                      <div className="subGroupEmoji">{g.emoji}</div>
+                      <div className="subGroupBody">
+                        <h3 className="subGroupLabel">{g.label}</h3>
+                        <small className="subGroupDesc">{g.unlocked ? g.description : g.unlockHint}</small>
+                      </div>
+                      <div className="subGroupProgress">
+                        <span className="subGroupCount">{done}/{total}</span>
+                        <small>{pct === 100 ? "완결" : `${pct}%`}</small>
+                      </div>
+                    </div>
+                    {g.unlocked && (
+                      <>
+                        <div className="subGroupBar">
+                          <div className="subGroupBarFill" style={{ width: `${pct}%` }}/>
+                        </div>
+                        <div className="subEpisodes">
+                          {g.scenarios.map((s) => (
+                            <button
+                              key={s.id}
+                              className={`subEpisode${s.cleared ? " subDone" : ""}`}
+                              onClick={() => startScenario(s.id)}
+                            >
+                              <div className="subEpisodeHead">
+                                <span className="subEpisodeIcon">{s.cleared ? "✓" : "▶"}</span>
+                                <b>{s.title}</b>
+                              </div>
+                              <small>{s.subtitle}</small>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+              <div className="subUpcoming">
+                <h3>🔜 추가 예정</h3>
+                <div className="subUpcomingGrid">
+                  {upcoming.map((u, i) => (
+                    <div key={i} className="subUpcomingCard">
+                      <span className="subUpcomingEmoji">{u.emoji}</span>
+                      <b>{u.label}</b>
+                      <small>{u.route}</small>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Panel>
+          );
+        })()}
+
         {view === "achievements" && (() => {
           const filtered = ACHIEVEMENTS.filter((a) =>
             achievementCategoryTab === "all" ? true : a.category === achievementCategoryTab
@@ -8284,6 +8397,50 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .app .homeCtaGrid .homeCta:hover{transform:translateY(-3px)}
 /* 위젯 카드 */
 .app .homeWidget{backdrop-filter:blur(12px)}
+/* ====================================================== */
+/* === 💝 후일담 / 서브 시나리오 view === */
+/* ====================================================== */
+.subIntro{margin:0 0 20px;padding:14px 18px;background:linear-gradient(135deg,rgba(212,168,67,0.12),rgba(255,140,180,0.08));border:1px solid var(--border-card);border-radius:14px;color:var(--text-soft);font-weight:700;font-size:13.5px;line-height:1.55;backdrop-filter:blur(8px)}
+.subGroup{margin-bottom:22px;padding:18px 20px;background:var(--bg-card);border:1px solid var(--border-card);border-radius:18px;backdrop-filter:blur(8px);box-shadow:var(--shadow-card);transition:transform .15s ease,box-shadow .2s ease}
+.subGroup:hover{transform:translateY(-1px);box-shadow:var(--shadow-glow)}
+.subGroupLocked{opacity:0.55;background:repeating-linear-gradient(135deg,rgba(212,168,67,0.05) 0,rgba(212,168,67,0.05) 12px,transparent 12px,transparent 24px),var(--bg-card)}
+.subGroupHead{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;margin-bottom:12px}
+.subGroupEmoji{font-size:32px;width:48px;height:48px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,rgba(212,168,67,0.18),rgba(255,140,180,0.12));border:1px solid var(--border-card)}
+.subGroupBody{min-width:0}
+.subGroupLabel{margin:0 0 4px;font-family:var(--font-display);font-size:18px;font-weight:900;color:var(--text-main);letter-spacing:-0.01em;background:linear-gradient(90deg,var(--accent-gold-light),var(--accent-rose));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.subGroupDesc{font-size:12.5px;color:var(--text-soft);line-height:1.5;font-weight:600}
+.subGroupProgress{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:none}
+.subGroupCount{font-family:var(--font-display);font-size:18px;font-weight:1000;color:var(--accent-gold);letter-spacing:-0.02em;line-height:1}
+.subGroupProgress small{font-size:10.5px;color:var(--text-soft);font-weight:900;letter-spacing:0.06em;text-transform:uppercase}
+.subGroupBar{height:6px;background:rgba(0,0,0,0.08);border-radius:99px;overflow:hidden;margin-bottom:14px}
+.subGroupBarFill{height:100%;background:linear-gradient(90deg,var(--accent-gold),var(--accent-rose),var(--accent-pink));border-radius:99px;transition:width .45s ease;box-shadow:0 0 8px rgba(255,140,180,0.4)}
+.subEpisodes{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.subEpisode{padding:12px 14px;background:linear-gradient(135deg,rgba(255,255,255,0.5),rgba(255,247,234,0.65));border:1px solid var(--border-card);border-radius:12px;text-align:left;cursor:pointer;display:grid;gap:4px;transition:all .15s ease;font-family:inherit;color:var(--text-main)}
+.subEpisode:hover{transform:translateY(-1px);border-color:var(--border-card-hover);box-shadow:var(--shadow-glow);background:linear-gradient(135deg,rgba(255,247,234,0.85),rgba(255,235,210,0.7))}
+.subEpisodeHead{display:flex;align-items:center;gap:8px}
+.subEpisodeIcon{font-size:14px;width:22px;height:22px;display:grid;place-items:center;border-radius:7px;background:rgba(212,168,67,0.2);color:var(--accent-gold);font-weight:1000}
+.subEpisode b{font-size:13.5px;font-weight:900;color:var(--text-main);letter-spacing:-0.01em}
+.subEpisode small{font-size:11px;color:var(--text-soft);font-weight:600;line-height:1.4;padding-left:30px}
+.subEpisode.subDone{background:linear-gradient(135deg,rgba(163,199,133,0.18),rgba(123,166,90,0.12));border-color:rgba(123,166,90,0.4)}
+.subEpisode.subDone .subEpisodeIcon{background:linear-gradient(135deg,#a3c785,#7ba65a);color:#fff}
+/* 추가 예정 섹션 */
+.subUpcoming{margin-top:28px;padding:20px;background:rgba(0,0,0,0.04);border:1px dashed var(--border-card);border-radius:16px}
+.subUpcoming h3{margin:0 0 14px;font-family:var(--font-display);font-size:16px;color:var(--text-soft);font-weight:900;letter-spacing:0.04em}
+.subUpcomingGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.subUpcomingCard{padding:14px 16px;background:rgba(0,0,0,0.06);border:1px solid var(--border-card);border-radius:12px;display:flex;flex-direction:column;gap:4px;opacity:0.7}
+.subUpcomingEmoji{font-size:24px}
+.subUpcomingCard b{font-size:13px;color:var(--text-main);font-weight:900}
+.subUpcomingCard small{font-size:11px;color:var(--text-soft)}
+/* 집착 모드에서 톤 보정 */
+.app.theme-obsession .subGroup{background:rgba(40,15,25,0.85) !important;border-color:rgba(255,61,138,0.35) !important}
+.app.theme-obsession .subEpisode{background:rgba(40,15,25,0.7) !important;color:#ffd0e0 !important;border-color:rgba(255,61,138,0.3) !important}
+.app.theme-obsession .subEpisode:hover{background:rgba(60,25,35,0.85) !important;border-color:#ff3d8a !important}
+.app.theme-obsession .subEpisode b{color:#fff !important}
+.app.theme-obsession .subEpisode small{color:#ff7ab0 !important}
+.app.theme-obsession .subEpisode.subDone{background:rgba(40,55,30,0.4) !important;border-color:rgba(163,199,133,0.4) !important}
+.app.theme-obsession .subUpcomingCard{background:rgba(20,8,12,0.6) !important;border-color:rgba(255,61,138,0.2) !important;color:#ffd0e0 !important}
+.app.theme-obsession .subUpcomingCard b{color:#fff !important}
+.app.theme-obsession .subUpcomingCard small{color:#ff7ab0 !important}
 /* ====================================================== */
 /* === 🎨 v2 폴리시 — 큰 숫자 / 티어 / 모달 통일 === */
 /* ====================================================== */
