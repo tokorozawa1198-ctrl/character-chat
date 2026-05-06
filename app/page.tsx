@@ -2478,7 +2478,7 @@ const ACHIEVEMENTS: Achievement[] = [
 // ================================
 // 스토리 맵 시스템
 // ================================
-type ChapterBranch = "pure" | "obsession";
+type ChapterBranch = "pure" | "obsession" | "confine_a" | "confine_b" | "forced";
 type ChapterStatus = "cleared" | "current" | "available" | "locked";
 
 type ChapterNode = {
@@ -2489,6 +2489,7 @@ type ChapterNode = {
   unlockPrefix: string;
   branch?: ChapterBranch;
   firstScenarioId?: string; // 클릭 시 시작할 시나리오 ID
+  isEnding?: boolean;       // 엔딩 노드 여부
 };
 
 const CHAPTER_MAP: ChapterNode[] = [
@@ -2498,10 +2499,46 @@ const CHAPTER_MAP: ChapterNode[] = [
   { id: "ch4", number: 4, title: "4장", subtitle: "술자리의 밤", unlockPrefix: "main_ch4", firstScenarioId: "main_ch4_01" },
   { id: "ch5", number: 5, title: "5장", subtitle: "겨울이 오기 전", unlockPrefix: "main_ch5", firstScenarioId: "main_ch5_01" },
   { id: "ch6", number: 6, title: "6장", subtitle: "습관이 된 마음", unlockPrefix: "main_ch6", firstScenarioId: "main_ch6_01" },
+  // ─ 7장 분기 ─
   { id: "ch7_pure", number: 7, title: "7장 · 순애", subtitle: "고백 전날", unlockPrefix: "pure_ch7", branch: "pure", firstScenarioId: "pure_ch7_01" },
   { id: "ch7_obsession", number: 7, title: "7장 · 집착", subtitle: "통제", unlockPrefix: "obsession_ch7", branch: "obsession", firstScenarioId: "obsession_ch7_01" },
+  // ─ 8장 ─
   { id: "ch8_pure", number: 8, title: "8장 · 순애", subtitle: "처음이라는 말", unlockPrefix: "pure_ch8", branch: "pure", firstScenarioId: "pure_ch8_01" },
   { id: "ch8_obsession", number: 8, title: "8장 · 집착", subtitle: "더 가까이", unlockPrefix: "obsession_ch8", branch: "obsession", firstScenarioId: "obsession_ch8_01" },
+  // ─ 9장 ─
+  { id: "ch9_pure", number: 9, title: "9장 · 순애", subtitle: "매일이라는 단어", unlockPrefix: "pure_ch9", branch: "pure", firstScenarioId: "pure_ch9_01" },
+  { id: "ch9_obsession", number: 9, title: "9장 · 집착", subtitle: "기록하는 손가락", unlockPrefix: "obsession_ch9", branch: "obsession", firstScenarioId: "obsession_ch9_01" },
+  // ─ 10장 (집착 → 감금 분기) ─
+  { id: "ch10_pure", number: 10, title: "10장 · 순애", subtitle: "형이라는 호칭", unlockPrefix: "pure_ch10", branch: "pure", firstScenarioId: "pure_ch10_01" },
+  { id: "ch10_obsession", number: 10, title: "10장 · 집착", subtitle: "선 넘은 자국", unlockPrefix: "obsession_ch10", branch: "obsession", firstScenarioId: "obsession_ch10_01" },
+  { id: "ch10_confine_a", number: 10, title: "10장 · 감금 A", subtitle: "수집의 시작", unlockPrefix: "confine_a_ch10", branch: "confine_a", firstScenarioId: "confine_a_ch10_01" },
+  { id: "ch10_confine_b", number: 10, title: "10장 · 감금 B", subtitle: "짐승이라는 단어", unlockPrefix: "confine_b_ch10", branch: "confine_b", firstScenarioId: "confine_b_ch10_01" },
+  // ─ 11장 ─
+  { id: "ch11_pure", number: 11, title: "11장 · 순애", subtitle: "처음 운 다음 날", unlockPrefix: "pure_ch11", branch: "pure", firstScenarioId: "pure_ch11_01" },
+  { id: "ch11_obsession", number: 11, title: "11장 · 집착", subtitle: "거짓말의 효율", unlockPrefix: "obsession_ch11", branch: "obsession", firstScenarioId: "obsession_ch11_01" },
+  { id: "ch11_confine_a", number: 11, title: "11장 · 감금 A", subtitle: "SNS 세 마디", unlockPrefix: "confine_a_ch11", branch: "confine_a", firstScenarioId: "confine_a_ch11_01" },
+  { id: "ch11_confine_b", number: 11, title: "11장 · 감금 B", subtitle: "벌의 강도", unlockPrefix: "confine_b_ch11", branch: "confine_b", firstScenarioId: "confine_b_ch11_01" },
+  // ─ 12장 ─
+  { id: "ch12_pure", number: 12, title: "12장 · 순애", subtitle: "첫 키스 다음 날", unlockPrefix: "pure_ch12", branch: "pure", firstScenarioId: "pure_ch12_01" },
+  { id: "ch12_obsession", number: 12, title: "12장 · 집착", subtitle: "두 명의 떡존", unlockPrefix: "obsession_ch12", branch: "obsession", firstScenarioId: "obsession_ch12_01" },
+  { id: "ch12_confine_a", number: 12, title: "12장 · 감금 A", subtitle: "표면과 무의식", unlockPrefix: "confine_a_ch12", branch: "confine_a", firstScenarioId: "confine_a_ch12_01" },
+  { id: "ch12_confine_b", number: 12, title: "12장 · 감금 B", subtitle: "마조 루트 진입", unlockPrefix: "confine_b_ch12", branch: "confine_b", firstScenarioId: "confine_b_ch12_01" },
+  // ─ 13장 ─
+  { id: "ch13_pure", number: 13, title: "13장 · 순애", subtitle: "평생이라는 일상", unlockPrefix: "pure_ch13", branch: "pure", firstScenarioId: "pure_ch13_01" },
+  { id: "ch13_obsession", number: 13, title: "13장 · 집착", subtitle: "균열의 표정", unlockPrefix: "obsession_ch13", branch: "obsession", firstScenarioId: "obsession_ch13_01" },
+  { id: "ch13_confine_a", number: 13, title: "13장 · 감금 A", subtitle: "수집함의 두께", unlockPrefix: "confine_a_ch13", branch: "confine_a", firstScenarioId: "confine_a_ch13_01" },
+  { id: "ch13_confine_b", number: 13, title: "13장 · 감금 B", subtitle: "허락받지 못한 것들", unlockPrefix: "confine_b_ch13", branch: "confine_b", firstScenarioId: "confine_b_ch13_01" },
+  // ─ 14장 (집착 → 강제 결혼 분기) ─
+  { id: "ch14_pure", number: 14, title: "14장 · 순애", subtitle: "결혼식 전날", unlockPrefix: "pure_ch14", branch: "pure", firstScenarioId: "pure_ch14_01" },
+  { id: "ch14_forced", number: 14, title: "14장 · 강제", subtitle: "협박의 완성", unlockPrefix: "forced_ch14", branch: "forced", firstScenarioId: "forced_ch14_01" },
+  { id: "ch14_confine_a", number: 14, title: "14장 · 감금 A", subtitle: "정식 소유", unlockPrefix: "confine_a_ch14", branch: "confine_a", firstScenarioId: "confine_a_ch14_01" },
+  { id: "ch14_confine_b", number: 14, title: "14장 · 감금 B", subtitle: "짐승 정식 인정", unlockPrefix: "confine_b_ch14", branch: "confine_b", firstScenarioId: "confine_b_ch14_01" },
+  // ─ 엔딩 5종 ─
+  { id: "end_pure", number: 99, title: "엔딩 · 순애", subtitle: "평생 외롭지 않은 사람", unlockPrefix: "pure_ending", branch: "pure", firstScenarioId: "pure_ending", isEnding: true },
+  { id: "end_pure_returning", number: 99, title: "엔딩 · 회귀", subtitle: "흉터를 함께 짊어지는 사람", unlockPrefix: "pure_returning_ending", branch: "pure", firstScenarioId: "pure_returning_ending", isEnding: true },
+  { id: "end_forced", number: 99, title: "엔딩 · 강제", subtitle: "체념의 결혼", unlockPrefix: "forced_ending", branch: "forced", firstScenarioId: "forced_ending", isEnding: true },
+  { id: "end_confine_a", number: 99, title: "엔딩 · 감금 A", subtitle: "평생의 수집", unlockPrefix: "confine_a_ending", branch: "confine_a", firstScenarioId: "confine_a_ending", isEnding: true },
+  { id: "end_confine_b", number: 99, title: "엔딩 · 감금 B", subtitle: "짐승의 평생", unlockPrefix: "confine_b_ending", branch: "confine_b", firstScenarioId: "confine_b_ending", isEnding: true },
 ];
 
 function getChapterStatus(
@@ -2521,6 +2558,7 @@ function getChapterStatus(
   // 잠금 판단
   if (node.number === 1) return "available";
 
+  // 7장 분기
   if (node.id === "ch7_pure" || node.id === "ch7_obsession") {
     if (!seen("main_ch6")) return "locked";
     if (storyRoute === "obsession" && node.branch === "pure") return "locked";
@@ -2533,7 +2571,40 @@ function getChapterStatus(
   if (node.id === "ch8_obsession") {
     return seen("obsession_ch7") ? "available" : "locked";
   }
-  // 일반 챕터: 이전 챕터 진행 시 해금
+
+  // 9장+ : branch별 직전 챕터 prefix 매핑
+  if (node.branch && node.number >= 9 && node.number <= 14) {
+    // 같은 branch의 이전 챕터 prefix
+    const prev = `${node.branch === "pure" ? "pure" : node.branch === "obsession" ? "obsession" : node.branch}_ch${node.number - 1}`;
+    // 9장 진입은 8장 동일 branch 클리어 필요
+    if (node.number === 9) {
+      const prev8 = node.branch === "pure" ? "pure_ch8" : "obsession_ch8";
+      return seen(prev8) ? "available" : "locked";
+    }
+    // 10장+ : 같은 branch 이전 챕터 OR (감금 분기는 obsession 이전 챕터에서도 진입 가능)
+    if (seen(prev)) return "available";
+    // 감금 A/B 첫 진입 (10장)은 obsession_ch9 클리어로 해금
+    if (node.number === 10 && (node.branch === "confine_a" || node.branch === "confine_b")) {
+      return seen("obsession_ch9") ? "available" : "locked";
+    }
+    // 강제 14장 진입은 obsession_ch13 클리어로 해금
+    if (node.number === 14 && node.branch === "forced") {
+      return seen("obsession_ch13") ? "available" : "locked";
+    }
+    return "locked";
+  }
+
+  // 엔딩: 해당 14장 클리어 시 해금
+  if (node.isEnding) {
+    if (node.id === "end_pure") return seen("pure_ch14") ? "available" : "locked";
+    if (node.id === "end_pure_returning") return seen("pure_ch14") ? "available" : "locked";
+    if (node.id === "end_forced") return seen("forced_ch14") ? "available" : "locked";
+    if (node.id === "end_confine_a") return seen("confine_a_ch14") ? "available" : "locked";
+    if (node.id === "end_confine_b") return seen("confine_b_ch14") ? "available" : "locked";
+    return "locked";
+  }
+
+  // 공통 챕터(2~6): 이전 main 챕터 진행 시 해금
   const prevPrefix = `main_ch${node.number - 1}`;
   return seen(prevPrefix) ? "available" : "locked";
 }
@@ -7440,31 +7511,35 @@ export default function Page() {
         })()}
 
         {view === "storyMap" && (() => {
-          // 공통 챕터(1~6) + 분기 7장 + 분기 8장 구조로 렌더링
           const commonChapters = CHAPTER_MAP.filter((c) => !c.branch);
-          const ch7Pure = CHAPTER_MAP.find((c) => c.id === "ch7_pure")!;
-          const ch7Obs  = CHAPTER_MAP.find((c) => c.id === "ch7_obsession")!;
-          const ch8Pure = CHAPTER_MAP.find((c) => c.id === "ch8_pure")!;
-          const ch8Obs  = CHAPTER_MAP.find((c) => c.id === "ch8_obsession")!;
+          const findNode = (id: string) => CHAPTER_MAP.find((c) => c.id === id)!;
 
           const renderNode = (node: ChapterNode) => {
             const status = getChapterStatus(node, seenEvents, currentScenarioId, storyRoute);
-            const icon = status === "cleared" ? "✓" : status === "current" ? "★" : status === "locked" ? "🔒" : "○";
+            const icon = node.isEnding && status === "cleared" ? "👑" : status === "cleared" ? "✓" : status === "current" ? "★" : status === "locked" ? "🔒" : "○";
             const canStart = (status === "available" || status === "cleared") && node.firstScenarioId;
             return (
               <button
                 key={node.id}
-                className={`mapNode mapStatus-${status}${node.branch ? ` mapBranch-${node.branch}` : ""}`}
+                className={`mapNode mapStatus-${status}${node.branch ? ` mapBranch-${node.branch}` : ""}${node.isEnding ? " mapEnding" : ""}`}
                 onClick={() => canStart && startScenario(node.firstScenarioId!)}
                 disabled={!canStart}
               >
                 <span className="mapNodeIcon">{icon}</span>
-                <span className="mapNodeNum">{node.number}장</span>
+                <span className="mapNodeNum">{node.isEnding ? "엔딩" : `${node.number}장`}</span>
                 <b className="mapNodeTitle">{status === "locked" ? "???" : node.title}</b>
                 <small className="mapNodeSubtitle">{status === "locked" ? "이전 챕터 진행 후 해금" : node.subtitle}</small>
               </button>
             );
           };
+
+          // 9-14장 행 구성: 각 행마다 해당 챕터의 모든 branch 노드를 보임
+          const lateRows: { num: number; nodes: ChapterNode[] }[] = [];
+          for (let n = 9; n <= 14; n++) {
+            const nodes = CHAPTER_MAP.filter((c) => c.number === n);
+            if (nodes.length) lateRows.push({ num: n, nodes });
+          }
+          const endingNodes = CHAPTER_MAP.filter((c) => c.isEnding);
 
           return (
             <Panel title="스토리 맵">
@@ -7474,6 +7549,7 @@ export default function Page() {
                 <span className="mapLegendItem"><b>✓</b> 완료</span>
                 <span className="mapLegendItem"><b>○</b> 진행 가능</span>
                 <span className="mapLegendItem"><b>🔒</b> 잠김</span>
+                <span className="mapLegendItem"><b>👑</b> 엔딩 도달</span>
               </div>
               <div className="mapPath">
                 {commonChapters.map((node, i) => (
@@ -7490,16 +7566,37 @@ export default function Page() {
                 <div className="mapBranchRow">
                   <div className="mapBranchCol pure">
                     <div className="mapBranchHeader">🤍 순애 루트</div>
-                    {renderNode(ch7Pure)}
+                    {renderNode(findNode("ch7_pure"))}
                     <div className="mapConnector branch" />
-                    {renderNode(ch8Pure)}
+                    {renderNode(findNode("ch8_pure"))}
                   </div>
                   <div className="mapBranchCol obsession">
                     <div className="mapBranchHeader">🖤 집착 루트</div>
-                    {renderNode(ch7Obs)}
+                    {renderNode(findNode("ch7_obsession"))}
                     <div className="mapConnector branch" />
-                    {renderNode(ch8Obs)}
+                    {renderNode(findNode("ch8_obsession"))}
                   </div>
+                </div>
+                {/* 9-14장: 챕터별 행, 가로 스크롤 가능한 그리드 */}
+                <div className="mapBranchSplit">
+                  <div className="mapBranchLine" />
+                  <div className="mapBranchLabel">9장 ~ 14장</div>
+                </div>
+                {lateRows.map((row) => (
+                  <div key={`row_${row.num}`} className="mapLateRow">
+                    <div className="mapLateRowLabel">{row.num}장</div>
+                    <div className="mapLateRowNodes">
+                      {row.nodes.map((n) => renderNode(n))}
+                    </div>
+                  </div>
+                ))}
+                {/* 엔딩 행 */}
+                <div className="mapBranchSplit">
+                  <div className="mapBranchLine endingLine" />
+                  <div className="mapBranchLabel endingLabel">👑 엔딩 5종</div>
+                </div>
+                <div className="mapEndingRow">
+                  {endingNodes.map((n) => renderNode(n))}
                 </div>
               </div>
             </Panel>
@@ -8815,6 +8912,31 @@ const CSS = `
 .mapBranchCol .mapNode{padding:12px 14px}
 .mapBranchCol .mapNodeIcon{width:40px;height:40px;font-size:18px}
 .mapBranchCol .mapNodeTitle{font-size:14px}
+/* 9~14장 행 */
+.mapLateRow{width:100%;display:grid;grid-template-columns:60px 1fr;gap:10px;align-items:center;margin:8px 0}
+.mapLateRowLabel{font-size:13px;font-weight:1000;color:#7b4f2f;text-align:right;padding-right:6px;letter-spacing:.04em}
+.mapLateRowNodes{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px}
+.mapLateRowNodes .mapNode{padding:10px 12px;grid-template-columns:36px 1fr}
+.mapLateRowNodes .mapNodeIcon{width:36px;height:36px;font-size:16px}
+.mapLateRowNodes .mapNodeNum{font-size:9px}
+.mapLateRowNodes .mapNodeTitle{font-size:12px}
+.mapLateRowNodes .mapNodeSubtitle{font-size:11px;line-height:1.3}
+/* branch별 색상 */
+.mapBranch-pure{border-left:3px solid rgba(214,140,170,.6) !important}
+.mapBranch-obsession{border-left:3px solid rgba(180,90,100,.6) !important}
+.mapBranch-confine_a{border-left:3px solid #a85020 !important;background:rgba(255,235,220,.5) !important}
+.mapBranch-confine_b{border-left:3px solid #5a2a3a !important;background:rgba(60,30,40,.08) !important}
+.mapBranch-forced{border-left:3px solid #6a3a4a !important;background:rgba(80,40,55,.08) !important}
+/* 엔딩 */
+.mapBranchSplit .endingLine{background:linear-gradient(90deg,transparent,#df842c,transparent);height:2px}
+.mapBranchSplit .endingLabel{color:#df842c;background:linear-gradient(135deg,#fff7d6,#ffe9a8);font-size:13px;letter-spacing:.12em}
+.mapEndingRow{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;width:100%;padding:14px;background:linear-gradient(135deg,#3a2510,#5a3a18);border-radius:18px;border:1px solid #df842c}
+.mapEndingRow .mapNode{background:linear-gradient(135deg,#fff7d6,#ffe9a8);border-color:#df842c}
+.mapEndingRow .mapNode .mapNodeTitle{color:#3a2017}
+.mapEndingRow .mapNode .mapNodeSubtitle{color:#7b4f2f}
+.mapEnding.mapStatus-cleared{background:linear-gradient(135deg,#ffd97a,#df842c) !important;border-color:#a85020 !important;box-shadow:0 0 0 2px rgba(255,210,100,.4),0 8px 22px rgba(217,166,86,.4)}
+.mapEnding.mapStatus-cleared .mapNodeIcon{background:rgba(255,255,255,.4);color:#5a3010;font-size:24px}
+.mapEnding.mapStatus-cleared .mapNodeTitle{color:#3a2017}
 .mapBranchCol .mapNodeSubtitle{font-size:11px}
 @media (max-width:720px){.mapBranchRow{grid-template-columns:1fr}}
 .miniMapHint{margin:0 0 16px;font-size:13px;color:#6b4f3d;font-weight:700}
