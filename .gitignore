@@ -59,3 +59,4 @@ vercel
 public/*.original.png
 public/cover_avatar_*.png
 public/DGD.png
+.claude/
