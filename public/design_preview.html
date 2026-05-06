@@ -896,7 +896,7 @@ p.pageHint { text-align: center; color: #888; margin-bottom: 32px; font-size: 14
 }
 .prog-content { display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .prog-eyebrow { font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; }
-.prog-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; line-height: 1.2; }
+.prog-title { font-family: 'Cafe24Ssurround', sans-serif; font-size: 22px; font-weight: 900; line-height: 1.25; letter-spacing: -0.01em; }
 .prog-stat { font-size: 11.5px; font-weight: 700; padding: 6px 10px; border-radius: 8px; background: rgba(0,0,0,0.3); }
 .prog-cta {
   margin-top: auto;
@@ -911,41 +911,49 @@ p.pageHint { text-align: center; color: #888; margin-bottom: 32px; font-size: 14
 .prog-cta:hover { transform: translateY(-1px); }
 .prog-desc { font-size: 11px; line-height: 1.45; opacity: 0.8; padding: 8px 10px; background: rgba(0,0,0,0.3); border-radius: 8px; margin: 0; }
 
-/* 1단계: 차분 와인+골드 */
+/* 1단계: 크림 + 와인 액센트 (밝음) */
 .prog-1 {
-  background: linear-gradient(135deg, #2a0e15, #1a0810);
-  border-color: rgba(212,168,67,0.3);
-  color: #f0d896;
+  background: linear-gradient(135deg, #fdf3e3 0%, #f5e3ce 100%);
+  border-color: rgba(212,168,67,0.5);
+  color: #5a2515;
+  box-shadow: 0 8px 22px rgba(91,48,24,0.1);
 }
-.prog-1 .prog-label { color: #d4a843; }
-.prog-1 .prog-eyebrow { color: #c89070; }
-.prog-1 .prog-title { background: linear-gradient(90deg, #f0d896, #d4a843); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.prog-1 .prog-cta { background: linear-gradient(135deg, #d4a843, #8a6020); color: #1a0810; }
+.prog-1 .prog-label { background: rgba(212,168,67,0.18); color: #8a5e20; }
+.prog-1 .prog-eyebrow { color: #b87a3a; }
+.prog-1 .prog-title { background: linear-gradient(90deg, #5a2515, #b87a3a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+.prog-1 .prog-stat { background: rgba(255,255,255,0.6); color: #5a2515; }
+.prog-1 .prog-cta { background: linear-gradient(135deg, #d4a843, #b87a3a); color: #fff; box-shadow: 0 4px 14px rgba(184,122,58,0.3); }
+.prog-1 .prog-desc { background: rgba(255,255,255,0.55); color: #6a3d28; }
 
-/* 2단계: 살짝 로즈 추가 */
+/* 2단계: 따뜻한 크림 + 로즈 액센트 (밝음) */
 .prog-2 {
-  background: linear-gradient(135deg, #3a1320, #1a0810);
-  border-color: rgba(200,122,142,0.4);
-  color: #f4cad6;
+  background: linear-gradient(135deg, #fdeae2 0%, #f5d4cc 100%);
+  border-color: rgba(200,122,142,0.5);
+  color: #5a2030;
+  box-shadow: 0 8px 24px rgba(180,80,110,0.12);
 }
-.prog-2 .prog-label { color: #c87a8e; }
-.prog-2 .prog-eyebrow { color: #c87a8e; }
-.prog-2 .prog-title { background: linear-gradient(90deg, #f0d896, #c87a8e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.prog-2 .prog-cta { background: linear-gradient(135deg, #c87a8e, #8a4a5e); color: #fff; box-shadow: 0 4px 12px rgba(200,122,142,0.3); }
+.prog-2 .prog-label { background: rgba(200,122,142,0.2); color: #8a3852; }
+.prog-2 .prog-eyebrow { color: #c84a6e; }
+.prog-2 .prog-title { background: linear-gradient(90deg, #5a2030, #c84a6e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+.prog-2 .prog-stat { background: rgba(255,255,255,0.65); color: #5a2030; }
+.prog-2 .prog-cta { background: linear-gradient(135deg, #e88aa4, #c84a6e); color: #fff; box-shadow: 0 4px 14px rgba(232,138,164,0.3); }
+.prog-2 .prog-desc { background: rgba(255,255,255,0.6); color: #6a2d3a; }
 
-/* 3단계: 순애 핑크 */
+/* 3단계: 핑크 크림 + 로즈골드 (순애 밝게) */
 .prog-3 {
   background:
-    radial-gradient(ellipse at top, rgba(255,180,200,0.18) 0%, transparent 60%),
-    linear-gradient(135deg, #4a1828, #2a0d1a);
-  border-color: rgba(255,140,180,0.5);
-  color: #ffc8d8;
-  box-shadow: 0 0 24px rgba(255,140,180,0.12);
+    radial-gradient(ellipse at top, rgba(255,200,220,0.5) 0%, transparent 70%),
+    linear-gradient(135deg, #ffe6ee 0%, #f5c8d8 100%);
+  border-color: rgba(255,140,180,0.6);
+  color: #5a1830;
+  box-shadow: 0 8px 28px rgba(255,140,180,0.18);
 }
-.prog-3 .prog-label { color: #ff7a9c; }
-.prog-3 .prog-eyebrow { color: #ffb0c8; }
-.prog-3 .prog-title { background: linear-gradient(90deg, #ffd0e0, #ff7a9c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.prog-3 .prog-cta { background: linear-gradient(135deg, #ff7a9c, #c84a6e); color: #fff; box-shadow: 0 4px 14px rgba(255,122,156,0.4); }
+.prog-3 .prog-label { background: rgba(255,140,180,0.22); color: #a8385c; }
+.prog-3 .prog-eyebrow { color: #d44d6e; }
+.prog-3 .prog-title { background: linear-gradient(90deg, #5a1830, #d44d6e, #d4a843); -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+.prog-3 .prog-stat { background: rgba(255,255,255,0.7); color: #5a1830; }
+.prog-3 .prog-cta { background: linear-gradient(135deg, #ff7a9c, #d4a843); color: #fff; box-shadow: 0 6px 18px rgba(255,122,156,0.4); }
+.prog-3 .prog-desc { background: rgba(255,255,255,0.65); color: #6a2540; }
 
 /* 4단계: 집착 네온 폭주 */
 .prog-4 {
@@ -1075,6 +1083,40 @@ p.pageHint { text-align: center; color: #888; margin-bottom: 32px; font-size: 14
 .font-6 .font-sample, .font-6 .font-sub { font-family: 'Gugi', sans-serif; letter-spacing: 0.06em; }
 .font-7 .font-sample, .font-7 .font-sub { font-family: 'Stylish', sans-serif; }
 .font-8 .font-sample, .font-8 .font-sub { font-family: 'Pretendard', sans-serif; font-weight: 900; }
+</style>
+
+<div class="final-decision">
+  <h2 style="font-family: 'Cafe24Ssurround', sans-serif; font-size: 26px; margin-bottom: 16px; background: linear-gradient(90deg, #f0d896, #ff3d8a); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">✅ 최종 결정</h2>
+  <div class="final-grid">
+    <div class="final-item"><b>베이스</b><span>A+C 하이브리드 (와인+골드 + 핑크 네온)</span></div>
+    <div class="final-item"><b>1~3단계 톤</b><span>밝은 크림 + 와인/로즈 액센트 (어둡지 않음)</span></div>
+    <div class="final-item"><b>4단계 (집착)</b><span>다크 와인 + 핫핑크 네온 + 스캔라인</span></div>
+    <div class="final-item"><b>한글 폰트</b><span>Cafe24Ssurround (둥글고 친근한 게임 디스플레이)</span></div>
+    <div class="final-item"><b>전환 트리거</b><span>호감/집착 임계값 자동 (기존 4테마 시스템 그대로)</span></div>
+  </div>
+</div>
+
+<style>
+.final-decision {
+  margin: 60px auto 30px;
+  max-width: 1400px;
+  padding: 28px 32px;
+  background: linear-gradient(135deg, rgba(212,168,67,0.12), rgba(255,61,138,0.1));
+  border: 2px solid;
+  border-image: linear-gradient(135deg, #d4a843, #ff3d8a) 1;
+  border-radius: 18px;
+}
+.final-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.final-item {
+  padding: 14px 16px;
+  background: rgba(0,0,0,0.45);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.final-item b { font-size: 11px; color: #ff7ab0; letter-spacing: 0.12em; text-transform: uppercase; font-family: 'Cafe24Ssurround', sans-serif; }
+.final-item span { font-size: 14px; color: #fff; font-weight: 700; line-height: 1.4; }
 </style>
 
 <div class="summary-card">
