@@ -7674,6 +7674,17 @@ export default function Page() {
                 { id: "confine_a_marking_03", title: "3편: 익숙해지는 자리",  subtitle: "학습된 후각",   cleared: isCleared("confine_a_marking_03") },
               ],
             },
+            {
+              id: "confine_a_dark",
+              label: "🔞 감금 A · 금지된 방",
+              emoji: "⛓️",
+              description: "쇠사슬 + 체취 각인 + 모든 액체. 광기의 절정. (성인 / 하드)",
+              unlockHint: "14장 confine_a 진입 또는 confine_a 엔딩 클리어 후",
+              unlocked: isCleared("confine_a_ch14_02") || !!unlockedEndings.confinement || isAdminMode,
+              scenarios: [
+                { id: "confine_a_sub_forbidden_room", title: "금지된 방", subtitle: "모든 것을 통제당하는 자리", cleared: isCleared("confine_a_sub_forbidden_room") },
+              ],
+            },
           ];
           // 추가 예정 그룹 (placeholders)
           const upcoming: { label: string; emoji: string; route: string }[] = [
