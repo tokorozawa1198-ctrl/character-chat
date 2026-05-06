@@ -7684,6 +7684,7 @@ export default function Page() {
               scenarios: [
                 { id: "confine_a_sub_forbidden_room", title: "금지된 방",         subtitle: "모든 것을 통제당하는 자리",      cleared: isCleared("confine_a_sub_forbidden_room") },
                 { id: "confine_a_sub_caged",          title: "쇠창살 너머의 세계", subtitle: "케이지 안의 짐승, 자기 부정의 평온", cleared: isCleared("confine_a_sub_caged") },
+                { id: "confine_a_sub_thirst",         title: "옅은 노란색",        subtitle: "욕실의 컵, 학습된 갈증",          cleared: isCleared("confine_a_sub_thirst") },
               ],
             },
           ];
