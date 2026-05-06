@@ -19473,6 +19473,265 @@ confine_b_ch12_04: {
   ],
 },
 
+// ==========================================
+// 한정 시나리오 (레벨 보상)
+// ==========================================
+special_lv10_lunch: {
+  id: "special_lv10_lunch",
+  title: "🍱 비밀 도시락",
+  subtitle: "한정 시나리오 · Lv 10 보상",
+  kind: "normal",
+  category: "special",
+  image: "/special_lv10.png",
+  background: "/bg_room_day.png",
+  text: `점심 시간이 좀 지났는데, 갑자기 카톡이 울렸다.
+
+"선생님. 잠깐만 — 나오실 수 있으세요? 헤헤"
+
+근떡존이었다. 한낮인데 — 헬스장 근처도 아니고 — 회사 앞에 와 있다고 했다.
+
+내려가 보니 — 그가 — 큰 가방 하나를 — 들고 — 서 있었다.
+
+"...뭐예요 그 가방."
+
+"아 — 이거요?"
+
+근떡존이 — 작게 — 웃었다.
+
+"...도시락이에요."
+
+"네?"
+
+"제가 — 만든 거요."
+
+그가 — 평소처럼 — 헤헤 거렸지만 — 귀가 — 빨갛게 — 익어 있었다.
+
+"...아침부터 — 일어나서 — 했어요."
+
+가방을 — 열어보니 — 도시락 통이 — 두 개. 하나는 — 큼지막한 — 도시락 통, 하나는 — 그 옆에 — 작은 — 디저트 통.
+
+"먹고 — 인증 보내주세요."
+
+"...주인님이 — 만든 — 도시락이라."
+
+"네."
+
+"...어떻게 — 생각해서 — 만든 거예요?"
+
+"....."
+
+"선생님이 — 제 — 도시락 — 한 번만 — 먹어보면 — 좋겠다 — 했거든요."
+
+근떡존이 — 발끝을 — 살짝 — 톡톡 — 두드렸다.
+
+"...오래 — 생각했어요. 먹어주실까 — 안 — 먹어주실까."
+
+그 순간 — 그의 — 모든 — 다정함이 — 한 번에 — 풀려나왔다.
+
+이 도시락 — 한 통이 — 그가 — 며칠 동안 — 머릿속에서 — 굴려본 — 결의 — 결과물이라는 — 자각.`,
+  choices: [
+    { label: "고맙다고 받는다", text: "고마워요. 잘 먹을게요.",
+      stat: { affinity: 50, trust: 30 }, end: true },
+    { label: "여기서 같이 먹자고 한다", text: "지금 여기서 같이 먹어요.",
+      stat: { affinity: 70, trust: 40, obsession: 10 }, end: true },
+    { label: "직접 먹여달라고 한다", text: "한 입만 — 먹여주세요.",
+      stat: { affinity: 60, obsession: 30 }, end: true },
+  ],
+},
+
+special_lv15_chest: {
+  id: "special_lv15_chest",
+  title: "✋ 가슴 만지기",
+  subtitle: "한정 인터렉티브 · Lv 15 보상",
+  kind: "normal",
+  category: "special",
+  image: "/special_lv15.png",
+  background: "/bg_room_evening.png",
+  text: `근떡존이 — 운동 끝나고 — 평소처럼 — 다정한 결로 — 자리잡고 있었다.
+
+옷이 — 살짝 — 들춰져 있었다. 그가 — 그것을 — 의식하지 — 못한 채로 — 헤헤 거렸다.
+
+"선생님. 오늘 — 벤치프레스 — 1RM — 갱신했어요."
+
+"....."
+
+"...만져보실래요? 가슴근."
+
+"....."
+
+"...네?"
+
+근떡존이 — 자기가 — 풀어놓은 — 한 마디에 — 자기가 — 더 — 놀랐다.
+
+"아 — 아니에요. 죄송해요. 헤헤."
+
+그러나 — 그는 — 자리를 — 떠나지 — 않았다.
+
+옷이 — 여전히 — 살짝 — 들춰진 채로.`,
+  mission: {
+    prompt: "떡존이의 가슴근을 살짝 만져주세요.",
+    targets: [
+      { label: "가슴근을 천천히 만진다", hint: "✋", x: 50, y: 42, radius: 18,
+        stat: { affinity: 60, obsession: 25, trust: 15 }, next: "special_lv15_chest_after" },
+    ],
+  },
+  choices: [],
+},
+
+special_lv15_chest_after: {
+  id: "special_lv15_chest_after",
+  title: "✋ 가슴 만지기 — 그 후",
+  subtitle: "한정 인터렉티브 · Lv 15",
+  kind: "normal",
+  category: "special",
+  image: "/special_lv15.png",
+  background: "/bg_room_evening.png",
+  text: `손끝이 — 가슴근에 — 닿은 — 순간.
+
+근떡존이 — 한 번 — 굳었다.
+
+"....."
+
+그러나 — 도망가지 — 않았다.
+
+오히려 — 살짝 — 자기 가슴을 — 더 — 내밀었다.
+
+"...선생님 손이 — 차네요."
+
+"....."
+
+"...더 — 만져도 — 돼요. 안 — 도망가요."
+
+귀가 — 빨갛게 — 익은 — 채로 — 그가 — 작게 — 웃었다.
+
+평생 — 누구한테도 — 해본 적 — 없는 — 자세였다.`,
+  choices: [
+    { label: "한 번 더 만진다", text: "한 번 — 더 — 만질게요.",
+      stat: { affinity: 30, obsession: 20 }, end: true },
+    { label: "고맙다고 한다", text: "...고마워요.",
+      stat: { affinity: 40, trust: 25 }, end: true },
+  ],
+},
+
+special_lv30_kiss: {
+  id: "special_lv30_kiss",
+  title: "💋 떡존이한테 뽀뽀받기",
+  subtitle: "한정 인터렉티브 · Lv 30 보상",
+  kind: "normal",
+  category: "special",
+  image: "/special_lv30.png",
+  background: "/bg_room_evening.png",
+  text: `근떡존이 — 평소처럼 — 옆에 — 앉아 있었다.
+
+그러나 — 오늘은 — 한 가지가 — 평소와 — 달랐다.
+
+그의 — 시선이 — 한참 동안 — 입술에 — 머물렀다.
+
+"...선생님."
+
+"네."
+
+"...오늘 — 하나만 — 부탁드려도 — 돼요?"
+
+"....."
+
+"...뽀뽀 — 한 번 — 해드려도 — 돼요? 제가요."
+
+평생 — 자기 의지로 — 해본 적 — 없는 — 종류의 — 한 마디였다.
+
+이 한 마디가 — 그의 — 입에서 — 풀려나오는 자리.
+
+이 — 평생 — 한 번 — 있는 자리에서 — 어디에 — 입술을 — 닿게 — 받아주면 — 좋을지 — 결정해줘.`,
+  mission: {
+    prompt: "떡존이가 입술을 닿게 할 곳을 골라주세요.",
+    targets: [
+      { label: "입술", hint: "💋", x: 50, y: 32, radius: 14,
+        stat: { affinity: 100, trust: 50, obsession: 30 }, next: "special_lv30_kiss_after_lips" },
+      { label: "이마", hint: "✨", x: 50, y: 18, radius: 14,
+        stat: { affinity: 70, trust: 60 }, next: "special_lv30_kiss_after_brow" },
+      { label: "볼", hint: "🌸", x: 70, y: 35, radius: 14,
+        stat: { affinity: 80, trust: 40 }, next: "special_lv30_kiss_after_cheek" },
+    ],
+  },
+  choices: [],
+},
+
+special_lv30_kiss_after_lips: {
+  id: "special_lv30_kiss_after_lips",
+  title: "💋 입술에",
+  subtitle: "한정 인터렉티브 · Lv 30",
+  kind: "normal",
+  category: "special",
+  image: "/special_lv30.png",
+  background: "/bg_room_evening.png",
+  text: `근떡존이 — 천천히 — 다가왔다.
+
+입술이 — 닿는 — 순간 — 그가 — 한 번 — 멈췄다.
+
+평생 — 자기 의지로 — 닿게 한 — 첫 — 입술이었다.
+
+"....."
+
+"...평생 — 적어둘 — 자리예요."
+
+그가 — 작게 — 웃었다.
+
+평생 — 외로웠던 — 사람의 — 마지막 — 외로움이 — 그 — 입술 — 닿은 자리에서 — 사라졌다.`,
+  choices: [
+    { label: "한 번 더 받는다", text: "한 번 — 더.",
+      stat: { affinity: 50, obsession: 20 }, end: true },
+    { label: "조용히 안아준다", text: "(말없이 안아준다)",
+      stat: { affinity: 60, trust: 40 }, end: true },
+  ],
+},
+
+special_lv30_kiss_after_brow: {
+  id: "special_lv30_kiss_after_brow",
+  title: "✨ 이마에",
+  subtitle: "한정 인터렉티브 · Lv 30",
+  kind: "normal",
+  category: "special",
+  image: "/special_lv30.png",
+  background: "/bg_room_evening.png",
+  text: `근떡존이 — 천천히 — 일어나 — 이마에 — 입술을 — 닿게 했다.
+
+따뜻했다. 다정했다. 평생의 — 약속 같은 — 결의 — 닿음.
+
+"...선생님 — 평생 — 다정하게 살아주세요."
+
+그 — 한 마디가 — 평생 — 못 잊을 — 결로 — 자리잡았다.`,
+  choices: [
+    { label: "고맙다고 한다", text: "...고마워요.",
+      stat: { affinity: 40, trust: 50 }, end: true },
+    { label: "안아준다", text: "(말없이 안아준다)",
+      stat: { affinity: 50, trust: 60 }, end: true },
+  ],
+},
+
+special_lv30_kiss_after_cheek: {
+  id: "special_lv30_kiss_after_cheek",
+  title: "🌸 볼에",
+  subtitle: "한정 인터렉티브 · Lv 30",
+  kind: "normal",
+  category: "special",
+  image: "/special_lv30.png",
+  background: "/bg_room_evening.png",
+  text: `근떡존이 — 살짝 — 다가와 — 볼에 — 입술을 — 짧게 — 닿게 했다.
+
+장난스럽게 — 톡 — 닿고 — 빠지는 — 결.
+
+"...헤헤. 부끄러우세요?"
+
+근떡존이 — 자기가 — 더 — 빨개진 채로 — 헤헤 거렸다.
+
+그 — 가벼운 결의 — 첫 뽀뽀가 — 평생의 — 시작이 됐다.`,
+  choices: [
+    { label: "장난스럽게 받아친다", text: "주인님이 더 빨개졌어요.",
+      stat: { affinity: 50, trust: 30 }, end: true },
+    { label: "한 번 더 받는다", text: "한 번 — 더.",
+      stat: { affinity: 40, obsession: 15 }, end: true },
+  ],
+},
 
 // ==========================================
 // 13장 + 14장 + 엔딩 5종 (자동 통합)

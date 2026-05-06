@@ -88,6 +88,7 @@ export type SaveData = {
   endingFlags?: Record<string, boolean>;
   afterRoute?: EndingRoute;
   unlockedCGs?: Record<string, boolean>;
+  unlockedSpecials?: Record<string, boolean>;
   saveThumbnail?: string;
   routeLabel?: string;
   lastMessagePreview?: string;

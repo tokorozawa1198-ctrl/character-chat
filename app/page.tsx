@@ -1413,22 +1413,36 @@ type LevelReward = {
   description: string;
   perks: LevelPerkKind[];
   oneTime?: { coins?: number; tickets?: number; affinity?: number; trust?: number };
+  special?: {
+    kind: "cg" | "scenario" | "touch" | "avatar";
+    id: string;          // CG id / scenario id / avatar id
+    title: string;
+    description: string;
+    image?: string;      // 미리보기 이미지
+    caption?: string;    // CG 캡션 (kind=cg 일 때)
+  };
 };
 
 const LEVEL_REWARDS: LevelReward[] = [
   { level: 2, emoji: "🎁", title: "환영 선물", description: "별거 아닌데 첫걸음이라능ㅋ", perks: [], oneTime: { coins: 100 } },
   { level: 3, emoji: "📅", title: "데일리 미션 +1", description: "이제 매일 4개 받는다능 (3개 → 4개)", perks: ["daily_slot_4"], oneTime: { coins: 200 } },
-  { level: 5, emoji: "🎰", title: "단골 등업", description: "무료 가챠 쿨 24h → 18h. 보너스 티켓 3장이에횸ㅎ", perks: ["gacha_cd_18h"], oneTime: { tickets: 3, coins: 300 } },
+  { level: 5, emoji: "🎰", title: "단골 등업", description: "무료 가챠 쿨 24h → 18h. 보너스 티켓 3장이에횸ㅎ", perks: ["gacha_cd_18h"], oneTime: { tickets: 3, coins: 300 },
+    special: { kind: "cg", id: "cg_special_lv5_gym_selfie", title: "🖼 한정 CG · 헬스장 셀카", description: "떡존이가 거울 앞에서 찍은 셀카 한 장 ㅗㅜㅑ", image: "/special_cg_lv5.png", caption: "선생님... 운동 끝나고 찍은 거예요. 보내드릴까 말까 한참 고민했어요 헤헤." } },
   { level: 7, emoji: "🌍", title: "원정 슬롯 +1", description: "모험 2개 동시에 보낼 수 있다능ㅋ", perks: ["adventure_slot_2"], oneTime: { coins: 500 } },
   { level: 8, emoji: "🔥", title: "콤보 강화", description: "콤보 EXP +20% 라능", perks: ["combo_exp_20"] },
-  { level: 10, emoji: "⏰", title: "친구 등업", description: "무료 가챠 12h, 매일 2회 무료에횸. 보너스 ㅈㄴ 큰거 준다능", perks: ["gacha_cd_12h", "gacha_double_free"], oneTime: { coins: 1000, tickets: 5 } },
+  { level: 10, emoji: "⏰", title: "친구 등업", description: "무료 가챠 12h, 매일 2회 무료에횸. 보너스 ㅈㄴ 큰거 준다능", perks: ["gacha_cd_12h", "gacha_double_free"], oneTime: { coins: 1000, tickets: 5 },
+    special: { kind: "scenario", id: "special_lv10_lunch", title: "💝 한정 시나리오 · 비밀 도시락", description: "떡존이가 직접 만든 도시락 깜짝 이벤트라능 헤헤", image: "/special_lv10.png" } },
   { level: 12, emoji: "💗", title: "다정한 사람", description: "호감 획득 +10% 영구라능ㅎㅎ", perks: ["affinity_passive_10"] },
-  { level: 15, emoji: "🚀", title: "원정 가속", description: "모험 시간 -20%, 펫 친밀도 +50% 라능ㅗㅜㅑ", perks: ["adventure_speed_20", "pet_affinity_50"], oneTime: { tickets: 5 } },
+  { level: 15, emoji: "🚀", title: "원정 가속", description: "모험 시간 -20%, 펫 친밀도 +50% 라능ㅗㅜㅑ", perks: ["adventure_speed_20", "pet_affinity_50"], oneTime: { tickets: 5 },
+    special: { kind: "touch", id: "special_lv15_chest", title: "✋ 한정 이벤트 · 가슴 만지기", description: "떡존이 가슴 만지는 인터렉티브 미션. 본인이 부끄러워 죽을라 함 ㅋㅋ", image: "/special_lv15.png" } },
   { level: 18, emoji: "📅", title: "데일리 +1", description: "데일리 5개 라능", perks: ["daily_slot_5"] },
-  { level: 20, emoji: "✨", title: "연인 등업", description: "SR 확률 +2%, 콤보 EXP +50%, 호감 +400 즉시에횸 ㄷㄷ", perks: ["sr_bonus_2", "combo_exp_50"], oneTime: { affinity: 400, trust: 200, coins: 2000, tickets: 10 } },
-  { level: 25, emoji: "💎", title: "운명의 사람", description: "코인 +25%, SR 확률 +5% 라능ㅎ", perks: ["coin_passive_25", "sr_bonus_5"] },
+  { level: 20, emoji: "✨", title: "연인 등업", description: "SR 확률 +2%, 콤보 EXP +50%, 호감 +400 즉시에횸 ㄷㄷ", perks: ["sr_bonus_2", "combo_exp_50"], oneTime: { affinity: 400, trust: 200, coins: 2000, tickets: 10 },
+    special: { kind: "avatar", id: "avatar_suit_tteokjon", title: "👔 한정 아바타 · 정장 떡존이", description: "정장 입은 떡존이 SD. 홈/프로필에서 선택 가능이라능", image: "/avatar_suit.png" } },
+  { level: 25, emoji: "💎", title: "운명의 사람", description: "코인 +25%, SR 확률 +5% 라능ㅎ", perks: ["coin_passive_25", "sr_bonus_5"],
+    special: { kind: "cg", id: "cg_special_lv25_first_kiss", title: "🖼 한정 CG · 첫 뽀뽀 직캠", description: "키스 직전 떡존이 떨리는 표정 ㄷㄷ", image: "/special_cg_lv25.png", caption: "...선생님. 카메라 켜둔 거 — 일부러 그러신 거예요? 평생 — 보고 싶었거든요." } },
   { level: 28, emoji: "🌟", title: "원정 마스터", description: "모험 시간 -40% 라능", perks: ["adventure_speed_40"] },
-  { level: 30, emoji: "👑", title: "평생", description: "코인 +50%, 호감 +25%, 펫 +100%, 한정보상까지 다 준다능ㅗㅜㅑ", perks: ["coin_passive_50", "affinity_passive_25", "pet_affinity_100"], oneTime: { coins: 10000, tickets: 30, affinity: 1000 } },
+  { level: 30, emoji: "👑", title: "평생", description: "코인 +50%, 호감 +25%, 펫 +100%, 한정보상까지 다 준다능ㅗㅜㅑ", perks: ["coin_passive_50", "affinity_passive_25", "pet_affinity_100"], oneTime: { coins: 10000, tickets: 30, affinity: 1000 },
+    special: { kind: "touch", id: "special_lv30_kiss", title: "💋 한정 이벤트 · 떡존이한테 뽀뽀받기", description: "떡존이가 직접 다가옴. 평생 한 번. 놓치지 마세효", image: "/special_lv30.png" } },
 ];
 
 function getActivePerks(level: number): Set<LevelPerkKind> {
@@ -2742,7 +2756,7 @@ const LOCATION_SCENARIOS: Record<string, Scenario> = {
   },
   loc_mazda: {
     id: "loc_mazda", title: "마쓰다 자동차 박물관", subtitle: "차에 진심인 옆얼굴",
-    kind: "normal", category: "side",
+    kind: "normal", category: "side", image: "/loc_mazda.png", background: "/loc_mazda.png",
     text: `나레이션: 마쓰다 자동차 박물관. 클래식카가 정렬된 전시장. 빨간 RX-7 한 대 앞에서 근떡존의 발이 멈췄다.
 나레이션: 평소보다 표정이 밝았다. 어깨가 살짝 풀려 있었고, 시선이 차의 라인을 따라 천천히 움직였다.
 근떡존: 이거 RX-7이에요.
@@ -3518,6 +3532,7 @@ export default function Page() {
   const [currentPortrait, setCurrentPortrait] = useState("/oppa1.png");
   const [galleryTab, setGalleryTab] = useState<GalleryTab>("all");
   const [unlockedCGs, setUnlockedCGs] = useState<Record<string, boolean>>({});
+  const [unlockedSpecials, setUnlockedSpecials] = useState<Record<string, boolean>>({});
   const [cgFavorites, setCgFavorites] = useState<Record<string, boolean>>({});
   const [unlockedEndings, setUnlockedEndings] = useState<Record<string, boolean>>({});
   const [completedQuests, setCompletedQuests] = useState<Record<string, boolean>>({});
@@ -3781,6 +3796,7 @@ export default function Page() {
         setCurrentPortrait(saved.currentPortrait ?? "/oppa1.png");
         setGalleryTab(saved.galleryTab ?? "all");
         setUnlockedCGs(saved.unlockedCGs ?? {});
+        setUnlockedSpecials((saved as any).unlockedSpecials ?? {});
         setCgFavorites(saved.cgFavorites ?? {});
         setUnlockedEndings(saved.endingFlags ?? {});
         setCompletedQuests(saved.completedQuests ?? {});
@@ -3877,6 +3893,7 @@ export default function Page() {
       galleryTab,
       savedAt: new Date().toISOString(),
       unlockedCGs,
+      unlockedSpecials,
       seenEvents,
       storyRoute,
       memoryNotes,
@@ -5309,6 +5326,16 @@ export default function Page() {
             if (r.oneTime.trust) setStats((s) => ({ ...s, trust: clamp(s.trust + r.oneTime!.trust!) }));
           }
         }
+        // 특수 보상 자동 해금 (CG / 시나리오 / 터치 / 아바타)
+        if (rewardThisLevel?.special) {
+          const sp = rewardThisLevel.special;
+          if (sp.kind === "cg") {
+            setUnlockedCGs((cgs) => ({ ...cgs, [sp.id]: true }));
+          }
+          // scenario / touch는 시나리오 데이터에 정의되어 있으므로 자동 startable.
+          // 영구 해금 표시용 플래그
+          setUnlockedSpecials((u) => ({ ...u, [sp.id]: true }));
+        }
       }
       return exp;
     });
@@ -5679,6 +5706,7 @@ export default function Page() {
     setCurrentPortrait("/oppa1.png");
     setGalleryTab("all");
     setUnlockedCGs({});
+    setUnlockedSpecials({});
     setUnlockedEndings({});
     setCgFavorites({});
     setCompletedQuests({});
@@ -7859,6 +7887,35 @@ export default function Page() {
                       {levelUpEffect.reward.oneTime.trust ? `신뢰 +${levelUpEffect.reward.oneTime.trust} ` : ""}
                     </small>
                   )}
+                  {levelUpEffect.reward.special && (
+                    <div className="levelUpSpecial">
+                      <div className="levelUpSpecialBadge">✨ 한정 보상</div>
+                      {levelUpEffect.reward.special.image && (
+                        <img
+                          src={levelUpEffect.reward.special.image}
+                          alt={levelUpEffect.reward.special.title}
+                          className="levelUpSpecialImg"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                        />
+                      )}
+                      <div className="levelUpSpecialTitle">{levelUpEffect.reward.special.title}</div>
+                      <div className="levelUpSpecialDesc">{levelUpEffect.reward.special.description}</div>
+                      {levelUpEffect.reward.special.kind === "scenario" && (
+                        <button className="levelUpSpecialBtn" onClick={(e) => {
+                          e.stopPropagation();
+                          startScenario(levelUpEffect.reward!.special!.id);
+                          setLevelUpEffect(null);
+                        }}>👉 지금 즐기기</button>
+                      )}
+                      {levelUpEffect.reward.special.kind === "touch" && (
+                        <button className="levelUpSpecialBtn" onClick={(e) => {
+                          e.stopPropagation();
+                          startScenario(levelUpEffect.reward!.special!.id);
+                          setLevelUpEffect(null);
+                        }}>👉 지금 시작</button>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -8157,6 +8214,15 @@ const CSS = `
 .levelUpUnlockHead{font-size:16px;font-weight:1000;color:#ffd97a;margin-bottom:6px;letter-spacing:.04em}
 .levelUpUnlockDesc{margin:0;font-size:12px;color:#fff;line-height:1.5}
 .levelUpUnlockOneTime{display:block;margin-top:8px;padding:6px 10px;background:rgba(0,0,0,.3);border-radius:8px;font-size:11px;color:#ffd97a;font-weight:900;letter-spacing:.03em}
+/* 레벨업 한정 보상 (CG/시나리오/터치/아바타) */
+.levelUpSpecial{margin-top:10px;padding:14px 16px;background:linear-gradient(135deg,rgba(214,140,170,.18),rgba(180,90,120,.16));border:1px dashed rgba(255,140,180,.5);border-radius:14px;display:grid;gap:8px;justify-items:center;text-align:center;animation:levelUpSpecialIn .6s ease both}
+@keyframes levelUpSpecialIn{from{opacity:0;transform:translateY(8px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.levelUpSpecialBadge{font-size:11px;font-weight:1000;color:#ffb0d0;background:rgba(255,140,180,.18);padding:3px 12px;border-radius:99px;letter-spacing:.12em}
+.levelUpSpecialImg{max-width:200px;max-height:140px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,210,100,.4);box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.levelUpSpecialTitle{font-size:14px;font-weight:1000;color:#fff}
+.levelUpSpecialDesc{font-size:12px;color:#ffd0e0;line-height:1.5;margin:0}
+.levelUpSpecialBtn{margin-top:6px;border:0;border-radius:10px;padding:9px 18px;background:linear-gradient(135deg,#ff7a9c,#d44d6e);color:#fff;font-weight:1000;font-size:12px;cursor:pointer;box-shadow:0 4px 12px rgba(212,77,110,.4)}
+.levelUpSpecialBtn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(212,77,110,.5)}
 .userLvRewardLink{cursor:pointer;color:#ffd97a;text-decoration:underline;font-weight:1000}
 .userLvRewardLink:hover{color:#fff}
 /* ─ 레벨 보상 모달 ─ */
