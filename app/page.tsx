@@ -7701,6 +7701,19 @@ export default function Page() {
               ],
             },
             {
+              id: "confine_b_sub",
+              label: "감금 B · 마조 디테일",
+              emoji: "⛓️",
+              description: "도게자 한 달 후. 목줄을 만지는 손, 풀고 싶지 않은 결, 자기 부정의 평온.",
+              unlockHint: "13장 confine_b 03편 클리어 시 자동 분기",
+              unlocked: isCleared("confine_b_ch13_03") || isAdminMode,
+              scenarios: [
+                { id: "confine_b_sub_01", title: "1편: 매일의 의식", subtitle: "목줄을 만지는 손",     cleared: isCleared("confine_b_sub_01") },
+                { id: "confine_b_sub_02", title: "2편: 작은 부정",   subtitle: "풀고 싶지 않은 결",   cleared: isCleared("confine_b_sub_02") },
+                { id: "confine_b_sub_03", title: "3편: 진짜 평온",   subtitle: "자기 부정의 자리",     cleared: isCleared("confine_b_sub_03") },
+              ],
+            },
+            {
               id: "confine_a_dark",
               label: "🔞 감금 A · 금지된 방",
               emoji: "⛓️",
@@ -7716,7 +7729,6 @@ export default function Page() {
           ];
           // 추가 예정 그룹 (placeholders)
           const upcoming: { label: string; emoji: string; route: string }[] = [
-            { label: "감금 B 서브",      emoji: "⛓️", route: "마조 디테일" },
             { label: "방광 루트 서브",   emoji: "🚽", route: "K-방광 후일담" },
           ];
 
