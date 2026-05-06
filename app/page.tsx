@@ -3735,32 +3735,11 @@ export default function Page() {
         : stats.affinity >= 580 && stats.trust >= 450
           ? "theme-soft"
           : "theme-common";
-  const homeButtons: { label: string; target: AppView }[] = [
-    { label: "대화하기", target: "chat" },
-    { label: "시나리오", target: "scenarioMenu" },
-    { label: "도전", target: "quests" },
-    { label: "🪙 상점", target: "shop" },
-    { label: "🎰 뽑기", target: "gacha" },
-    { label: "🐹 펫", target: "pets" },
-    { label: "🌍 모험", target: "adventure" },
-    { label: "📱 SNS", target: "sns" },
-    { label: "⚔️ 레이드", target: "raid" },
-    { label: "🔮 신탁", target: "fortune" },
-    { label: "📔 다이어리", target: "journal" },
-    { label: "🎮 미니게임", target: "minigames" },
-    { label: "💬 카톡", target: "katalk" },
-    { label: "📅 캘린더", target: "calendar30" },
-    { label: "📜 도감", target: "codex" },
-    { label: "📇 명함", target: "stats" },
-    { label: "💌 편지", target: "letters" },
-    { label: "💭 명언", target: "quote" },
-    { label: "🃏 카드", target: "cards" },
-    { label: "🎟 시즌패스", target: "seasonPass" },
-    { label: "🔊 음향", target: "sound" },
-    { label: "갤러리", target: "gallery" },
-    { label: "전진협", target: "events" },
-    { label: "상태", target: "profile" },
-    { label: "액션", target: "settings" },
+  const homeButtons: { label: string; target: AppView; emoji: string; hint?: string }[] = [
+    { label: "대화하기", target: "chat",        emoji: "💬", hint: "지금 바로 떡존이랑" },
+    { label: "시나리오", target: "scenarioMenu", emoji: "📖", hint: "스토리 진행" },
+    { label: "도전",    target: "quests",       emoji: "🎯", hint: "오늘의 미션" },
+    { label: "상점",    target: "shop",         emoji: "🪙", hint: "코인으로 구매" },
   ];
   const galleryTabLabels: Record<GalleryTab, string> = {
     all: "전체",
@@ -5852,40 +5831,12 @@ export default function Page() {
           </div>
           <small className="userLvExp">{userExp} / {expToNextLevel(userLevel)} EXP · <a className="userLvRewardLink" onClick={()=>setShowLevelRewards(true)}>보상 보기 ▸</a></small>
         </div>
-        <div className="loveMeter">
-          <div className="loveMeterHead">
-            <span>💗 오늘의 케미</span>
-            <strong>{loveMeterPoints}/100</strong>
-          </div>
-          <div className="loveMeterBar"><div style={{ width: `${loveMeterPoints}%` }}/></div>
-          {loveMeterPoints >= 100 && !loveMeterClaimedToday && (
-            <button className="loveMeterClaimBtn" onClick={claimLoveMeterReward}>🎁 100% 달성! 보상 받기</button>
-          )}
-          {loveMeterClaimedToday && <small className="loveMeterDone">✅ 오늘 보상 완료. 내일 또!</small>}
-        </div>
-        {activePetObj && activePetData && (() => {
-          const lvl = petLevel(activePetData.affinity);
-          const isEvolved = lvl >= 5;
-          const imgSrc = isEvolved && activePetObj.evolvedImage ? activePetObj.evolvedImage : activePetObj.image;
-          const fallbackEmoji = isEvolved && activePetObj.evolvedEmoji ? activePetObj.evolvedEmoji : activePetObj.emoji;
-          return (
-            <div className="petMini" onClick={() => setView("pets")}>
-              {imgSrc ? (
-                <img className="petMiniImg" src={imgSrc} alt={activePetObj.name} onError={(e) => {
-                  const el = e.currentTarget as HTMLImageElement;
-                  el.style.display = "none";
-                  const sibling = el.nextElementSibling as HTMLElement | null;
-                  if (sibling) sibling.style.display = "block";
-                }} />
-              ) : null}
-              <span className="petMiniEmoji" style={{ display: imgSrc ? "none" : "block" }}>{fallbackEmoji}</span>
-              <div className="petMiniBody">
-                <b>{isEvolved && activePetObj.evolvedName ? activePetObj.evolvedName : activePetObj.name}</b>
-                <small>Lv.{lvl} · {activePetObj.description.split("(")[0].trim()}</small>
-              </div>
-            </div>
-          );
-        })()}
+        {/* 💗 오늘의 케미 / 펫 미니 카드 — 사이드바에서 제거 (홈 화면 또는 floating으로 이동) */}
+        {loveMeterPoints >= 100 && !loveMeterClaimedToday && (
+          <button className="loveMeterFloatBtn" onClick={claimLoveMeterReward}>
+            🎁 오늘의 케미 100% 보상 받기
+          </button>
+        )}
         {(() => {
           const dailyClaimable = dailyState.missions.filter((m) => {
             if (m.claimed) return false;
@@ -5997,7 +5948,56 @@ export default function Page() {
               <img src={homeCharacterImage} alt="근떡존 SD" onError={(e)=>{e.currentTarget.src=`/sd_geunddeok_idle.png?v=${SD_IMAGE_VERSION}`}}/>
             </button>
           </div>
-          <div className="homeButtons">{homeButtons.map((button)=><button key={button.label} onClick={()=>setView(button.target)}>{button.label}</button>)}</div>
+          {/* 메인 4 CTA */}
+          <div className="homeCtaGrid">
+            {homeButtons.map((button) => (
+              <button key={button.label} className="homeCta" onClick={() => setView(button.target)}>
+                <span className="homeCtaEmoji">{button.emoji}</span>
+                <b className="homeCtaLabel">{button.label}</b>
+                {button.hint && <small className="homeCtaHint">{button.hint}</small>}
+              </button>
+            ))}
+          </div>
+          {/* 작은 위젯 영역 — 케미 + 펫 */}
+          <div className="homeWidgets">
+            <div className="homeWidget homeWidgetChemi">
+              <div className="homeWidgetHead">
+                <span>💗 오늘의 케미</span>
+                <strong>{loveMeterPoints}/100</strong>
+              </div>
+              <div className="homeWidgetBar"><div style={{ width: `${Math.min(loveMeterPoints, 100)}%` }}/></div>
+              {loveMeterPoints >= 100 && !loveMeterClaimedToday && (
+                <button className="homeWidgetClaim" onClick={claimLoveMeterReward}>🎁 보상 받기</button>
+              )}
+              {loveMeterClaimedToday && <small className="homeWidgetDone">✅ 내일 또 오세효</small>}
+            </div>
+            {activePetObj && activePetData && (() => {
+              const lvl = petLevel(activePetData.affinity);
+              const isEvolved = lvl >= 5;
+              const imgSrc = isEvolved && activePetObj.evolvedImage ? activePetObj.evolvedImage : activePetObj.image;
+              const fallbackEmoji = isEvolved && activePetObj.evolvedEmoji ? activePetObj.evolvedEmoji : activePetObj.emoji;
+              return (
+                <div className="homeWidget homeWidgetPet" onClick={() => setView("pets")}>
+                  <div className="homeWidgetPetArt">
+                    {imgSrc ? (
+                      <img src={imgSrc} alt={activePetObj.name} onError={(e) => {
+                        const el = e.currentTarget as HTMLImageElement;
+                        el.style.display = "none";
+                        const sibling = el.nextElementSibling as HTMLElement | null;
+                        if (sibling) sibling.style.display = "block";
+                      }}/>
+                    ) : null}
+                    <span className="homeWidgetPetEmoji" style={{ display: imgSrc ? "none" : "block" }}>{fallbackEmoji}</span>
+                  </div>
+                  <div className="homeWidgetPetBody">
+                    <small className="homeWidgetPetEyebrow">동반 펫</small>
+                    <b>{isEvolved && activePetObj.evolvedName ? activePetObj.evolvedName : activePetObj.name}</b>
+                    <small>Lv.{lvl} · {activePetObj.description.split("(")[0].trim()}</small>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
         </section>}
 
         {view === "chat" && <>
@@ -9163,6 +9163,46 @@ const CSS = `
 /* ─ 메시지 슬라이드인 ─ */
 .msgRow{animation:msgSlideIn .3s ease both}
 @keyframes msgSlideIn{0%{opacity:0;transform:translateY(12px)}100%{opacity:1;transform:translateY(0)}}
+/* ─ 홈 CTA 그리드 (간지 4 버튼) ─ */
+.homeCtaGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:18px 0 14px}
+.homeCta{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:18px 18px 16px;border:1px solid rgba(240,192,96,.22);border-radius:18px;background:linear-gradient(135deg,rgba(58,37,16,.7),rgba(40,25,15,.85));color:#fff;cursor:pointer;text-align:left;transition:transform .15s ease,box-shadow .2s ease,border-color .2s ease;overflow:hidden}
+.homeCta::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at top right,rgba(255,210,100,.14),transparent 60%);opacity:0;transition:opacity .25s}
+.homeCta:hover{transform:translateY(-2px);border-color:rgba(255,210,100,.55);box-shadow:0 12px 28px rgba(0,0,0,.36),0 0 0 1px rgba(255,210,100,.18) inset}
+.homeCta:hover::before{opacity:1}
+.homeCtaEmoji{font-size:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+.homeCtaLabel{font-size:17px;font-weight:1000;color:#fff;letter-spacing:.02em}
+.homeCtaHint{font-size:11.5px;color:#d8b89a;font-weight:700}
+/* ─ 홈 위젯 (케미 + 펫) ─ */
+.homeWidgets{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.homeWidget{padding:12px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(40,25,18,.8),rgba(30,18,12,.85));border:1px solid rgba(240,192,96,.16);display:flex;flex-direction:column;gap:7px;color:#fff}
+.homeWidgetChemi{background:linear-gradient(135deg,rgba(80,30,55,.7),rgba(50,18,38,.85));border-color:rgba(255,140,180,.28)}
+.homeWidgetHead{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:900;color:#ffb0d0}
+.homeWidgetHead strong{font-size:13px;color:#fff}
+.homeWidgetBar{height:5px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}
+.homeWidgetBar div{height:100%;background:linear-gradient(90deg,#ff7a9c,#ffd97a);border-radius:99px;transition:width .35s ease}
+.homeWidgetClaim{margin-top:2px;border:0;border-radius:9px;padding:7px 10px;background:linear-gradient(135deg,#ff7a9c,#d44d6e);color:#fff;font-weight:1000;font-size:12px;cursor:pointer;animation:homeClaimPulse 1.6s ease-in-out infinite}
+@keyframes homeClaimPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,140,180,.4)}50%{box-shadow:0 0 0 6px rgba(255,140,180,0)}}
+.homeWidgetDone{font-size:11px;color:#a8eac0;font-weight:700}
+.homeWidgetPet{flex-direction:row;align-items:center;cursor:pointer;background:linear-gradient(135deg,rgba(35,55,40,.82),rgba(20,32,22,.88));border-color:rgba(140,220,160,.24)}
+.homeWidgetPet:hover{transform:translateY(-1px);border-color:rgba(140,220,160,.5)}
+.homeWidgetPetArt{width:48px;height:48px;border-radius:12px;background:radial-gradient(circle at center,rgba(255,255,255,.08),rgba(0,0,0,.2));display:grid;place-items:center;flex:none;overflow:hidden}
+.homeWidgetPetArt img{width:100%;height:100%;object-fit:cover}
+.homeWidgetPetEmoji{font-size:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))}
+.homeWidgetPetBody{display:grid;gap:1px;min-width:0;flex:1}
+.homeWidgetPetEyebrow{font-size:10px;color:#a8eac0;font-weight:1000;letter-spacing:.12em;text-transform:uppercase}
+.homeWidgetPetBody b{font-size:13.5px;color:#fff;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.homeWidgetPetBody small{font-size:11px;color:#a8eac0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 케미 100% 사이드 floating 버튼 */
+.loveMeterFloatBtn{margin:0 0 10px;border:0;border-radius:11px;padding:9px 12px;background:linear-gradient(135deg,#ff7a9c,#d44d6e);color:#fff;font-weight:1000;font-size:12px;cursor:pointer;animation:homeClaimPulse 1.6s ease-in-out infinite;box-shadow:0 4px 12px rgba(212,77,110,.4)}
+.loveMeterFloatBtn:hover{transform:translateY(-1px)}
+@media (max-width:850px){
+  .homeCtaGrid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .homeCta{padding:14px 14px 12px}
+  .homeCtaEmoji{font-size:24px}
+  .homeCtaLabel{font-size:15px}
+  .homeCtaHint{font-size:10.5px}
+  .homeWidgets{grid-template-columns:1fr;gap:8px}
+}
 /* ─ 스탯 floater ─ */
 .statFloaterWrap{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99996;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:6px}
 .statFloater{font-size:17px;font-weight:900;padding:5px 18px;border-radius:99px;white-space:nowrap;backdrop-filter:blur(4px);animation:statFloat 1.5s ease forwards}
