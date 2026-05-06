@@ -8109,6 +8109,143 @@ export default function Page() {
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Nunito:wght@700;800;900&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2402-2@1.0/Cafe24Ssurround.css');
+/* ====================================================== */
+/* === 🎨 디자인 시스템 v2 — A+C 하이브리드 (와인+골드 + 핑크 네온) === */
+/* ====================================================== */
+:root{
+  /* ─ 베이스 (theme-common, 시작 단계) ─ */
+  --bg-base: linear-gradient(180deg,#fdf3e3 0%,#f5e3ce 100%);
+  --bg-side: linear-gradient(180deg,#3a1320 0%,#1a0810 100%);
+  --bg-panel: linear-gradient(180deg,#fff8ef 0%,#fdeed5 100%);
+  --bg-card: rgba(255,247,234,0.92);
+  --bg-card-glass: rgba(255,247,234,0.6);
+  --border-card: rgba(212,168,67,0.4);
+  --border-card-hover: rgba(212,168,67,0.85);
+  --accent-gold: #d4a843;
+  --accent-gold-light: #f0d896;
+  --accent-rose: #c87a8e;
+  --accent-pink: #ff7a9c;
+  --accent-neon: #ff3d8a;
+  --text-main: #2a1a14;
+  --text-side: #f0d896;
+  --text-soft: #6a3d28;
+  --text-muted: #8a6750;
+  --shadow-card: 0 8px 22px rgba(91,48,24,0.1);
+  --shadow-glow: 0 0 0 1px rgba(212,168,67,0.18) inset, 0 8px 22px rgba(212,168,67,0.18);
+  --font-display: 'Cafe24Ssurround', 'Pretendard', -apple-system, sans-serif;
+  --font-body: 'Pretendard', -apple-system, sans-serif;
+}
+/* theme-soft (호감 발달 단계) — 따뜻한 크림 + 로즈 */
+.app.theme-soft{
+  --bg-base: linear-gradient(180deg,#fdeae2 0%,#f5d4cc 100%);
+  --bg-panel: linear-gradient(180deg,#fff5ec 0%,#fce0d5 100%);
+  --border-card: rgba(200,122,142,0.45);
+  --border-card-hover: rgba(200,122,142,0.9);
+  --accent-gold: #c87a8e;
+  --accent-gold-light: #e0a0b8;
+  --shadow-glow: 0 0 0 1px rgba(200,122,142,0.2) inset, 0 8px 22px rgba(200,122,142,0.2);
+}
+/* theme-pure (순애 루트) — 핑크 크림 + 로즈골드 */
+.app.theme-pure{
+  --bg-base: radial-gradient(ellipse at top,rgba(255,200,220,0.5),transparent 70%),linear-gradient(180deg,#ffe6ee 0%,#f5c8d8 100%);
+  --bg-side: linear-gradient(180deg,#5a1f30 0%,#2a0d1a 100%);
+  --bg-panel: linear-gradient(180deg,#fff3f8 0%,#fcdde8 100%);
+  --bg-card: rgba(255,243,248,0.95);
+  --border-card: rgba(255,140,180,0.55);
+  --border-card-hover: #ff7a9c;
+  --accent-gold: #ff7a9c;
+  --accent-gold-light: #ffb0c8;
+  --accent-rose: #d44d6e;
+  --accent-pink: #ff5577;
+  --text-main: #5a1830;
+  --text-side: #ffd0e0;
+  --text-soft: #6a2540;
+  --shadow-card: 0 8px 28px rgba(255,140,180,0.18);
+  --shadow-glow: 0 0 0 1px rgba(255,140,180,0.3) inset, 0 8px 24px rgba(255,140,180,0.32);
+}
+/* theme-obsession (집착 루트) — 다크 와인 + 핑크 네온 (광기 풀가동) */
+.app.theme-obsession{
+  --bg-base: radial-gradient(ellipse at top right,rgba(255,61,138,0.18),transparent 50%),linear-gradient(135deg,#1a0510 0%,#0a0208 100%);
+  --bg-side: linear-gradient(180deg,#1a0510 0%,#0a0208 100%);
+  --bg-panel: linear-gradient(180deg,rgba(40,10,20,0.95),rgba(20,5,10,0.98));
+  --bg-card: rgba(40,10,20,0.85);
+  --bg-card-glass: rgba(40,10,20,0.55);
+  --border-card: rgba(255,61,138,0.35);
+  --border-card-hover: #ff3d8a;
+  --accent-gold: #ff3d8a;
+  --accent-gold-light: #ff7ab0;
+  --accent-rose: #ff3d8a;
+  --accent-pink: #ff3d8a;
+  --accent-neon: #ff3d8a;
+  --text-main: #ffd0e0;
+  --text-side: #ff7ab0;
+  --text-soft: #ff7ab0;
+  --text-muted: #c87a9c;
+  --shadow-card: 0 8px 24px rgba(255,61,138,0.18), inset 0 0 16px rgba(255,61,138,0.04);
+  --shadow-glow: 0 0 0 1px rgba(255,61,138,0.4) inset, 0 0 24px rgba(255,61,138,0.3);
+}
+/* 페이지 전체 베이스 적용 */
+html,body{font-family:var(--font-body);color:var(--text-main)}
+.app{background:var(--bg-base) !important;color:var(--text-main) !important}
+.app .side{background:var(--bg-side) !important;color:var(--text-side) !important}
+/* 헤딩 폰트 통일 (Cafe24Ssurround) */
+.panel h2,.homeLogo span,.profileSummary h3,.statusCard span,h1,h2,h3,.userLvBadge,.coinChip b,.relLvLabel,.gachaCardName,.cgCardCaption,.mapNodeTitle,.levelUpTitle,.levelUpLevel,.gachaTierBadge{font-family:var(--font-display) !important;letter-spacing:-0.01em}
+/* 패널 글래스 카드 */
+.app .panel{background:var(--bg-panel) !important;backdrop-filter:blur(8px);color:var(--text-main) !important}
+.app .panel h2{color:var(--text-main) !important;background:linear-gradient(90deg,var(--accent-gold-light),var(--accent-gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+/* 카드 컴포넌트 */
+.app .cardBtn{background:var(--bg-card) !important;border:1px solid var(--border-card) !important;color:var(--text-main) !important;backdrop-filter:blur(6px);transition:transform .15s ease,border-color .2s ease,box-shadow .2s ease}
+.app .cardBtn:hover{border-color:var(--border-card-hover) !important;box-shadow:var(--shadow-glow);transform:translateY(-2px)}
+.app .statusCard,.app .profileMeta div,.app .statusNote,.app .memoryPanel,.app .routeBox{background:var(--bg-card) !important;border-color:var(--border-card) !important;color:var(--text-main) !important;backdrop-filter:blur(6px)}
+.app .statusCard span{color:var(--text-main) !important;background:linear-gradient(135deg,var(--accent-gold),var(--accent-rose));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:900}
+.app .statusCard strong{color:var(--accent-rose) !important}
+.app .statusCard small,.app .profileMeta strong{color:var(--text-soft) !important}
+.app .profileTag{background:rgba(212,168,67,0.18) !important;color:var(--text-soft) !important;border:1px solid var(--border-card)}
+/* 스탯 바 색 차별화 (호감=핑크 / 질투=레드 / 집착=보라 / 신뢰=골드 / 방광=옐로우골드) */
+.app .statBar i{background:rgba(255,255,255,0.12)}
+.app .statBar em{background:linear-gradient(90deg,var(--accent-gold),var(--accent-rose))}
+.app .statBar em.danger{background:linear-gradient(90deg,#ff3d3d,#a82020)}
+.app .statBar:nth-child(1) em{background:linear-gradient(90deg,#ff7a9c,#d44d6e)}
+.app .statBar:nth-child(2) em{background:linear-gradient(90deg,#ff5555,#aa2020)}
+.app .statBar:nth-child(3) em{background:linear-gradient(90deg,#b87aff,#7040c8)}
+.app .statBar:nth-child(4) em{background:linear-gradient(90deg,#ffd97a,#d4a843)}
+.app .statBar:nth-child(5) em{background:linear-gradient(90deg,#ffe066,#d4a843)}
+/* 홈 CTA 버튼 — 와인+골드 그라디언트 */
+.app .homeCta{background:linear-gradient(135deg,rgba(60,25,35,0.85),rgba(40,15,25,0.92)) !important;border:1px solid var(--border-card) !important;color:var(--text-side) !important}
+.app .homeCta:hover{border-color:var(--border-card-hover) !important;box-shadow:var(--shadow-glow)}
+.app .homeCta .homeCtaLabel{color:#fff !important;font-family:var(--font-display)}
+.app .homeCta .homeCtaHint{color:var(--accent-gold-light) !important}
+/* nav 버튼 — 글래스 */
+.app .nav button{background:rgba(60,25,35,0.55) !important;border:1px solid rgba(212,168,67,0.18) !important;color:var(--text-side) !important;backdrop-filter:blur(8px);transition:all .15s ease}
+.app .nav button:hover,.app .nav button.active{background:linear-gradient(135deg,var(--accent-gold),var(--accent-rose)) !important;color:#1a0810 !important;border-color:var(--accent-gold-light) !important;box-shadow:0 4px 14px rgba(212,168,67,0.4)}
+.app .navGroupBtn.navGroupOpen{background:linear-gradient(135deg,var(--accent-rose),var(--accent-gold)) !important;color:#1a0810 !important}
+.app .navDropdown{background:linear-gradient(135deg,rgba(40,15,25,0.96),rgba(20,8,12,0.98)) !important;border:1px solid var(--border-card) !important;backdrop-filter:blur(16px);box-shadow:0 14px 32px rgba(0,0,0,0.5),0 0 0 1px var(--border-card) inset}
+/* 입력바 / 버튼 */
+.app .topBar button{background:linear-gradient(135deg,#3a1820,#2a0e15) !important;color:var(--text-side) !important;border:1px solid var(--border-card) !important}
+.app .topBar button:hover{background:linear-gradient(135deg,var(--accent-gold),var(--accent-rose)) !important;color:#1a0810 !important}
+.app .bigBtn{background:linear-gradient(135deg,var(--accent-gold),var(--accent-rose)) !important;color:#1a0810 !important;font-weight:1000;border:0 !important;box-shadow:0 4px 14px rgba(212,168,67,0.3)}
+.app .bigBtn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(212,168,67,0.5)}
+.app .bigBtn.dangerBtn{background:linear-gradient(135deg,#d64545,#a83030) !important;color:#fff !important}
+/* 집착 모드 전용 — 스캔라인 효과 */
+.app.theme-obsession .panel{position:relative;overflow:auto}
+.app.theme-obsession .panel::after{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#ff3d8a,transparent);animation:obsessionScan 4s linear infinite;pointer-events:none;z-index:1}
+@keyframes obsessionScan{0%{transform:translateY(0);opacity:0.4}100%{transform:translateY(100vh);opacity:0}}
+.app.theme-obsession .panel h2{text-shadow:0 0 24px rgba(255,61,138,0.4)}
+.app.theme-obsession .cardBtn{background:rgba(40,10,20,0.85) !important;color:var(--text-main) !important}
+.app.theme-obsession .cardBtn small{color:var(--text-muted) !important}
+.app.theme-obsession .nav button{background:rgba(20,5,10,0.7) !important;color:var(--text-side) !important;border-color:rgba(255,61,138,0.28) !important}
+.app.theme-obsession .nav button:hover,.app.theme-obsession .nav button.active{background:#1a0510 !important;color:#ff3d8a !important;border-color:#ff3d8a !important;box-shadow:0 0 16px rgba(255,61,138,0.5),inset 0 0 16px rgba(255,61,138,0.08) !important;text-shadow:0 0 4px rgba(255,61,138,0.5)}
+.app.theme-obsession .homeCta{background:rgba(20,5,10,0.85) !important;border-color:rgba(255,61,138,0.35) !important}
+.app.theme-obsession .homeCta:hover{border-color:#ff3d8a !important;box-shadow:0 0 20px rgba(255,61,138,0.4)}
+.app.theme-obsession .statusCard,.app.theme-obsession .profileMeta div,.app.theme-obsession .statusNote,.app.theme-obsession .routeBox{background:rgba(40,10,20,0.7) !important;color:var(--text-main) !important}
+/* CTA 그리드 호버 글로우 강화 (모든 테마) */
+.app .homeCtaGrid .homeCta:hover{transform:translateY(-3px)}
+/* 위젯 카드 */
+.app .homeWidget{backdrop-filter:blur(12px)}
+/* ====================================================== */
+/* 디자인 시스템 v2 끝 */
+/* ====================================================== */
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#eee7dc;overflow-x:hidden;overflow-y:auto}button,input{font-family:inherit}nextjs-portal{display:none!important}.coverScreen{height:100dvh;background:radial-gradient(circle at top,#2f2119 0%,#140e0b 54%,#080606 100%);display:grid;place-items:center;position:relative;overflow:hidden}.coverScreen:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,213,141,.06),transparent 24%,rgba(0,0,0,.22));pointer-events:none}.coverImg{width:auto;max-width:min(92vw,1520px);height:auto;max-height:92dvh;object-fit:contain;object-position:center center;filter:saturate(1.02)}.coverStartBtn{position:absolute;left:50%;bottom:62px;transform:translateX(-50%);border:0;border-radius:999px;background:linear-gradient(135deg,#e8993b,#d97a24);color:white;font-size:22px;font-weight:1000;padding:18px 48px;box-shadow:0 16px 40px rgba(217,121,36,.28),inset 0 1px 0 rgba(255,255,255,.28)}
 .app{height:100dvh;display:grid;grid-template-columns:370px minmax(0,1fr);background:#eee7dc;color:#1b1210;overflow:hidden}.side{background:#21130f;color:white;padding:24px;overflow:auto}.profileHead{display:flex;gap:12px;align-items:center}.avatar{width:62px;height:62px;border-radius:18px;object-fit:cover}.statsBox{margin:14px 0;padding:12px;border-radius:18px;background:rgba(255,255,255,.08)}.statBar{margin:8px 0}.statBar div{display:flex;justify-content:space-between;font-size:12px;font-weight:900}.statBar i{display:block;height:6px;background:rgba(255,255,255,.18);border-radius:99px;overflow:hidden}.statBar em{display:block;height:100%;background:#e58a2f}.statBar em.danger{background:#e33d3d}.nav{display:grid;gap:10px}.nav button,.topBar button,.cardBtn,.bigBtn{border:0;border-radius:14px;background:#3a2d29;color:white;padding:14px;font-weight:900;text-align:left;cursor:pointer}.nav button.active,.nav button:hover{background:#df842c}.content{position:relative;min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column}.panel{flex:1;min-height:0;overflow:auto;padding:34px;color:#1b1210}.panel h2{font-size:34px;margin:0 0 24px;color:#2a1a14}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}.cardBtn{background:#fff;color:#1b1210;border:1px solid #decbb9;display:grid;gap:8px}.cardBtn small{color:#8b7162}.sectionStack{display:grid;gap:18px}.sectionStack h3{margin:0;color:#5a3928}.routeBox{background:#fff7ed;border:1px solid #e5cfb8;border-radius:16px;padding:18px;margin-bottom:16px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.tabs button{border:0;border-radius:999px;background:#3a2d29;color:white;padding:10px 14px}.galleryGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}.cgCard{height:190px;border-radius:14px;background:#31231f;display:grid;place-items:center;color:#b9a99d;overflow:hidden}.cgCard img{width:100%;height:100%;object-fit:cover}.profilePanel{display:grid;gap:22px}.profileOverview{display:grid;grid-template-columns:minmax(240px,320px) minmax(0,1fr);gap:22px;align-items:start}.profileIllustration img{width:100%;height:100%;min-height:340px;object-fit:cover;border-radius:24px;border:1px solid rgba(255,255,255,.28);background:#f7e6d0}.profileSummary h3{margin:0 0 10px;font-size:32px}.profileTag{display:inline-flex;background:#fef0dc;color:#6b3f16;padding:9px 14px;border-radius:999px;font-weight:900;margin-bottom:14px}.profileStatsLine{display:flex;flex-wrap:wrap;gap:10px;color:#5d4535;font-size:14px;line-height:1.6}.profileDetails{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}.profileDetails span{display:inline-flex;padding:10px 14px;border-radius:14px;background:rgba(75,45,22,.08);font-size:13px;color:#4a3424}.statusCards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.statusCard{background:#fff7ef;border:1px solid #e7d2b8;border-radius:18px;padding:16px;min-height:110px;display:grid;gap:8px}.statusCard strong{font-size:14px;color:#7b4f2f;text-transform:uppercase;letter-spacing:.06em}.statusCard span{font-size:28px;font-weight:900;color:#2f1f13}.statusCard small{color:#6b4f3d;font-size:13px;line-height:1.5}.statusNote{font-size:15px;color:#4f3a2e;padding:18px 16px;border-radius:18px;background:#fff8ef;border:1px solid #e7d2b8}.profileTextBlock{display:grid;gap:14px;background:#fff;border-radius:18px;border:1px solid #e6d2b8;padding:20px}.profileTextBlock p{margin:0;color:#4a342a;line-height:1.8}.profileMeta{display:grid;gap:14px}.profileMeta div{background:#fff7ef;border:1px solid #e8d2b6;border-radius:18px;padding:18px}.profileMeta strong{display:block;margin-bottom:10px;color:#7b4f2f;font-size:14px}.profileMeta p{margin:0;color:#4a342a;line-height:1.8}.bigBtn.dangerBtn{background:#d64545;color:white;border:1px solid #a33030;margin-top:18px}.bigBtn.dangerBtn:hover{background:#c63636}
 .app.theme-soft{background:linear-gradient(180deg,#faf0ef 0%,#f5e7e4 100%)}.app.theme-soft .side{background:linear-gradient(180deg,#34201d 0%,#281715 100%)}.app.theme-soft .homeView{background:linear-gradient(180deg,#fff9f7 0%,#f9ece8 50%,#f3dfdc 100%)}.app.theme-soft .homeView:before{background:radial-gradient(circle,rgba(255,198,185,.28),transparent 68%)}.app.theme-soft .chatArea{background:linear-gradient(180deg,#fffaf8 0%,#f7ece7 100%)}.app.theme-soft .msgRow.user .bubble{background:#d78661}.app.theme-soft .inputBar{background:#f4e7e3}
