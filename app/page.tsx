@@ -1100,36 +1100,36 @@ type SnsTemplate = {
 };
 const SNS_TEMPLATES: SnsTemplate[] = [
   // 운동인증
-  { id: "s_workout_1", emoji: "💪", text: "오늘도 헬스장 ㅋ 5분만 한다는게 한시간 됨 ㅈㅅ", category: "workout" },
-  { id: "s_workout_2", emoji: "🏋️", text: "벤치프레스 1RM 갱신 ㅗㅜㅑ 누가 칭찬 좀..", category: "workout" },
-  { id: "s_workout_3", emoji: "💪", text: "운동 끝. 거울 셀카 한장 박고 갑니다 ㅋ", category: "workout" },
+  { id: "s_workout_1", emoji: "💪", text: "오늘도 헬스장 다녀왔어요. 5분만 하려고 했는데 어쩌다 한 시간 됐네요 헤헤", category: "workout" },
+  { id: "s_workout_2", emoji: "🏋️", text: "벤치프레스 1RM 갱신했습니다. 칭찬 한 마디 부탁드려요...", category: "workout" },
+  { id: "s_workout_3", emoji: "💪", text: "운동 끝났어요. 거울 셀카 한 장 올리고 갑니다.", category: "workout" },
   // 음식
-  { id: "s_food_1", emoji: "🍱", text: "오늘의 도시락. 평소엔 사먹는데 오늘은 자취냄새 좀 풍김", category: "food" },
-  { id: "s_food_2", emoji: "🍢", text: "편의점 오뎅. 일본어 또 패배할뻔했음 ㅋ", category: "food" },
-  { id: "s_food_3", emoji: "🍜", text: "히로시마식 라멘 첨 먹어봄. 국물 ㅈㄴ 진함 ㄷ", category: "food" },
+  { id: "s_food_1", emoji: "🍱", text: "오늘의 도시락이에요. 평소엔 사먹는 편인데 오늘은 직접 싸봤습니다.", category: "food" },
+  { id: "s_food_2", emoji: "🍢", text: "편의점 오뎅이요. 일본어 주문하다가 또 살짝 헤맸습니다.", category: "food" },
+  { id: "s_food_3", emoji: "🍜", text: "히로시마식 라멘 처음 먹어봤어요. 국물이 정말 진하더라고요.", category: "food" },
   // 셀카
-  { id: "s_selfie_1", emoji: "📸", text: "거울 셀카 ㅋ 머리 아침에 못함 ㅈㅅ", category: "selfie" },
-  { id: "s_selfie_2", emoji: "🤳", text: "요즘 머리 길어서 좀 아쉬움. 자를까 말까 ㄷ", category: "selfie" },
-  { id: "s_selfie_3", emoji: "📷", text: "오늘 컨셉 좀 잡아봤음. 어울리나..", category: "selfie" },
+  { id: "s_selfie_1", emoji: "📸", text: "거울 셀카예요. 아침이라 머리는 좀 봐주세요...", category: "selfie" },
+  { id: "s_selfie_2", emoji: "🤳", text: "요즘 머리가 좀 길어졌어요. 자를지 그냥 둘지 고민 중입니다.", category: "selfie" },
+  { id: "s_selfie_3", emoji: "📷", text: "오늘은 컨셉 좀 잡아봤어요. 어울리는지 모르겠네요.", category: "selfie" },
   // 일상
-  { id: "s_daily_1", emoji: "☔", text: "히로시마 비옴. 우산 안챙김 ㅈㅅ", category: "daily" },
-  { id: "s_daily_2", emoji: "🌅", text: "아침 산책. 강가는 진짜 매번 좋음", category: "daily" },
-  { id: "s_daily_3", emoji: "📺", text: "심심해서 한드 정주행중. 추천좀 ㅈㅂ", category: "daily" },
-  { id: "s_daily_4", emoji: "🌙", text: "잠 안와서 산책 한바퀴 돌고옴", category: "daily" },
+  { id: "s_daily_1", emoji: "☔", text: "히로시마에 비가 와요. 우산을 깜빡했네요...", category: "daily" },
+  { id: "s_daily_2", emoji: "🌅", text: "아침 산책 다녀왔어요. 강가는 매번 와도 참 좋습니다.", category: "daily" },
+  { id: "s_daily_3", emoji: "📺", text: "심심해서 한국 드라마 정주행 중이에요. 추천 있으시면 알려주세요.", category: "daily" },
+  { id: "s_daily_4", emoji: "🌙", text: "잠이 잘 안 와서 산책 한 바퀴 돌고 왔습니다.", category: "daily" },
   // 사랑 (호감 높음)
-  { id: "s_love_1", emoji: "💗", text: "오늘 밥 같이 먹은 그분 진짜 너무 좋더라능. 누구냐고 묻지마셈 ㅋ", category: "love", triggers: { minStat: { affinity: 300 } } },
-  { id: "s_love_2", emoji: "🌸", text: "벚꽃 떨어지는 거 보다가 그분 생각났음 ㅋ ㅈㅅ", category: "love", triggers: { minStat: { affinity: 500 } } },
-  { id: "s_love_3", emoji: "💍", text: "아무 의미 없는 반지 샀음. 누가 끼면 좋을까 ㅎㅎ", category: "love", triggers: { minStat: { affinity: 800 } } },
+  { id: "s_love_1", emoji: "💗", text: "오늘 같이 식사한 분이 정말 좋은 분이세요. 누구냐고는 묻지 말아주시구요...", category: "love", triggers: { minStat: { affinity: 300 } } },
+  { id: "s_love_2", emoji: "🌸", text: "벚꽃 떨어지는 걸 보다가 어떤 분이 떠올랐어요. 죄송합니다 헤헤", category: "love", triggers: { minStat: { affinity: 500 } } },
+  { id: "s_love_3", emoji: "💍", text: "별 의미 없이 반지를 하나 샀어요. 누가 끼면 어울릴지 상상해봅니다.", category: "love", triggers: { minStat: { affinity: 800 } } },
   // 집착
-  { id: "s_obs_1", emoji: "🌑", text: "오늘 그분이 다른 사람이랑 웃는거 봤음. ㅎㅎ ㅎ", category: "obsession", triggers: { minStat: { obsession: 500 } } },
-  { id: "s_obs_2", emoji: "👀", text: "그분 SNS 새벽 3시까지 보고있었음. 정상 아닌거 안다능", category: "obsession", triggers: { minStat: { obsession: 700 } } },
+  { id: "s_obs_1", emoji: "🌑", text: "오늘 그분이 다른 사람과 웃는 모습을 봤어요. ...괜찮습니다.", category: "obsession", triggers: { minStat: { obsession: 500 } } },
+  { id: "s_obs_2", emoji: "👀", text: "그분 SNS를 새벽 3시까지 보고 있었어요. 정상이 아니란 건 알고 있습니다...", category: "obsession", triggers: { minStat: { obsession: 700 } } },
   // 방광
-  { id: "s_bladder_1", emoji: "🚽", text: "오늘도 K-방광 인증. 12시간째 화장실 안감 ㅗㅜㅑ", category: "bladder", triggers: { minStat: { bladderCharm: 100 } } },
-  { id: "s_bladder_2", emoji: "🌊", text: "강릉 다녀옴. 가뭄 해결하고 옴 ㄹㅇ", category: "bladder", triggers: { minStat: { bladderCharm: 400 } } },
-  { id: "s_bladder_3", emoji: "📈", text: "BLDR 주가 또 떡상 ㄷㄷ", category: "bladder", triggers: { minStat: { bladderCharm: 600 } } },
+  { id: "s_bladder_1", emoji: "🚽", text: "오늘도 K-방광 인증합니다. 12시간째 화장실을 가지 않았어요.", category: "bladder", triggers: { minStat: { bladderCharm: 100 } } },
+  { id: "s_bladder_2", emoji: "🌊", text: "강릉 다녀왔습니다. 가뭄 해소에 작은 도움을 보태고 왔어요.", category: "bladder", triggers: { minStat: { bladderCharm: 400 } } },
+  { id: "s_bladder_3", emoji: "📈", text: "BLDR 주가가 또 상승했네요. 응원해주신 분들께 감사드립니다.", category: "bladder", triggers: { minStat: { bladderCharm: 600 } } },
   // 시간대
-  { id: "s_morning_1", emoji: "☕", text: "아침 커피 한잔. 오늘도 화이팅 능 ㅋ", category: "daily", triggers: { timeOfDay: "morning" } },
-  { id: "s_night_1", emoji: "🌙", text: "잠이 안옴. 누가 같이 놀아주면 좋겠음 ㅎ", category: "daily", triggers: { timeOfDay: "night" } },
+  { id: "s_morning_1", emoji: "☕", text: "아침 커피 한 잔이요. 오늘도 화이팅하시길 바랄게요.", category: "daily", triggers: { timeOfDay: "morning" } },
+  { id: "s_night_1", emoji: "🌙", text: "잠이 안 옵니다. 누가 같이 놀아주시면 참 좋겠어요...", category: "daily", triggers: { timeOfDay: "night" } },
 ];
 
 // ================================
@@ -1657,7 +1657,6 @@ const MILESTONES: Milestone[] = [
     stat: "affinity",
     threshold: 100,
     title: "마음의 첫 흔들림",
-    narration: "근떡존이 카톡 프로필 사진을 바꿨다. 건너편 거리에서 찍힌 풍경 한 장. 자세히 보면 익숙한 카페 간판이 보였다.",
     text: "선생님 오늘 그 카페 가셨었죠. 저도 우연히 거기 있었거든요. 사진 한 장만 찍었어요. 풍경요. 풍경.",
     reward: { stat: "trust", amount: 5 },
   },
@@ -2274,7 +2273,7 @@ const LOCATION_SCENARIOS: Record<string, Scenario> = {
   },
   loc_mazda: {
     id: "loc_mazda", title: "마쓰다 자동차 박물관", subtitle: "차에 진심인 옆얼굴",
-    kind: "normal", category: "side", image: "/loc_mazda.png", background: "/loc_mazda.png",
+    kind: "normal", category: "side",
     text: `나레이션: 마쓰다 자동차 박물관. 클래식카가 정렬된 전시장. 빨간 RX-7 한 대 앞에서 근떡존의 발이 멈췄다.
 나레이션: 평소보다 표정이 밝았다. 어깨가 살짝 풀려 있었고, 시선이 차의 라인을 따라 천천히 움직였다.
 근떡존: 이거 RX-7이에요.
@@ -5745,7 +5744,7 @@ export default function Page() {
                 </div>
                 <small className="profileCardFooter">📅 {todayKey()} · 떡존이 인기 통계</small>
               </div>
-              <h3 className="statsSection">📊 떡존이 본인 통계 (병맛 주의)</h3>
+              <h3 className="statsSection">📊 떡존이 본인 통계</h3>
               <div className="tteokjonStats">
                 <div className="ttsRow"><span>🚽 평균 오줌 참은 시간</span><b>{Math.floor(peeMinutes / 60)}시간 {peeMinutes % 60}분</b></div>
                 <div className="ttsRow"><span>🏋️ 헬스장 다녀온 횟수</span><b>{workouts}회</b></div>
@@ -6543,7 +6542,7 @@ export default function Page() {
                   <small>🪙 {GACHA_PRICE * 9} (1+1, SR 보장)</small>
                 </button>
               </div>
-              <h3 className="gachaSectionTitle">📜 풀 미리보기 (병맛 주의)</h3>
+              <h3 className="gachaSectionTitle">📜 풀 미리보기</h3>
               <div className="gachaPoolGrid">
                 {(["SSR","SR","R","N","C"] as GachaTier[]).map((tier) => (
                   <div key={tier} className={`gachaPoolTier gachaTier-${tier}`}>
