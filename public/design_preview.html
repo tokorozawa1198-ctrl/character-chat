@@ -6,7 +6,13 @@
 <title>떡존이 — 디자인 방향 비교</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Cinzel:wght@500;700&family=Orbitron:wght@500;700;900&family=Pretendard:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Cinzel:wght@500;700&family=Orbitron:wght@500;700;900&family=Pretendard:wght@400;500;700;900&family=Black+Han+Sans&family=Jua&family=Do+Hyeon&family=Gugi&family=Stylish&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2402-2@1.0/Cafe24Ssurround.woff2" rel="stylesheet">
+<style>
+@font-face { font-family: 'DungGeunMo'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2107@1.1/DungGeunMo.woff') format('woff'); }
+@font-face { font-family: 'NeoDunggeunmo'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2107@1.1/Cafe24Ssurround.woff') format('woff'); }
+@font-face { font-family: 'Cafe24Ssurround'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2402-2@1.0/Cafe24Ssurround.woff2') format('woff2'); }
+</style>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -813,6 +819,262 @@ p.pageHint { text-align: center; color: #888; margin-bottom: 32px; font-size: 14
 }
 .mockup-ac .m-tier-badge.ac-sr { background: #ff3d8a; color: #1a0510; box-shadow: 0 0 8px rgba(255,61,138,0.5); }
 .mockup-ac .m-tier-badge.ac-r { background: rgba(212,168,67,0.25); color: #f0d896; border: 1px solid rgba(212,168,67,0.5); }
+</style>
+
+<h1 class="pageTitle" style="margin-top: 60px;">🌅 진행도별 강도 변화 (A+C 하이브리드)</h1>
+<p class="pageHint">시작은 차분하게, 호감/집착 오를수록 점점 격해짐. 4테마 시스템 그대로 살림.</p>
+
+<div class="progression-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; max-width: 1400px; margin: 0 auto;">
+
+  <div class="prog-card prog-1">
+    <div class="prog-label">🌱 1단계 · 시작</div>
+    <div class="prog-content">
+      <small class="prog-eyebrow">CHAPTER 1</small>
+      <h3 class="prog-title">처음 본 날</h3>
+      <div class="prog-stat">💗 호감 80</div>
+      <div class="prog-cta">대화하기</div>
+    </div>
+    <p class="prog-desc">와인+골드만. 부드럽고 안정. 처음 시작하면 이 톤.</p>
+  </div>
+
+  <div class="prog-card prog-2">
+    <div class="prog-label">🌷 2단계 · 호감 발달</div>
+    <div class="prog-content">
+      <small class="prog-eyebrow">CHAPTER 5</small>
+      <h3 class="prog-title">겨울이 오기 전</h3>
+      <div class="prog-stat">💗 호감 380</div>
+      <div class="prog-cta">대화하기</div>
+    </div>
+    <p class="prog-desc">로즈 와인 추가. 살짝 따뜻해짐. 핑크 살짝.</p>
+  </div>
+
+  <div class="prog-card prog-3">
+    <div class="prog-label">🤍 3단계 · 순애 루트</div>
+    <div class="prog-content">
+      <small class="prog-eyebrow">PURE · CHAPTER 12</small>
+      <h3 class="prog-title">평생 외롭지 않은 사람</h3>
+      <div class="prog-stat">💗 호감 720 · 🤝 신뢰 540</div>
+      <div class="prog-cta">대화하기</div>
+    </div>
+    <p class="prog-desc">로즈골드 풀 그라디언트. 따뜻하고 사랑스러움.</p>
+  </div>
+
+  <div class="prog-card prog-4">
+    <div class="prog-label">🖤 4단계 · 집착 폭주</div>
+    <div class="prog-content">
+      <small class="prog-eyebrow">OBSESSION · CH 14</small>
+      <h3 class="prog-title">평생의 수집</h3>
+      <div class="prog-stat">🌑 집착 820 · 🔥 질투 690</div>
+      <div class="prog-cta">대화하기</div>
+    </div>
+    <p class="prog-desc">핫핑크 네온 폭주 + 스캔라인. 광기 풀가동.</p>
+  </div>
+
+</div>
+
+<style>
+.prog-card {
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+  min-height: 280px;
+  border: 1px solid;
+}
+.prog-label {
+  font-size: 10.5px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: rgba(0,0,0,0.4);
+  align-self: flex-start;
+}
+.prog-content { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.prog-eyebrow { font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; }
+.prog-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; line-height: 1.2; }
+.prog-stat { font-size: 11.5px; font-weight: 700; padding: 6px 10px; border-radius: 8px; background: rgba(0,0,0,0.3); }
+.prog-cta {
+  margin-top: auto;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 1000;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+}
+.prog-cta:hover { transform: translateY(-1px); }
+.prog-desc { font-size: 11px; line-height: 1.45; opacity: 0.8; padding: 8px 10px; background: rgba(0,0,0,0.3); border-radius: 8px; margin: 0; }
+
+/* 1단계: 차분 와인+골드 */
+.prog-1 {
+  background: linear-gradient(135deg, #2a0e15, #1a0810);
+  border-color: rgba(212,168,67,0.3);
+  color: #f0d896;
+}
+.prog-1 .prog-label { color: #d4a843; }
+.prog-1 .prog-eyebrow { color: #c89070; }
+.prog-1 .prog-title { background: linear-gradient(90deg, #f0d896, #d4a843); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.prog-1 .prog-cta { background: linear-gradient(135deg, #d4a843, #8a6020); color: #1a0810; }
+
+/* 2단계: 살짝 로즈 추가 */
+.prog-2 {
+  background: linear-gradient(135deg, #3a1320, #1a0810);
+  border-color: rgba(200,122,142,0.4);
+  color: #f4cad6;
+}
+.prog-2 .prog-label { color: #c87a8e; }
+.prog-2 .prog-eyebrow { color: #c87a8e; }
+.prog-2 .prog-title { background: linear-gradient(90deg, #f0d896, #c87a8e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.prog-2 .prog-cta { background: linear-gradient(135deg, #c87a8e, #8a4a5e); color: #fff; box-shadow: 0 4px 12px rgba(200,122,142,0.3); }
+
+/* 3단계: 순애 핑크 */
+.prog-3 {
+  background:
+    radial-gradient(ellipse at top, rgba(255,180,200,0.18) 0%, transparent 60%),
+    linear-gradient(135deg, #4a1828, #2a0d1a);
+  border-color: rgba(255,140,180,0.5);
+  color: #ffc8d8;
+  box-shadow: 0 0 24px rgba(255,140,180,0.12);
+}
+.prog-3 .prog-label { color: #ff7a9c; }
+.prog-3 .prog-eyebrow { color: #ffb0c8; }
+.prog-3 .prog-title { background: linear-gradient(90deg, #ffd0e0, #ff7a9c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.prog-3 .prog-cta { background: linear-gradient(135deg, #ff7a9c, #c84a6e); color: #fff; box-shadow: 0 4px 14px rgba(255,122,156,0.4); }
+
+/* 4단계: 집착 네온 폭주 */
+.prog-4 {
+  background:
+    radial-gradient(ellipse at top right, rgba(255,61,138,0.28) 0%, transparent 60%),
+    linear-gradient(135deg, #1a0510, #0a0208);
+  border: 1px solid #ff3d8a;
+  color: #ff3d8a;
+  box-shadow: 0 0 30px rgba(255,61,138,0.3), inset 0 0 20px rgba(255,61,138,0.06);
+  position: relative;
+}
+.prog-4::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, #ff3d8a, transparent);
+  animation: prog-scan 2.4s linear infinite;
+}
+@keyframes prog-scan { 0% { transform: translateY(0); } 100% { transform: translateY(280px); } }
+.prog-4::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(255,61,138,0.04) 24px);
+  pointer-events: none;
+}
+.prog-4 .prog-label { background: #1a0510; color: #ff3d8a; border: 1px solid #ff3d8a; box-shadow: 0 0 8px rgba(255,61,138,0.4); }
+.prog-4 .prog-eyebrow { color: #ff3d8a; text-shadow: 0 0 6px rgba(255,61,138,0.5); }
+.prog-4 .prog-title {
+  background: linear-gradient(90deg, #ff3d8a, #f0d896);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 18px rgba(255,61,138,0.4);
+}
+.prog-4 .prog-stat { background: rgba(255,61,138,0.12); border: 1px solid rgba(255,61,138,0.35); color: #ff7ab0; }
+.prog-4 .prog-cta {
+  background: #1a0510;
+  color: #ff3d8a;
+  border: 1px solid #ff3d8a;
+  box-shadow: 0 0 14px rgba(255,61,138,0.5);
+  text-shadow: 0 0 4px rgba(255,61,138,0.6);
+}
+
+@media (max-width: 900px) {
+  .progression-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+</style>
+
+<h1 class="pageTitle" style="margin-top: 60px;">🔤 한글 게임 폰트 후보</h1>
+<p class="pageHint">Orbitron 같은 사이버 느낌의 한글 폰트 8종. 마음에 드는 거 골라주삼.</p>
+
+<div class="font-grid">
+  <div class="font-card font-1"><span class="font-label">1. Black Han Sans (검은고딕)</span><div class="font-sample">평생 외롭지 않은 사람</div><div class="font-sub">OBSESSION_LV12 · 호감 720</div><small>가장 굵고 묵직. 게임 타이틀 느낌</small></div>
+  <div class="font-card font-2"><span class="font-label">2. Cafe24Ssurround</span><div class="font-sample">평생 외롭지 않은 사람</div><div class="font-sub">OBSESSION_LV12 · 호감 720</div><small>둥글둥글 친근한 게임 디스플레이</small></div>
+  <div class="font-card font-3"><span class="font-label">3. DungGeunMo (둥근모)</span><div class="font-sample">평생 외롭지 않은 사람</div><div class="font-sub">OBSESSION_LV12 · 호감 720</div><small>레트로 픽셀 게임 폰트. 추억 자극</small></div>
+  <div class="font-card font-4"><span class="font-label">4. Jua (주아)</span><div class="font-sample">평생 외롭지 않은 사람</div><div class="font-sub">OBSESSION_LV12 · 호감 720</div><small>둥근 산세리프. 부드럽고 친근</small></div>
+  <div class="font-card font-5"><span class="font-label">5. Do Hyeon (도현)</span><div class="font-sample">평생 외롭지 않은 사람</div><div class="font-sub">OBSESSION_LV12 · 호감 720</div><small>두꺼운 깔끔체. 반듯한 게임 UI</small></div>
+  <div class="font-card font-6"><span class="font-label">6. Gugi (구기)</span><div class="font-sample">평생 외롭지 않은 사람</div><div class="font-sub">OBSESSION_LV12 · 호감 720</div><small>네온/사이버 닮은 디스플레이</small></div>
+  <div class="font-card font-7"><span class="font-label">7. Stylish</span><div class="font-sample">평생 외롭지 않은 사람</div><div class="font-sub">OBSESSION_LV12 · 호감 720</div><small>깔끔 모던. 미연시 어울림</small></div>
+  <div class="font-card font-8"><span class="font-label">8. Pretendard 900</span><div class="font-sample">평생 외롭지 않은 사람</div><div class="font-sub">OBSESSION_LV12 · 호감 720</div><small>현대적 표준. 가장 안전한 선택</small></div>
+</div>
+
+<style>
+.font-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+@media (max-width: 900px) { .font-grid { grid-template-columns: 1fr; } }
+.font-card {
+  background: linear-gradient(135deg, rgba(60,25,35,0.85), rgba(40,15,25,0.95));
+  border: 1px solid rgba(255,61,138,0.3);
+  border-radius: 16px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.font-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top right, rgba(255,61,138,0.1), transparent 60%);
+  pointer-events: none;
+}
+.font-label {
+  font-size: 11px;
+  font-weight: 900;
+  color: #ff7ab0;
+  letter-spacing: 0.04em;
+  position: relative;
+  z-index: 1;
+}
+.font-sample {
+  font-size: 26px;
+  font-weight: 900;
+  background: linear-gradient(90deg, #f0d896, #ff3d8a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 24px rgba(255,61,138,0.2);
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  position: relative;
+  z-index: 1;
+}
+.font-sub {
+  font-size: 14px;
+  color: #ff3d8a;
+  text-shadow: 0 0 8px rgba(255,61,138,0.5);
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  position: relative;
+  z-index: 1;
+}
+.font-card small { font-size: 11.5px; color: #c8a8b8; line-height: 1.4; position: relative; z-index: 1; }
+
+.font-1 .font-sample, .font-1 .font-sub { font-family: 'Black Han Sans', sans-serif; }
+.font-2 .font-sample, .font-2 .font-sub { font-family: 'Cafe24Ssurround', sans-serif; }
+.font-3 .font-sample, .font-3 .font-sub { font-family: 'DungGeunMo', monospace; letter-spacing: 0; }
+.font-4 .font-sample, .font-4 .font-sub { font-family: 'Jua', sans-serif; }
+.font-5 .font-sample, .font-5 .font-sub { font-family: 'Do Hyeon', sans-serif; }
+.font-6 .font-sample, .font-6 .font-sub { font-family: 'Gugi', sans-serif; letter-spacing: 0.06em; }
+.font-7 .font-sample, .font-7 .font-sub { font-family: 'Stylish', sans-serif; }
+.font-8 .font-sample, .font-8 .font-sub { font-family: 'Pretendard', sans-serif; font-weight: 900; }
 </style>
 
 <div class="summary-card">
