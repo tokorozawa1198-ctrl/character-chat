@@ -7675,6 +7675,32 @@ export default function Page() {
               ],
             },
             {
+              id: "obsession_sub_plot",
+              label: "집착 · 작전의 시작",
+              emoji: "🖤",
+              description: "9장과 10장 사이. 첫 거짓말 → 동선 노트 → 평생의 결심. 자기 자신에게도 묻어두는 결.",
+              unlockHint: "9장 obsession 4편 클리어 시 자동 분기",
+              unlocked: isCleared("obsession_ch9_04") || isAdminMode,
+              scenarios: [
+                { id: "obsession_sub_lie_01", title: "1편: 첫 거짓말",  subtitle: "자기 자신에게 풀어놓는 첫 한 마디", cleared: isCleared("obsession_sub_lie_01") },
+                { id: "obsession_sub_plot_01", title: "2편: 동선 작전", subtitle: "노트의 첫 줄",                       cleared: isCleared("obsession_sub_plot_01") },
+                { id: "obsession_sub_plot_02", title: "3편: 결심의 밤", subtitle: "마지막 한 마디",                     cleared: isCleared("obsession_sub_plot_02") },
+              ],
+            },
+            {
+              id: "forced_sub",
+              label: "강제 결혼 · 협박 변주",
+              emoji: "🩶",
+              description: "결혼식 한 달 전. 형 가족·동료·친구·전진협까지 — 학습된 다정함의 받침대로 만드는 결.",
+              unlockHint: "14장 forced 진입 후 자동 분기",
+              unlocked: isCleared("forced_ch14_01") || isAdminMode,
+              scenarios: [
+                { id: "forced_sub_01", title: "1편: 형 어머니 만난 날",  subtitle: "다정한 협박의 첫 자리", cleared: isCleared("forced_sub_01") },
+                { id: "forced_sub_02", title: "2편: 직장 동료 만남",     subtitle: "형의 외부 자리들",      cleared: isCleared("forced_sub_02") },
+                { id: "forced_sub_03", title: "3편: 평생의 가면",        subtitle: "무뎌진 다정함의 자리",  cleared: isCleared("forced_sub_03") },
+              ],
+            },
+            {
               id: "confine_a_dark",
               label: "🔞 감금 A · 금지된 방",
               emoji: "⛓️",
@@ -7690,8 +7716,6 @@ export default function Page() {
           ];
           // 추가 예정 그룹 (placeholders)
           const upcoming: { label: string; emoji: string; route: string }[] = [
-            { label: "집착 루트 서브",   emoji: "🖤", route: "감금 진입 직전 광기" },
-            { label: "강제 결혼 서브",   emoji: "🩶", route: "협박 변주" },
             { label: "감금 B 서브",      emoji: "⛓️", route: "마조 디테일" },
             { label: "방광 루트 서브",   emoji: "🚽", route: "K-방광 후일담" },
           ];
