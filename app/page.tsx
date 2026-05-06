@@ -6001,7 +6001,22 @@ export default function Page() {
         </section>}
 
         {view === "chat" && <>
-          <header className="topBar">{quickReplies.map((q)=><button key={q} onClick={()=>sendMessage(q)}>{q}</button>)}</header>
+          <header className="topBar">
+            {quickReplies.map((q)=><button key={q} onClick={()=>sendMessage(q)}>{q}</button>)}
+            <button
+              className="chatResetBtn"
+              onClick={() => {
+                if (!confirm("채팅 대화만 초기화합니다 (스탯/시나리오/저장은 그대로). 계속할까요?")) return;
+                setMessages([]);
+                setSilenceLevel(0);
+                setComboCount(0);
+                setLastComboTime(0);
+                setComboMilestonesReached({});
+                setComboToast(null);
+              }}
+              title="채팅 대화만 초기화 (다른 데이터는 유지)"
+            >🧹 대화 초기화</button>
+          </header>
           <div className="chatArea">{messages.map((m)=><div key={m.id} className={`msgRow ${m.role}`}>{m.role==="assistant" && <img className="chatAvatar" src={bladderLevel >= 95 ? `/sd_geunddeok_limit.png?v=${SD_IMAGE_VERSION}` : bladderLevel >= 90 ? `/sd_geunddeok_desperate.png?v=${SD_IMAGE_VERSION}` : bladderLevel >= 80 ? `/sd_geunddeok_pout.png?v=${SD_IMAGE_VERSION}` : getHomeCharacterImage(stats, storyRoute)} onError={(e)=>{e.currentTarget.src=`/sd_geunddeok_idle.png?v=${SD_IMAGE_VERSION}`}} alt=""/>}<div className="bubble">{m.image && <img className="bubbleImg" src={m.image} alt="" onClick={(e)=>{const el=e.currentTarget;el.classList.toggle("bubbleImgExpand");}}/>}{m.image && m.content==="📷 사진" ? null : m.content}<small>{m.time}</small></div></div>)}<div ref={bottomRef}/></div>
           <input type="file" accept="image/*" style={{display:"none"}} ref={photoInputRef} onChange={async(e)=>{const f=e.target.files?.[0];if(f){try{const c=await compressImage(f);setPendingPhoto(c);}catch{}}e.target.value="";}}/>
           {pendingPhoto && <div className="photoPreviewBar"><img src={pendingPhoto} className="photoPreviewThumb" alt="미리보기"/><button className="photoPreviewCancel" onClick={()=>setPendingPhoto(null)}>✕</button><span className="photoPreviewHint">전송 버튼을 누르면 사진이 전송돼요</span></div>}
@@ -8386,6 +8401,8 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 /* 입력바 / 버튼 */
 .app .topBar button{background:linear-gradient(135deg,#3a1820,#2a0e15) !important;color:var(--text-side) !important;border:1px solid var(--border-card) !important}
 .app .topBar button:hover{background:linear-gradient(135deg,var(--accent-gold),var(--accent-rose)) !important;color:#1a0810 !important}
+.app .topBar button.chatResetBtn{background:linear-gradient(135deg,rgba(180,80,90,0.85),rgba(120,40,50,0.95)) !important;border-color:rgba(255,140,160,0.45) !important;color:#fff !important;margin-left:auto;flex:0 0 auto;font-size:12px;padding:7px 12px}
+.app .topBar button.chatResetBtn:hover{background:linear-gradient(135deg,#d44d6e,#a83040) !important;color:#fff !important;box-shadow:0 4px 14px rgba(212,77,110,0.4)}
 .app .bigBtn{background:linear-gradient(135deg,var(--accent-gold),var(--accent-rose)) !important;color:#1a0810 !important;font-weight:1000;border:0 !important;box-shadow:0 4px 14px rgba(212,168,67,0.3)}
 .app .bigBtn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(212,168,67,0.5)}
 .app .bigBtn.dangerBtn{background:linear-gradient(135deg,#d64545,#a83030) !important;color:#fff !important}
