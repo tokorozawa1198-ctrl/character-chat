@@ -4319,6 +4319,17 @@ export default function Page() {
       window.setTimeout(() => spawnFriendMessage(chatId as FriendId), 1500 + Math.random() * 2000);
     }
   }
+  // nav 드롭다운 (게임/컨텐츠/기타 그룹)
+  const [navDropdown, setNavDropdown] = useState<string | null>(null);
+  useEffect(() => {
+    if (!navDropdown) return;
+    const close = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".navGroup") && !target.closest(".navDropdown")) setNavDropdown(null);
+    };
+    window.addEventListener("click", close);
+    return () => window.removeEventListener("click", close);
+  }, [navDropdown]);
   // 미확인 카톡 수
   const unreadKatalk = useMemo(() => {
     let count = 0;
@@ -5378,31 +5389,71 @@ export default function Page() {
             </div>
           );
         })()}
-        <nav className="nav">{[["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["gacha","🎰 뽑기"],["pets","🐹 펫"],["adventure","🌍 모험"],["sns","📱 SNS"],["raid","⚔️ 레이드"],["fortune","🔮 신탁"],["journal","📔 다이어리"],["minigames","🎮 미니게임"],["katalk","💬 카톡"],["calendar30","📅 캘린더"],["codex","📜 도감"],["stats","📇 명함"],["letters","💌 편지"],["quote","💭 명언"],["cards","🃏 카드"],["seasonPass","🎟 시즌패스"],["sound","🔊 음향"],["storyMap","스토리 맵"],["miniMap","지도"],["profile","상태"],["gallery","갤러리"],["achievements","업적"],["events","전진협"],["gift","선물"],["checkin","출석"],["wardrobe","옷장"],["diary","일기"],["save","저장"],["settings","액션"],...(isAdminMode ? [["admin","🔑 관리"]] : [])].map(([key,label])=>{
-          const dailyClaimable = key === "quests" ? dailyState.missions.filter((m) => {
+        {(() => {
+          const dailyClaimable = dailyState.missions.filter((m) => {
             if (m.claimed) return false;
             const t = DAILY_MISSION_TEMPLATES.find((x) => x.id === m.templateId);
             return t && getDailyProgress(t.field, dailyState) >= m.target;
-          }).length : 0;
-          const totalClaimable = (key === "quests" ? claimableCount + dailyClaimable : 0);
-          // 빨간 점 알림 통합
+          }).length;
+          const totalClaimable = claimableCount + dailyClaimable;
           const freeGachaReady = Date.now() - lastFreeGacha >= perkBonus.gachaCooldownMs;
           const advReady = activeAdventure && Date.now() >= activeAdventure.endTime;
           const snsRefreshDue = Date.now() - lastSnsRefresh > 4 * 60 * 60 * 1000;
           const raidActive = !raidCleared && raidHp > 0;
-          const showDot = (key === "checkin" && !isCheckedInToday(lastCheckIn))
-            || (key === "quests" && totalClaimable > 0)
-            || (key === "shop" && coins >= 50 && Object.keys(shopHistory).length === 0)
-            || (key === "gacha" && (freeGachaReady || gachaTickets > 0))
-            || (key === "adventure" && !!advReady)
-            || (key === "sns" && snsRefreshDue)
-            || (key === "raid" && raidActive)
-            || (key === "katalk" && unreadKatalk > 0)
-            || (key === "calendar30" && CALENDAR_MILESTONES.some((m) => checkInStreak >= m.day && !monthlyCalendarClaims[`day_${m.day}`]))
-            || (key === "letters" && unlockedLetters.some((l) => !letterReads[l]))
-            || (key === "quote" && quoteOfDayId !== "" && !collectedQuotes.includes(quoteOfDayId));
-          return <button key={key} className={`${view===key ? "active" : ""}${showDot ? " navDot" : ""}${key==="admin" ? " adminNavBtn" : ""}`} onClick={()=>setView(key as AppView)}>{label}{key==="quests" && totalClaimable > 0 && <span className="navBadge">{totalClaimable}</span>}{key==="katalk" && unreadKatalk > 0 && <span className="navBadge">{unreadKatalk}</span>}</button>;
-        })}</nav>
+          const dotMap: Record<string, boolean> = {
+            checkin: !isCheckedInToday(lastCheckIn),
+            quests: totalClaimable > 0,
+            shop: coins >= 50 && Object.keys(shopHistory).length === 0,
+            gacha: freeGachaReady || gachaTickets > 0,
+            adventure: !!advReady,
+            sns: snsRefreshDue,
+            raid: raidActive,
+            katalk: unreadKatalk > 0,
+            calendar30: CALENDAR_MILESTONES.some((m) => checkInStreak >= m.day && !monthlyCalendarClaims[`day_${m.day}`]),
+            letters: unlockedLetters.some((l) => !letterReads[l]),
+            quote: quoteOfDayId !== "" && !collectedQuotes.includes(quoteOfDayId),
+          };
+          const flatItems: [string, string][] = [["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["katalk","💬 카톡"]];
+          const groups: { key: string; label: string; items: [string, string][] }[] = [
+            { key: "g_game", label: "🎮 게임", items: [["gacha","🎰 뽑기"],["pets","🐹 펫"],["adventure","🌍 모험"],["sns","📱 SNS"],["raid","⚔️ 레이드"],["minigames","🎲 미니게임"],["fortune","🔮 신탁"]] },
+            { key: "g_content", label: "📚 컨텐츠", items: [["storyMap","🗺 스토리 맵"],["miniMap","🌐 지도"],["gallery","🖼 갤러리"],["codex","📜 도감"],["letters","💌 편지"],["quote","💭 명언"],["cards","🃏 카드"],["journal","📔 다이어리"],["diary","📖 일기"]] },
+            { key: "g_etc", label: "⚙️ 기타", items: [["profile","상태"],["achievements","🏆 업적"],["calendar30","📅 캘린더"],["stats","📇 명함"],["seasonPass","🎟 시즌패스"],["events","🍻 전진협"],["gift","🎁 선물"],["checkin","✅ 출석"],["wardrobe","👕 옷장"],["sound","🔊 음향"],["save","💾 저장"],["settings","⚙️ 액션"]] },
+          ];
+          const renderBtn = ([key, label]: [string, string]) => {
+            const showDot = !!dotMap[key];
+            const badge = key === "quests" && totalClaimable > 0 ? totalClaimable : key === "katalk" && unreadKatalk > 0 ? unreadKatalk : 0;
+            return (
+              <button key={key} className={`${view===key ? "active" : ""}${showDot ? " navDot" : ""}`} onClick={()=>{setView(key as AppView); setNavDropdown(null);}}>
+                {label}{badge > 0 && <span className="navBadge">{badge}</span>}
+              </button>
+            );
+          };
+          return (
+            <nav className="nav navCompact">
+              {flatItems.map(renderBtn)}
+              {groups.map((g) => {
+                const groupHasDot = g.items.some(([k]) => dotMap[k]);
+                const groupActive = g.items.some(([k]) => view === k);
+                return (
+                  <div key={g.key} className="navGroup">
+                    <button
+                      className={`navGroupBtn${groupActive ? " active" : ""}${groupHasDot ? " navDot" : ""}${navDropdown === g.key ? " navGroupOpen" : ""}`}
+                      onClick={() => setNavDropdown(navDropdown === g.key ? null : g.key)}
+                    >
+                      {g.label} <span className="navCaret">▾</span>
+                    </button>
+                    {navDropdown === g.key && (
+                      <div className="navDropdown" onClick={(e) => e.stopPropagation()}>
+                        {g.items.map(renderBtn)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {isAdminMode && renderBtn(["admin","🔑 관리"])}
+            </nav>
+          );
+        })()}
       </aside>
       <section className="content">
         {currentScenario && <div className={`scenarioOverlay${vnDramatic ? " vnDramatic" : ""}`} style={{ "--bg-url": `url(${currentScenario.background ?? "/bg_room_night.png"})` } as React.CSSProperties}>
@@ -7560,6 +7611,20 @@ const CSS = `
 .questClaimBtn.questClaimReady:hover{transform:translateY(-1px);background:linear-gradient(135deg,#f1a850,#e58a2f)}
 @keyframes questReadyPulse{0%,100%{box-shadow:0 0 0 2px #f0c060,0 8px 22px rgba(240,192,96,.32)}50%{box-shadow:0 0 0 3px #ffd47a,0 12px 28px rgba(240,192,96,.5)}}
 .nav button .navBadge{display:inline-block;margin-left:6px;background:#f0c060;color:#3a2017;font-size:10px;font-weight:1000;padding:1px 6px;border-radius:99px;vertical-align:middle}
+/* 컴팩트 nav + 그룹 드롭다운 */
+.navCompact button{padding:7px 11px;font-size:12px;border-radius:11px;line-height:1.1;min-height:30px}
+.navGroup{position:relative;display:inline-block}
+.navGroupBtn{display:inline-flex;align-items:center;gap:4px}
+.navCaret{font-size:9px;opacity:.7;transition:transform .15s ease}
+.navGroupOpen .navCaret{transform:rotate(180deg)}
+.navDropdown{position:absolute;top:calc(100% + 6px);left:0;z-index:50;background:#1f1410;border:1px solid #5a4036;border-radius:14px;padding:6px;display:flex;flex-wrap:wrap;gap:4px;min-width:240px;max-width:340px;box-shadow:0 14px 32px rgba(0,0,0,.4);animation:navDropIn .15s ease}
+.navDropdown button{flex:0 0 auto;font-size:11.5px;padding:7px 10px;white-space:nowrap}
+@keyframes navDropIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+@media (max-width:850px){
+  .navDropdown{position:fixed;left:8px;right:8px;top:auto;width:auto;max-width:none;max-height:55vh;overflow-y:auto}
+  .navCompact button{padding:6px 9px;font-size:11px;border-radius:10px;min-height:28px}
+  .navCaret{font-size:8px}
+}
 .questToast{background:linear-gradient(135deg,#3a2510,#5a3a18) !important;border-color:rgba(240,192,96,.5) !important}
 .milestoneToast{background:linear-gradient(135deg,#3a1525,#5a2540) !important;border-color:rgba(255,140,180,.5) !important}
 .milestoneToast b{color:#ffb0d0}
