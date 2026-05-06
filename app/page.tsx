@@ -8239,6 +8239,47 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .app.theme-obsession .homeCta{background:rgba(20,5,10,0.85) !important;border-color:rgba(255,61,138,0.35) !important}
 .app.theme-obsession .homeCta:hover{border-color:#ff3d8a !important;box-shadow:0 0 20px rgba(255,61,138,0.4)}
 .app.theme-obsession .statusCard,.app.theme-obsession .profileMeta div,.app.theme-obsession .statusNote,.app.theme-obsession .routeBox{background:rgba(40,10,20,0.7) !important;color:var(--text-main) !important}
+/* 🩺 집착 모드 가독성 패치 — 사이드바 + 헤더 + 퀘스트 카드 */
+.app.theme-obsession .statBar div{color:#ffe0ec !important;text-shadow:0 1px 2px rgba(0,0,0,0.5)}
+.app.theme-obsession .relLvLabel,.app.theme-obsession .relLvName,.app.theme-obsession .relLvNext{color:#fff !important;text-shadow:0 1px 3px rgba(0,0,0,0.5)}
+.app.theme-obsession .relProgressFill{background:linear-gradient(90deg,#ff3d8a,#ffd97a) !important}
+.app.theme-obsession .userLvBadge{background:linear-gradient(135deg,#ff3d8a,#ff7ab0) !important;color:#1a0510 !important;text-shadow:none}
+.app.theme-obsession .userLvTitle{color:#fff !important;text-shadow:0 0 6px rgba(255,61,138,0.3)}
+.app.theme-obsession .userLvExp{color:#ffd0e0 !important}
+.app.theme-obsession .userLvRewardLink{color:#ff3d8a !important;text-shadow:0 0 6px rgba(255,61,138,0.4);text-decoration:underline}
+.app.theme-obsession .userLvBar{background:rgba(255,255,255,0.08) !important}
+.app.theme-obsession .userLvBarFill{background:linear-gradient(90deg,#ff3d8a,#ff7ab0,#ffd97a) !important;box-shadow:0 0 8px rgba(255,61,138,0.5)}
+.app.theme-obsession .coinChip{background:linear-gradient(135deg,rgba(255,217,122,0.18),rgba(255,61,138,0.15)) !important;border:1px solid rgba(255,217,122,0.4)}
+.app.theme-obsession .coinChip b{color:#ffd97a !important}
+.app.theme-obsession .coinChip span{color:#ffd97a !important}
+/* 퀘스트 / 미션 카드 — 집착 모드에서 다크 와인 베이스로 */
+.app.theme-obsession .questCard{background:linear-gradient(135deg,rgba(40,15,25,0.92),rgba(20,8,12,0.95)) !important;border-color:rgba(255,61,138,0.3) !important;color:#ffd0e0 !important}
+.app.theme-obsession .questCard.qcBladder{background:linear-gradient(135deg,rgba(60,30,15,0.92),rgba(30,15,8,0.95)) !important;border-color:rgba(255,210,100,0.4) !important}
+.app.theme-obsession .questCard.qcSecret{background:linear-gradient(135deg,rgba(40,20,55,0.92),rgba(20,10,30,0.95)) !important;border-color:rgba(170,120,200,0.45) !important}
+.app.theme-obsession .questTitle{color:#fff !important}
+.app.theme-obsession .questCategory{color:#ff7ab0 !important}
+.app.theme-obsession .questDesc{color:#ffd0e0 !important}
+.app.theme-obsession .questHint{color:#ff9cc0 !important}
+.app.theme-obsession .questProgressBar{background:rgba(255,255,255,0.08) !important}
+.app.theme-obsession .questProgressText{color:#ffd97a !important}
+.app.theme-obsession .questReward{background:rgba(255,61,138,0.1) !important;border:1px solid rgba(255,61,138,0.2)}
+.app.theme-obsession .questReward small{color:#ff7ab0 !important}
+.app.theme-obsession .questReward span{color:#fff !important}
+.app.theme-obsession .questClaimBtn{background:rgba(40,15,25,0.7) !important;color:#ff7ab0 !important;border:1px solid rgba(255,61,138,0.3) !important}
+.app.theme-obsession .questClaimBtn.questClaimReady{background:linear-gradient(135deg,#ff3d8a,#d44d6e) !important;color:#fff !important;border-color:#ff3d8a !important;box-shadow:0 0 16px rgba(255,61,138,0.5) !important}
+/* 데일리 미션 카드도 통일 */
+.app.theme-obsession .dailyMissionCard,.app.theme-obsession .dailyCard{background:linear-gradient(135deg,rgba(40,15,25,0.9),rgba(20,8,12,0.95)) !important;border-color:rgba(255,61,138,0.3) !important;color:#ffd0e0 !important}
+.app.theme-obsession .dailyMissionCard *,.app.theme-obsession .dailyCard *{color:inherit}
+.app.theme-obsession .dailyMissionCard b,.app.theme-obsession .dailyCard b{color:#fff !important}
+.app.theme-obsession .dailyMissionCard small,.app.theme-obsession .dailyCard small{color:#ff7ab0 !important}
+/* 사이드바 헤더의 routeLabel / chapter 텍스트 */
+.app.theme-obsession .profileHead h1{color:#fff !important}
+.app.theme-obsession .profileHead p{color:#ff7ab0 !important}
+.app.theme-obsession .sideHeader{color:#fff}
+.app.theme-obsession .relBadge{color:#fff}
+/* CTA 호버 안에서 텍스트 깨짐 방지 */
+.app.theme-obsession .homeCta:hover .homeCtaLabel{color:#fff !important}
+.app.theme-obsession .homeCta:hover .homeCtaHint{color:#ff7ab0 !important}
 /* CTA 그리드 호버 글로우 강화 (모든 테마) */
 .app .homeCtaGrid .homeCta:hover{transform:translateY(-3px)}
 /* 위젯 카드 */
