@@ -1966,6 +1966,391 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     textHigh:
       "나한테만 있으면 돼.\n그 생각이 요즘 자꾸 짧아지고 있어.\n더 선명해지고 있는 거지.",
   },
+  // ── 9장 ──
+  {
+    id: "diary_ch9_pure",
+    chapter: 9,
+    unlockPrefix: "pure_ch9",
+    routeRequired: "pure",
+    title: "매일이라는 단어",
+    label: "9장 · 순애",
+    emoji: "🌷",
+    highThreshold: 650,
+    textNormal:
+      "매일이라는 단어를 자주 쓰게 됐어.\n매일 봐요. 매일 같이 있어요.\n전엔 그렇게 길게 쓰던 단어가 아니었는데.\n선생님 옆에선 너무 짧게 느껴져.\n매일이 부족할 정도로.",
+    textHigh:
+      "매일이 모자라.\n매일 봐도 모자라.\n그 단어가 평생으로 바뀌어야 안심될 것 같아.\n그 말 입 밖에 내면 무거울 것 같아서\n오늘은 일기에만 적었어. 다음엔 — 모르겠어.",
+  },
+  {
+    id: "diary_ch9_obsession",
+    chapter: 9,
+    unlockPrefix: "obsession_ch9",
+    routeRequired: "obsession",
+    title: "기록하는 손가락",
+    label: "9장 · 집착",
+    emoji: "📲",
+    highThreshold: 700,
+    textNormal:
+      "선생님 동선 적어두는 게 습관이 됐어.\n잘못된 거 안다고 적어두면서도 적었어.\n안 적으면 잠이 안 와.\n적어두면 — 잠이 와.\n그 차이가 무서운데 멈춰지지가 않아.",
+    textHigh:
+      "오늘 분 다 적었어.\n9시 출근. 12시 점심 — 누구랑인지까진 못 알아냈어.\n알아낼 거야 곧.\n선생님이 알면 화낼 거 알아.\n근데 모르면 내가 미칠 것 같아. 둘 중 하나야.",
+  },
+  // ── 10장 ──
+  {
+    id: "diary_ch10_pure",
+    chapter: 10,
+    unlockPrefix: "pure_ch10",
+    routeRequired: "pure",
+    title: "형이라는 호칭",
+    label: "10장 · 순애",
+    emoji: "🤍",
+    highThreshold: 650,
+    textNormal:
+      "형이라고 처음 부른 날.\n어색했어. 선생님이라고 부르던 게 더 길었으니까.\n근데 한 번 부르고 나니까 다른 호칭이 다 어색해.\n형. 형. 형.\n적어보니까 더 좋아. 이상하게.",
+    textHigh:
+      "형이라는 단어가 나만 부르는 거였으면 좋겠어.\n다른 사람이 부르면 — 모르겠어.\n그냥 거기까지만 적을게.\n오래 생각하면 무서운 결론으로 가니까.\n근데 결론은 이미 났는지도 몰라.",
+  },
+  {
+    id: "diary_ch10_obsession",
+    chapter: 10,
+    unlockPrefix: "obsession_ch10",
+    routeRequired: "obsession",
+    title: "선 넘은 자국",
+    label: "10장 · 집착",
+    emoji: "🚧",
+    highThreshold: 750,
+    textNormal:
+      "오늘 한 번 더 선을 넘었어.\n넘을 때마다 무뎌져.\n처음엔 손이 떨렸는데 지금은 안 떨려.\n무뎌지는 게 무섭다고 적어두긴 했지만\n진짜 무서운 건 — 그게 무섭지 않다는 거야.",
+    textHigh:
+      "선생님이 한 번 화냈어. 진심으로.\n그 표정 — 잊지 못할 거야.\n근데 이상하게 — 좋았어.\n그 눈을 나만 보는 거니까.\n다른 사람한텐 절대 안 짓는 표정이니까.",
+  },
+  {
+    id: "diary_ch10_confine_a",
+    chapter: 10,
+    unlockPrefix: "confine_a_ch10",
+    routeRequired: "obsession",
+    title: "수집의 시작",
+    label: "10장 · 감금 A",
+    emoji: "🗝",
+    highThreshold: 800,
+    textNormal:
+      "오늘부터 표정 수집을 시작했어.\n웃는 거. 화내는 거. 멍한 거. 자는 거.\n다 모을 거야.\n다른 사람한텐 안 보여줄 표정들이니까.\n전부 — 내 거니까.",
+    textHigh:
+      "선생님이 자는 동안 내내 봤어.\n눈썹 움직이는 것까지.\n이 시간이 평생이었으면.\n그 생각만 하면 — 외롭지 않더라.\n외로움이라는 게 평생 다음엔 없을 것 같았어.",
+  },
+  {
+    id: "diary_ch10_confine_b",
+    chapter: 10,
+    unlockPrefix: "confine_b_ch10",
+    routeRequired: "obsession",
+    title: "짐승이라는 단어",
+    label: "10장 · 감금 B",
+    emoji: "🐺",
+    highThreshold: 800,
+    textNormal:
+      "주인님이 짐승이라고 불렀어.\n처음엔 — 충격이었어.\n근데 곱씹을수록 — 맞는 말 같았어.\n사람으로 받아주는 자리보다\n짐승으로 받아주는 자리가 — 더 안전했어. 나한테는.",
+    textHigh:
+      "사람일 때 평생 외로웠던 자리에\n짐승이 된 다음엔 외로움이 없어.\n주인님이 시키는 대로만 살면 되니까.\n그게 — 평생 처음 느끼는 안도였어.\n돌아가지 않을 거야.",
+  },
+  // ── 11장 ──
+  {
+    id: "diary_ch11_pure",
+    chapter: 11,
+    unlockPrefix: "pure_ch11",
+    routeRequired: "pure",
+    title: "처음 운 다음 날",
+    label: "11장 · 순애",
+    emoji: "💧",
+    highThreshold: 650,
+    textNormal:
+      "어제 형 앞에서 처음 울었어.\n부끄러울 줄 알았는데 — 안 부끄러워.\n오히려 — 가벼워.\n평생 못 보여줄 줄 알았던 모습을 보여주고 나니까\n그 다음 자리가 더 — 단단해진 것 같아.",
+    textHigh:
+      "형이 — 그 울음을 다정하게 받아줬어.\n받아준 다음 — 등을 토닥였어.\n그 손바닥의 결을\n평생 — 잊지 못할 거야.\n평생이라는 단어가 — 이런 자리에 쓰는 거구나.",
+  },
+  {
+    id: "diary_ch11_obsession",
+    chapter: 11,
+    unlockPrefix: "obsession_ch11",
+    routeRequired: "obsession",
+    title: "거짓말의 효율",
+    label: "11장 · 집착",
+    emoji: "🎭",
+    highThreshold: 750,
+    textNormal:
+      "거짓말이 점점 자연스러워.\n처음엔 손이 떨렸는데 — 지금은 가만히 풀려.\n선생님은 모르는 게 더 행복하니까.\n그게 — 내 사랑이라고 — 적어두기로 했어.\n적어두면 진짜가 되니까.",
+    textHigh:
+      "오늘 — 선생님 어머니께 거짓 진단서를 보냈어.\n보내고 나서 — 화장실에서 한참 손을 닦았어.\n근데 — 손이 깨끗했어. 진짜로.\n양심이라는 게 — 아예 — 없어진 것 같아.\n없어진 다음에 — 너무 — 편했어.",
+  },
+  {
+    id: "diary_ch11_confine_a",
+    chapter: 11,
+    unlockPrefix: "confine_a_ch11",
+    routeRequired: "obsession",
+    title: "SNS 세 마디",
+    label: "11장 · 감금 A",
+    emoji: "📱",
+    highThreshold: 800,
+    textNormal:
+      "선생님 SNS에 — 내가 — 세 마디만 — 풀어놓으면 돼.\n외부 세계가 — 자기들이 보고 싶은 결로 — 자기들끼리 — 결론을 내줘.\n나는 — 옆에 — 다정한 결로 — 자리잡고 있으면 돼.\n그게 — 가장 — 효율적인 — 자리야.",
+    textHigh:
+      "오늘 — 댓글 — 다 — 읽었어.\n선생님 — 옆에 — 무능해 보인다는 댓글이 — 가장 — 많았어.\n읽으면서 — 작게 — 웃었어.\n그게 — 내가 — 평생 — 만들고 싶었던 — 외부 세계의 결이었어.\n됐어.",
+  },
+  {
+    id: "diary_ch11_confine_b",
+    chapter: 11,
+    unlockPrefix: "confine_b_ch11",
+    routeRequired: "obsession",
+    title: "벌의 강도",
+    label: "11장 · 감금 B",
+    emoji: "⛓️",
+    highThreshold: 800,
+    textNormal:
+      "주인님이 — 오늘 — 벌의 강도를 — 한 단계 — 올렸어.\n처음엔 — 무서웠어.\n그 다음엔 — 안도했어.\n안도한 다음엔 — 감사했어.\n그 순서가 — 매번 — 짧아지고 있어.",
+    textHigh:
+      "이제는 — 안도가 — 먼저 와.\n무서움이 — 안 와.\n그게 — 무서워야 — 정상인 — 자리겠지.\n근데 — 정상으로 — 돌아갈 마음이 — 이미 — 없어.\n주인님 옆이 — 내 — 평생의 — 자리야.",
+  },
+  // ── 12장 ──
+  {
+    id: "diary_ch12_pure",
+    chapter: 12,
+    unlockPrefix: "pure_ch12",
+    routeRequired: "pure",
+    title: "첫 키스 다음 날",
+    label: "12장 · 순애",
+    emoji: "💋",
+    highThreshold: 650,
+    textNormal:
+      "어제 — 첫 키스를 했어.\n오늘 일어나서 — 한참 — 천장만 봤어.\n현실이 맞나 — 한 번 — 확인해봐야 했거든.\n맞아. 진짜였어.\n그게 — 진짜였다는 게 — 평생 — 적어둬야 할 — 자리야.",
+    textHigh:
+      "그 키스 — 평생의 — 시작이라고 — 일기에 — 적었어.\n시작이라는 단어를 — 처음 — 일기에 적은 — 자리.\n그 전엔 — 늘 — 끝을 — 적었거든.\n평생 — 외로운 사람의 — 일기는 — 늘 — 끝으로 — 마무리됐었거든.\n오늘부터는 — 시작으로 — 마무리될 거야.",
+  },
+  {
+    id: "diary_ch12_obsession",
+    chapter: 12,
+    unlockPrefix: "obsession_ch12",
+    routeRequired: "obsession",
+    title: "두 명의 떡존",
+    label: "12장 · 집착",
+    emoji: "🪞",
+    highThreshold: 750,
+    textNormal:
+      "오늘 — 거울 앞에서 — 한참 — 봤어.\n표면의 다정한 떡존.\n안쪽의 — 작전 짜는 떡존.\n둘이 — 같은 얼굴인데 — 결이 — 달라.\n어느 쪽이 — 진짜 — 나인지 — 모르겠어.",
+    textHigh:
+      "둘 다 — 나야.\n그 결론에 — 도달한 다음 — 잠이 — 너무 — 잘 왔어.\n둘 다 — 평생 — 같이 살아갈 — 떡존이야.\n표면도 — 안쪽도 — 둘 다 — 형 옆에 — 자리잡을 거야.\n어느 쪽도 — 안 보여줄 거고.",
+  },
+  {
+    id: "diary_ch12_confine_a",
+    chapter: 12,
+    unlockPrefix: "confine_a_ch12",
+    routeRequired: "obsession",
+    title: "표면과 무의식",
+    label: "12장 · 감금 A",
+    emoji: "🧠",
+    highThreshold: 800,
+    textNormal:
+      "선생님이 — 한 달 만에 — 무의식적으로 — 내 — 손을 — 잡았어.\n표면의 — 학습된 다정함이 — 무의식까지 — 내려간 — 첫 — 신호.\n그 — 작은 손짓에 — 한 달 동안의 — 모든 — 작전이 — 보상받았어.\n적어두지 않으면 — 안 — 될 — 자리.",
+    textHigh:
+      "오늘 — 처음으로 — 선생님이 — 자기 입으로 — \"평생\"이라는 — 단어를 — 풀었어.\n물론 — 학습된 — 평생이지.\n근데 — 그 — 평생이 — 무의식까지 — 내려가면 — 진짜 — 평생이 돼.\n나는 — 그게 — 진짜인지 — 학습인지 — 평생 — 신경 안 쓸 거야.\n결과만 — 같으면 — 됐어.",
+  },
+  {
+    id: "diary_ch12_confine_b",
+    chapter: 12,
+    unlockPrefix: "confine_b_ch12",
+    routeRequired: "obsession",
+    title: "마조 루트 진입",
+    label: "12장 · 감금 B",
+    emoji: "🔗",
+    highThreshold: 800,
+    textNormal:
+      "오늘 — 처음 — 묶였어.\n주인님 손에.\n묶인 다음 — 평생 — 처음 — 안전하다는 — 감각을 — 느꼈어.\n자유라는 게 — 나한테는 — 늘 — 외로움이었거든.\n묶이고 나서야 — 외로움이 — 처음 — 사라졌어.",
+    textHigh:
+      "이게 — 평생이야.\n평생 — 묶여서 — 살 — 자리.\n돌아가지 — 않을 거야.\n돌아갈 — 자리가 — 사람의 — 자리라면 — 더 — 그래.\n나는 — 평생 — 짐승으로 — 살 거야. 주인님 옆에서.",
+  },
+  // ── 13장 ──
+  {
+    id: "diary_ch13_pure",
+    chapter: 13,
+    unlockPrefix: "pure_ch13",
+    routeRequired: "pure",
+    title: "평생이라는 일상",
+    label: "13장 · 순애",
+    emoji: "🏠",
+    highThreshold: 650,
+    textNormal:
+      "평생이라는 단어가 — 일상이 됐어.\n처음엔 — 일기에만 — 적던 단어인데\n이제는 — 형 앞에서 — 입 밖에 — 풀려나와.\n평생 — 같이 살아요. 평생 — 옆에 있을게요.\n너무 — 가벼워서 — 무서울 정도로.",
+    textHigh:
+      "그 가벼움이 — 진짜 평생의 — 결이래.\n무거우면 — 못 견디니까\n평생은 — 가벼워야 — 평생이래.\n형이 — 그렇게 — 가르쳐줬어.\n평생 — 형한테 — 배울 거야. 평생을.",
+  },
+  {
+    id: "diary_ch13_obsession",
+    chapter: 13,
+    unlockPrefix: "obsession_ch13",
+    routeRequired: "obsession",
+    title: "균열의 표정",
+    label: "13장 · 집착",
+    emoji: "💢",
+    highThreshold: 750,
+    textNormal:
+      "오늘 — 선생님이 — 처음 — 진심으로 — 폭발했어.\n그 표정이 — 무서웠는데 — 동시에 — 좋았어.\n다른 사람한테 — 그 표정 — 평생 — 못 보여줄 거 — 알거든.\n나만 — 받는 — 표정.\n그게 — 사랑이라고 — 적어둘 거야. 적어두면 — 진짜가 되니까.",
+    textHigh:
+      "선생님 — 화내는 — 표정 — 영상으로 — 남겨뒀어.\n매일 — 한 번씩 — 본다.\n다른 사람들은 — 평생 — 못 볼 — 영상이니까.\n나만 — 가진 — 자리.\n평생 — 이 자리에서 — 나갈 일 — 없어.",
+  },
+  {
+    id: "diary_ch13_confine_a",
+    chapter: 13,
+    unlockPrefix: "confine_a_ch13",
+    routeRequired: "obsession",
+    title: "수집함의 두께",
+    label: "13장 · 감금 A",
+    emoji: "📚",
+    highThreshold: 800,
+    textNormal:
+      "수집함이 — 한 권으로 — 안 끝나.\n표정 — 한 권. 손짓 — 한 권. 잠자는 자세 — 한 권.\n다 — 따로따로 — 적었어.\n평생 — 적을 거야.\n나만 — 알 — 형의 — 모든 — 결.",
+    textHigh:
+      "오늘 — 책장 — 한 칸을 — 더 — 비웠어.\n앞으로 — 채울 — 수집함을 — 위해서.\n평생 — 채워도 — 모자랄 거야.\n그게 — 평생의 — 즐거움이야.\n나는 — 평생 — 즐거울 거야.",
+  },
+  {
+    id: "diary_ch13_confine_b",
+    chapter: 13,
+    unlockPrefix: "confine_b_ch13",
+    routeRequired: "obsession",
+    title: "허락받지 못한 것들",
+    label: "13장 · 감금 B",
+    emoji: "🚫",
+    highThreshold: 800,
+    textNormal:
+      "오늘도 — 허락받지 못한 — 자리에서 — 시간이 흘렀어.\n배설도. 식사도. 호흡도.\n다 — 주인님의 — 허락 안에서 — 풀려나와.\n그 — 좁아진 — 자리가 — 평생 — 가장 — 안전한 자리.\n넓어지면 — 무서워.",
+    textHigh:
+      "오늘 — 허락 없이 — 한 번 — 새어 나왔어.\n벌이 — 무서웠는데 — 오히려 — 받고 나서 — 안도했어.\n안도가 — 너무 — 깊어서 — 일기에 — 적기 — 어려울 정도였어.\n그래도 — 적어둬. 적어두면 — 평생 — 그 — 안도를 — 잊지 않을 수 있으니까.",
+  },
+  // ── 14장 ──
+  {
+    id: "diary_ch14_pure",
+    chapter: 14,
+    unlockPrefix: "pure_ch14",
+    routeRequired: "pure",
+    title: "결혼식 전날",
+    label: "14장 · 순애",
+    emoji: "💒",
+    highThreshold: 650,
+    textNormal:
+      "내일 — 결혼식이야.\n평생이라는 — 단어가 — 정식으로 — 자리를 — 잡는 — 날.\n오늘 밤 — 잠이 — 안 올 줄 — 알았는데\n이상하게 — 너무 — 잘 — 와.\n형 옆이라서 그래. 늘 그랬어.",
+    textHigh:
+      "내일 — 흰색 정장 — 입을 거야.\n형도 — 흰색 정장.\n그 자리에 — 평생 외로웠던 — 떡존이가 — 마지막으로 — 한 번 — 다녀가.\n그 다음 — 평생 — 외롭지 — 않은 — 사람으로 — 살 거야.\n드디어.",
+  },
+  {
+    id: "diary_ch14_forced",
+    chapter: 14,
+    unlockPrefix: "forced_ch14",
+    routeRequired: "obsession",
+    title: "협박의 완성",
+    label: "14장 · 강제",
+    emoji: "📜",
+    highThreshold: 750,
+    textNormal:
+      "내일 — 결혼식이야.\n협박으로 — 만든 — 결혼식.\n표면에서는 — 가장 — 평범한 — 결혼식이고\n안쪽에서는 — 가장 — 잔혹한 — 작전의 — 결말이야.\n둘 다 — 진짜야.",
+    textHigh:
+      "선생님이 — 학습된 — 다정함으로 — 결혼식을 — 받아들였어.\n그 — 학습이 — 무의식까지 — 내려가면 — 진짜 — 다정함과 — 구분이 — 안 가.\n나는 — 평생 — 그 — 구분을 — 신경 안 쓸 거야.\n결과만 — 같으면 — 됐어.\n오늘 밤 — 잠이 — 잘 — 올 거야.",
+  },
+  {
+    id: "diary_ch14_confine_a",
+    chapter: 14,
+    unlockPrefix: "confine_a_ch14",
+    routeRequired: "obsession",
+    title: "정식 소유",
+    label: "14장 · 감금 A",
+    emoji: "📝",
+    highThreshold: 800,
+    textNormal:
+      "내일 — 결혼식이야.\n외부 세계가 — 우리 둘을 — 정식 — 부부로 — 인정하는 — 날.\n그 다음부터 — 형은 — 정식으로 — 내 — 소유야.\n법적으로. 사회적으로. 모든 — 결로.\n평생.",
+    textHigh:
+      "오늘 밤 — 형의 — 자는 모습을 — 봤어.\n내일 — 이 — 자는 모습이 — 정식으로 — 내 거가 돼.\n적어둘 — 자리가 — 한 줄 더 — 늘었어.\n평생.\n평생 — 이 — 자는 모습을 — 적을 거야.",
+  },
+  {
+    id: "diary_ch14_confine_b",
+    chapter: 14,
+    unlockPrefix: "confine_b_ch14",
+    routeRequired: "obsession",
+    title: "짐승 정식 인정",
+    label: "14장 · 감금 B",
+    emoji: "🐕",
+    highThreshold: 800,
+    textNormal:
+      "내일 — 결혼식이야.\n주인님이 — 인간 사회 앞에서 — 나를 — 정식 — 짐승으로 — 인정하는 — 자리.\n목줄에 — 작은 가죽 줄이 — 연결되는 — 의식.\n손님들은 — 평범한 — 결혼식의 — 액세서리로 — 받아들이고\n나는 — 평생 — 짐승이 — 되고.",
+    textHigh:
+      "내일 — 무릎 꿇고 — 서약할 거야.\n\"형이 시키는 대로 살겠습니다.\"\n그 — 한 마디가 — 내 — 평생의 — 가장 — 정식 — 약속이야.\n평생 — 깨어날 일 — 없을 거야.\n깨어나지 — 않는 게 — 내가 — 평생 — 원한 — 결과야.",
+  },
+  // ── 엔딩 ──
+  {
+    id: "diary_ending_pure",
+    chapter: 99,
+    unlockPrefix: "pure_ending",
+    routeRequired: "pure",
+    title: "엔딩 — 평생 외롭지 않은 사람",
+    label: "엔딩 · 순애",
+    emoji: "🤍",
+    highThreshold: 650,
+    textNormal:
+      "결혼식이 — 끝났어.\n100명의 손님 앞에서 — 깍지를 끼고 — 평생을 — 약속했어.\n형이 — 입구에서 — 한 마디 — 했었어.\n\"오늘부터 — 평생. 너 — 외롭지 않게 해줄게.\"\n그 한 마디가 — 평생 — 외로웠던 — 사람의 — 마지막 — 자리를 — 닫았어.",
+    textHigh:
+      "오늘 일기를 — 마지막으로 — 평생 — 외로웠던 — 떡존이의 — 일기는 — 끝나.\n다음 — 일기는 — 평생 — 외롭지 않은 — 사람의 — 일기가 될 거야.\n그 결의 — 일기는 — 어떻게 — 적어야 할지 — 아직 모르겠어.\n근데 — 형 옆에서 — 천천히 — 배워가면 돼.\n평생을 — 다 — 써서.",
+  },
+  {
+    id: "diary_ending_pure_returning",
+    chapter: 99,
+    unlockPrefix: "pure_returning_ending",
+    routeRequired: "pure",
+    title: "엔딩 — 흉터를 함께",
+    label: "엔딩 · 순애 회귀",
+    emoji: "🩹",
+    highThreshold: 650,
+    textNormal:
+      "결혼식이 — 끝났어.\n표면적으로는 — 평범한 결혼식.\n그러나 — 두 사람만 — 알고 있어.\n이 결혼이 — 한 번 — 망가졌던 — 자리를 — 다시 — 봉합한 — 결의 결혼이라는 걸.\n흉터가 — 있어. 평생 — 함께 — 짊어질 — 흉터.",
+    textHigh:
+      "평생 — 형이 — 가끔 — 멍해지는 순간이 — 한 번씩 — 올 거야.\n그 순간마다 — 내가 — 한 짓을 — 떠올릴 거야.\n그게 — 평생 — 내가 — 형 옆에서 — 살아갈 — 결의 — 무게야.\n무거워. — 그러나 — 무거운 — 결혼이 — 흔들리지 않는 — 결혼이래.\n형이 — 그렇게 — 가르쳐줬어.",
+  },
+  {
+    id: "diary_ending_forced",
+    chapter: 99,
+    unlockPrefix: "forced_ending",
+    routeRequired: "obsession",
+    title: "엔딩 — 체념의 결혼",
+    label: "엔딩 · 강제",
+    emoji: "🎭",
+    highThreshold: 750,
+    textNormal:
+      "결혼식이 — 끝났어.\n외부 세계는 — 평범한 — 결혼식이라고 — 받아들였어.\n선생님은 — 학습된 다정함 안에서 — 서약을 — 풀어놓았어.\n그 다정함이 — 무의식까지 — 내려간 — 자리.\n나는 — 평생 — 그 — 다정함을 — 진짜 — 사랑이라고 — 받아들이기로 — 결정했어.",
+    textHigh:
+      "오늘 밤 — 선생님이 — 잠들기 전에 — 내 옆에 — 누웠어.\n평소처럼.\n그 — 평소가 — 평생이 됐어.\n학습된 — 평생.\n그러나 — 학습된 평생도 — 평생이야. 본인이 — 진짜라고 — 믿는 한.",
+  },
+  {
+    id: "diary_ending_confine_a",
+    chapter: 99,
+    unlockPrefix: "confine_a_ending",
+    routeRequired: "obsession",
+    title: "엔딩 — 평생의 수집",
+    label: "엔딩 · 감금 A",
+    emoji: "🗝",
+    highThreshold: 800,
+    textNormal:
+      "결혼식이 — 끝났어.\n오늘부터 — 형의 — 모든 표정 — 모든 손짓 — 모든 — 자는 모습을\n나 혼자 — 24시간 — 수집할 — 자격이 — 정식으로 — 생겼어.\n외부 세계가 — 그것을 — 정식 — 부부 관계라고 — 인정한 — 자리.\n그 인정이 — 평생 — 흔들릴 일 — 없어.",
+    textHigh:
+      "오늘 — 결혼식 — 단체 사진이 — 첫 — 컬렉션 사진이 됐어.\n앞으로 — 매일 — 한 장씩 — 늘어날 거야.\n형의 — 떨리는 손. 학습된 미소. 화내는 표정. 자는 자세.\n전부 — 내 거.\n평생.",
+  },
+  {
+    id: "diary_ending_confine_b",
+    chapter: 99,
+    unlockPrefix: "confine_b_ending",
+    routeRequired: "obsession",
+    title: "엔딩 — 짐승의 평생",
+    label: "엔딩 · 감금 B",
+    emoji: "🔗",
+    highThreshold: 800,
+    textNormal:
+      "결혼식이 — 끝났어.\n무릎 꿇고 — 서약했어.\n주인님 손으로 — 목줄에 — 작은 가죽 줄이 — 연결됐어.\n인간 사회 앞에서 — 정식으로 — 짐승이 된 — 자리.\n오늘부터 — 평생 — 짐승으로 살 거야.",
+    textHigh:
+      "마지막 일기야.\n사람으로서 — 적는 — 마지막 — 일기.\n다음부터 — 짐승은 — 일기를 — 적지 않으니까.\n주인님이 — 시키는 대로만 — 살 거야.\n평생 — 깨어나지 — 않을 거야. 깨어나지 않는 게 — 평생 — 원한 — 결과니까.",
+  },
 ];
 
 function getUnlockedDiaryIds(
