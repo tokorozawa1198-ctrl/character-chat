@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>떡존이 — 디자인 방향 비교</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Cinzel:wght@500;700&family=Orbitron:wght@500;700;900&family=Pretendard:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  background: #0a0a0a;
+  color: #fff;
+  min-height: 100vh;
+  padding: 20px;
+}
+h1.pageTitle {
+  text-align: center;
+  font-size: 28px;
+  margin-bottom: 8px;
+  background: linear-gradient(90deg, #f0d896, #c87a8e, #b89cff, #ff3d8a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+p.pageHint { text-align: center; color: #888; margin-bottom: 32px; font-size: 14px; }
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+@media (max-width: 900px) { .preview-grid { grid-template-columns: 1fr; } }
+
+/* === 공통 mockup 컨테이너 === */
+.mockup {
+  border-radius: 24px;
+  overflow: hidden;
+  height: 720px;
+  position: relative;
+  border: 2px solid rgba(255,255,255,0.08);
+}
+.mockup-label {
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  z-index: 10;
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 5px 10px;
+  border-radius: 99px;
+  letter-spacing: 0.08em;
+  backdrop-filter: blur(8px);
+}
+.mockup-inner {
+  padding: 50px 22px 22px;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* === 공통 mock 컴포넌트 (각 방향 안에서 색만 변경) === */
+.m-stats { display: flex; gap: 8px; flex-wrap: wrap; }
+.m-stat-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.m-stat-chip b { font-weight: 900; }
+
+.m-character {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+  min-height: 200px;
+}
+.m-character-placeholder {
+  font-size: 90px;
+  filter: drop-shadow(0 8px 20px rgba(0,0,0,0.5));
+}
+.m-bubble {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 700;
+  max-width: 60%;
+}
+
+.m-cta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.m-cta {
+  padding: 12px 14px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: pointer;
+  transition: transform .15s;
+}
+.m-cta:hover { transform: translateY(-2px); }
+.m-cta-emoji { font-size: 22px; }
+.m-cta-label { font-size: 14px; font-weight: 900; }
+.m-cta-hint { font-size: 10px; opacity: 0.75; }
+
+.m-tiers { display: flex; gap: 6px; }
+.m-tier-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+/* ====================================================== */
+/* === A. 다크 벨벳 (와인 + 골드) === */
+/* ====================================================== */
+.mockup-a {
+  background: radial-gradient(ellipse at top, #3a1320 0%, #1a0810 60%, #0a0508 100%);
+}
+.mockup-a .mockup-label { background: linear-gradient(135deg, #d4a843, #8a6020); color: #1a0810; }
+.mockup-a h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-weight: 700;
+  background: linear-gradient(90deg, #f0d896, #d4a843);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.04em;
+}
+.mockup-a small.eyebrow { color: #c87a8e; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
+.mockup-a .m-stat-chip { background: rgba(212,168,67,0.12); border: 1px solid rgba(212,168,67,0.3); color: #f0d896; }
+.mockup-a .m-stat-chip.rose { background: rgba(200,122,142,0.16); border-color: rgba(200,122,142,0.4); color: #f4cad6; }
+.mockup-a .m-character {
+  background: radial-gradient(ellipse at center, rgba(212,168,67,0.15) 0%, rgba(40,15,25,0.6) 60%, transparent 100%);
+  border: 1px solid rgba(212,168,67,0.25);
+}
+.mockup-a .m-bubble {
+  background: rgba(60,25,35,0.85);
+  border: 1px solid rgba(212,168,67,0.4);
+  color: #f0d896;
+  backdrop-filter: blur(12px);
+}
+.mockup-a .m-cta {
+  background: linear-gradient(135deg, rgba(60,25,35,0.6), rgba(40,15,25,0.85));
+  border: 1px solid rgba(212,168,67,0.25);
+  color: #f0d896;
+}
+.mockup-a .m-cta:hover {
+  border-color: rgba(212,168,67,0.7);
+  box-shadow: 0 0 0 1px rgba(212,168,67,0.3) inset, 0 8px 22px rgba(212,168,67,0.2);
+}
+.mockup-a .m-cta-label { color: #fff; font-family: 'Cormorant Garamond', serif; font-size: 16px; }
+.mockup-a .m-cta-hint { color: #c87a8e; }
+.mockup-a .m-tier-badge.ssr { background: linear-gradient(135deg, #f0d896, #d4a843); color: #1a0810; }
+.mockup-a .m-tier-badge.sr { background: linear-gradient(135deg, #c87a8e, #8a4a5e); color: #fff; }
+.mockup-a .m-tier-badge.r { background: rgba(212,168,67,0.25); color: #f0d896; border: 1px solid rgba(212,168,67,0.5); }
+
+/* ====================================================== */
+/* === B. 다크 오로라 (네이비 + 보라) === */
+/* ====================================================== */
+.mockup-b {
+  background:
+    radial-gradient(ellipse at 80% 10%, rgba(184,156,255,0.18) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 90%, rgba(108,214,255,0.15) 0%, transparent 50%),
+    linear-gradient(135deg, #1a1238 0%, #0d0a25 50%, #050414 100%);
+}
+.mockup-b .mockup-label { background: linear-gradient(135deg, #b89cff, #6cd6ff); color: #050414; }
+.mockup-b h2 {
+  font-family: 'Pretendard', sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  background: linear-gradient(90deg, #b89cff, #6cd6ff, #ffffff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
+}
+.mockup-b small.eyebrow { color: #6cd6ff; font-size: 10px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; }
+.mockup-b .m-stat-chip { background: rgba(184,156,255,0.1); border: 1px solid rgba(184,156,255,0.3); color: #d8c8ff; backdrop-filter: blur(6px); }
+.mockup-b .m-stat-chip.cyan { background: rgba(108,214,255,0.1); border-color: rgba(108,214,255,0.4); color: #a6e6ff; }
+.mockup-b .m-character {
+  background: radial-gradient(ellipse at center, rgba(184,156,255,0.18) 0%, rgba(20,15,50,0.6) 70%, transparent 100%);
+  border: 1px solid rgba(184,156,255,0.3);
+}
+.mockup-b .m-bubble {
+  background: rgba(40,30,80,0.55);
+  border: 1px solid rgba(184,156,255,0.5);
+  color: #fff;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 0 24px rgba(184,156,255,0.18);
+}
+.mockup-b .m-cta {
+  background: rgba(40,30,80,0.4);
+  border: 1px solid rgba(184,156,255,0.25);
+  color: #fff;
+  backdrop-filter: blur(10px);
+}
+.mockup-b .m-cta:hover {
+  border-color: rgba(184,156,255,0.7);
+  box-shadow: 0 0 24px rgba(184,156,255,0.35);
+}
+.mockup-b .m-cta-label { color: #fff; font-weight: 900; }
+.mockup-b .m-cta-hint { color: #b89cff; }
+.mockup-b .m-tier-badge.ssr {
+  background: linear-gradient(135deg, #b89cff, #ff7ad9, #6cd6ff);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(184,156,255,0.6);
+}
+.mockup-b .m-tier-badge.sr { background: linear-gradient(135deg, #b89cff, #7b5fbe); color: #fff; }
+.mockup-b .m-tier-badge.r { background: rgba(108,214,255,0.2); color: #a6e6ff; border: 1px solid rgba(108,214,255,0.5); }
+
+/* ====================================================== */
+/* === C. 네온 사이버 (검정 + 핑크 네온) === */
+/* ====================================================== */
+.mockup-c {
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,61,138,0.03) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,229,255,0.03) 40px),
+    #050505;
+}
+.mockup-c .mockup-label {
+  background: #050505;
+  color: #ff3d8a;
+  border: 1px solid #ff3d8a;
+  text-shadow: 0 0 8px #ff3d8a;
+  box-shadow: 0 0 12px rgba(255,61,138,0.4);
+}
+.mockup-c h2 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: #ff3d8a;
+  text-shadow: 0 0 12px rgba(255,61,138,0.6), 0 0 24px rgba(255,61,138,0.3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.mockup-c small.eyebrow { color: #00e5ff; font-size: 10px; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; font-family: 'Orbitron', sans-serif; }
+.mockup-c .m-stat-chip {
+  background: transparent;
+  border: 1px solid #ff3d8a;
+  color: #ff3d8a;
+  font-family: 'Orbitron', sans-serif;
+  text-shadow: 0 0 6px rgba(255,61,138,0.5);
+}
+.mockup-c .m-stat-chip.cyan {
+  border-color: #00e5ff;
+  color: #00e5ff;
+  text-shadow: 0 0 6px rgba(0,229,255,0.5);
+}
+.mockup-c .m-character {
+  background: radial-gradient(ellipse at center, rgba(255,61,138,0.1) 0%, transparent 70%);
+  border: 1px solid #ff3d8a;
+  box-shadow: 0 0 0 1px rgba(255,61,138,0.3) inset, 0 0 32px rgba(255,61,138,0.15);
+  position: relative;
+}
+.mockup-c .m-character::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, #ff3d8a, transparent);
+  animation: scan 3s linear infinite;
+}
+@keyframes scan { 0% { transform: translateY(0); } 100% { transform: translateY(220px); } }
+.mockup-c .m-bubble {
+  background: rgba(20,5,15,0.9);
+  border: 1px solid #ff3d8a;
+  color: #ff3d8a;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 16px rgba(255,61,138,0.3);
+  font-family: 'Orbitron', sans-serif;
+}
+.mockup-c .m-cta {
+  background: rgba(20,5,15,0.7);
+  border: 1px solid rgba(255,61,138,0.4);
+  color: #fff;
+  position: relative;
+}
+.mockup-c .m-cta:hover {
+  border-color: #ff3d8a;
+  box-shadow: 0 0 16px rgba(255,61,138,0.5), inset 0 0 16px rgba(255,61,138,0.1);
+}
+.mockup-c .m-cta-emoji { filter: drop-shadow(0 0 8px rgba(255,61,138,0.5)); }
+.mockup-c .m-cta-label { color: #fff; font-family: 'Orbitron', sans-serif; font-size: 13px; letter-spacing: 0.05em; }
+.mockup-c .m-cta-hint { color: #00e5ff; font-size: 9px; letter-spacing: 0.1em; }
+.mockup-c .m-tier-badge.ssr {
+  background: #ff3d8a; color: #050505;
+  box-shadow: 0 0 12px #ff3d8a;
+  font-family: 'Orbitron', sans-serif;
+}
+.mockup-c .m-tier-badge.sr { background: #00e5ff; color: #050505; box-shadow: 0 0 8px #00e5ff; font-family: 'Orbitron', sans-serif; }
+.mockup-c .m-tier-badge.r { background: transparent; border: 1px solid #fff; color: #fff; font-family: 'Orbitron', sans-serif; }
+
+/* ====================================================== */
+/* === D. K-드라마 프리미엄 (베이지 + 폴리시) === */
+/* ====================================================== */
+.mockup-d {
+  background:
+    radial-gradient(ellipse at top right, rgba(200,144,112,0.12) 0%, transparent 50%),
+    linear-gradient(180deg, #f8efe2 0%, #ead7c7 100%);
+  color: #2a1a14;
+}
+.mockup-d .mockup-label { background: #3a2017; color: #f0d896; }
+.mockup-d h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: #3a2017;
+  letter-spacing: 0.02em;
+}
+.mockup-d small.eyebrow { color: #c89070; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
+.mockup-d .m-stat-chip { background: rgba(200,144,112,0.18); border: 1px solid rgba(200,144,112,0.4); color: #6a3e28; }
+.mockup-d .m-stat-chip.rose { background: rgba(180,90,110,0.15); border-color: rgba(180,90,110,0.4); color: #8a3852; }
+.mockup-d .m-character {
+  background: linear-gradient(135deg, rgba(255,247,234,0.85) 0%, rgba(232,210,182,0.7) 100%);
+  border: 1px solid rgba(200,144,112,0.35);
+  box-shadow: 0 8px 24px rgba(91,48,24,0.1);
+}
+.mockup-d .m-bubble {
+  background: rgba(255,247,234,0.95);
+  border: 1px solid rgba(200,144,112,0.5);
+  color: #3a2017;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(91,48,24,0.08);
+}
+.mockup-d .m-cta {
+  background: linear-gradient(135deg, #fff7ec 0%, #f4e3d0 100%);
+  border: 1px solid rgba(200,144,112,0.35);
+  color: #3a2017;
+}
+.mockup-d .m-cta:hover {
+  border-color: #c89070;
+  box-shadow: 0 8px 22px rgba(91,48,24,0.14);
+}
+.mockup-d .m-cta-label { color: #3a2017; font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 700; }
+.mockup-d .m-cta-hint { color: #8a6750; }
+.mockup-d .m-tier-badge.ssr { background: linear-gradient(135deg, #c89070, #8a5e40); color: #fff; }
+.mockup-d .m-tier-badge.sr { background: rgba(180,90,110,0.85); color: #fff; }
+.mockup-d .m-tier-badge.r { background: rgba(200,144,112,0.25); color: #6a3e28; border: 1px solid rgba(200,144,112,0.5); }
+
+/* === 비교 카드 헤더 === */
+.summary-card {
+  margin-top: 40px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 18px;
+  padding: 24px;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.summary-card h3 { font-size: 16px; margin-bottom: 12px; color: #f0d896; }
+.summary-card ul { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.summary-card li {
+  padding: 12px 14px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 10px;
+  border-left: 3px solid;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.summary-card li.a { border-color: #d4a843; }
+.summary-card li.b { border-color: #b89cff; }
+.summary-card li.c { border-color: #ff3d8a; }
+.summary-card li.d { border-color: #c89070; }
+.summary-card li b { display: block; margin-bottom: 4px; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<h1 class="pageTitle">떡존이 — 디자인 방향 4종 비교</h1>
+<p class="pageHint">각 카드의 색감, 폰트, 카드 스타일, 호버 효과를 비교해보삼</p>
+
+<div class="preview-grid">
+
+  <!-- A. 다크 벨벳 -->
+  <div class="mockup mockup-a">
+    <div class="mockup-label">A · 다크 벨벳</div>
+    <div class="mockup-inner">
+      <div>
+        <small class="eyebrow">Affinity Route · Chapter 12</small>
+        <h2>평생 외롭지 않은 사람</h2>
+      </div>
+      <div class="m-stats">
+        <span class="m-stat-chip rose">💗 호감 <b>720</b></span>
+        <span class="m-stat-chip">🤝 신뢰 <b>540</b></span>
+        <span class="m-stat-chip">🔥 질투 <b>120</b></span>
+        <span class="m-stat-chip">🌑 집착 <b>320</b></span>
+      </div>
+      <div class="m-character">
+        <span class="m-character-placeholder">🧑‍🦱</span>
+        <div class="m-bubble">선생님... 오늘 — 평생 — 같이 살아요. 헤헤.</div>
+      </div>
+      <div class="m-cta-grid">
+        <div class="m-cta"><span class="m-cta-emoji">💬</span><span class="m-cta-label">대화하기</span><span class="m-cta-hint">지금 바로 떡존이랑</span></div>
+        <div class="m-cta"><span class="m-cta-emoji">📖</span><span class="m-cta-label">시나리오</span><span class="m-cta-hint">스토리 진행</span></div>
+      </div>
+      <div class="m-tiers">
+        <span class="m-tier-badge ssr">SSR</span>
+        <span class="m-tier-badge sr">SR</span>
+        <span class="m-tier-badge r">R</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- B. 다크 오로라 -->
+  <div class="mockup mockup-b">
+    <div class="mockup-label">B · 다크 오로라</div>
+    <div class="mockup-inner">
+      <div>
+        <small class="eyebrow">Affinity Route · Chapter 12</small>
+        <h2>평생 외롭지 않은 사람</h2>
+      </div>
+      <div class="m-stats">
+        <span class="m-stat-chip">💗 호감 <b>720</b></span>
+        <span class="m-stat-chip cyan">🤝 신뢰 <b>540</b></span>
+        <span class="m-stat-chip">🔥 질투 <b>120</b></span>
+        <span class="m-stat-chip cyan">🌑 집착 <b>320</b></span>
+      </div>
+      <div class="m-character">
+        <span class="m-character-placeholder">🧑‍🦱</span>
+        <div class="m-bubble">선생님... 오늘 — 평생 — 같이 살아요. 헤헤.</div>
+      </div>
+      <div class="m-cta-grid">
+        <div class="m-cta"><span class="m-cta-emoji">💬</span><span class="m-cta-label">대화하기</span><span class="m-cta-hint">지금 바로 떡존이랑</span></div>
+        <div class="m-cta"><span class="m-cta-emoji">📖</span><span class="m-cta-label">시나리오</span><span class="m-cta-hint">스토리 진행</span></div>
+      </div>
+      <div class="m-tiers">
+        <span class="m-tier-badge ssr">SSR</span>
+        <span class="m-tier-badge sr">SR</span>
+        <span class="m-tier-badge r">R</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- C. 네온 사이버 -->
+  <div class="mockup mockup-c">
+    <div class="mockup-label">C · 네온 사이버</div>
+    <div class="mockup-inner">
+      <div>
+        <small class="eyebrow">Affinity Route · Chapter 12</small>
+        <h2>OBSESSION_LV12</h2>
+      </div>
+      <div class="m-stats">
+        <span class="m-stat-chip">HEART <b>720</b></span>
+        <span class="m-stat-chip cyan">TRUST <b>540</b></span>
+        <span class="m-stat-chip">RAGE <b>120</b></span>
+        <span class="m-stat-chip cyan">OBSS <b>320</b></span>
+      </div>
+      <div class="m-character">
+        <span class="m-character-placeholder">🧑‍🦱</span>
+        <div class="m-bubble">SYSTEM // 떡존이는 — 평생 — 당신의 것입니다.</div>
+      </div>
+      <div class="m-cta-grid">
+        <div class="m-cta"><span class="m-cta-emoji">💬</span><span class="m-cta-label">CHAT</span><span class="m-cta-hint">START SESSION</span></div>
+        <div class="m-cta"><span class="m-cta-emoji">📖</span><span class="m-cta-label">SCENARIO</span><span class="m-cta-hint">CONTINUE</span></div>
+      </div>
+      <div class="m-tiers">
+        <span class="m-tier-badge ssr">SSR</span>
+        <span class="m-tier-badge sr">SR</span>
+        <span class="m-tier-badge r">R</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- D. K-드라마 프리미엄 -->
+  <div class="mockup mockup-d">
+    <div class="mockup-label">D · K-드라마 프리미엄</div>
+    <div class="mockup-inner">
+      <div>
+        <small class="eyebrow">Affinity Route · Chapter 12</small>
+        <h2>평생 외롭지 않은 사람</h2>
+      </div>
+      <div class="m-stats">
+        <span class="m-stat-chip rose">💗 호감 <b>720</b></span>
+        <span class="m-stat-chip">🤝 신뢰 <b>540</b></span>
+        <span class="m-stat-chip">🔥 질투 <b>120</b></span>
+        <span class="m-stat-chip">🌑 집착 <b>320</b></span>
+      </div>
+      <div class="m-character">
+        <span class="m-character-placeholder">🧑‍🦱</span>
+        <div class="m-bubble">선생님... 오늘 — 평생 — 같이 살아요. 헤헤.</div>
+      </div>
+      <div class="m-cta-grid">
+        <div class="m-cta"><span class="m-cta-emoji">💬</span><span class="m-cta-label">대화하기</span><span class="m-cta-hint">지금 바로 떡존이랑</span></div>
+        <div class="m-cta"><span class="m-cta-emoji">📖</span><span class="m-cta-label">시나리오</span><span class="m-cta-hint">스토리 진행</span></div>
+      </div>
+      <div class="m-tiers">
+        <span class="m-tier-badge ssr">SSR</span>
+        <span class="m-tier-badge sr">SR</span>
+        <span class="m-tier-badge r">R</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="summary-card">
+  <h3>📋 방향별 한 줄 정리</h3>
+  <ul>
+    <li class="a"><b>A · 다크 벨벳</b>와인+골드, Cormorant 세리프. 럭셔리 미연시 / Persona 5 / 카지노 무드. <strong>떡존이 광기와 가장 어울림</strong></li>
+    <li class="b"><b>B · 다크 오로라</b>네이비+라벤더+시안, Pretendard. 호요버스 게임 / 원신 / 명조 무드. <strong>가장 모바일 게임스러움</strong></li>
+    <li class="c"><b>C · 네온 사이버</b>검정+핫핑크+시안, Orbitron. 사이버펑크 / NIKKE / 카운터사이드. <strong>가장 자극적, 장르 확 바뀜</strong></li>
+    <li class="d"><b>D · K-드라마 프리미엄</b>베이지 톤 유지, Cormorant 폴리시. 부드러운 K-게임. <strong>현재 톤과 가장 가까움</strong></li>
+  </ul>
+</div>
+
+</body>
+</html>
