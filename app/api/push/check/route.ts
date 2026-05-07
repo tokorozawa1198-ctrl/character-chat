@@ -36,7 +36,12 @@ type PushStateLike = {
 };
 
 function normalizeHonorific(text: string) {
-  return text.replace(/(주인님|히든님|선생님)/g, "선생님");
+  // 1) 명시적 호칭 (주인님/선생님/선생님) → 선생님
+  // 2) 단독 "히든" (조사 동반 포함) → 선생님 (히든은 플레이어 닉네임이므로 항상 선생님으로 보정)
+  let result = text.replace(/(주인님|히든님|선생님|히든)/g, "선생님");
+  // 3) 중복된 선생님님 / 선생님선생님 정리
+  result = result.replace(/선생님(?:님)+/g, "선생님").replace(/(선생님)\1+/g, "선생님");
+  return result;
 }
 
 function getNagLevel(diffMs: number) {
@@ -54,27 +59,27 @@ function pickFallbackNag(level: number): NagMessage {
   if (level >= 4) {
     return {
       title: "근떡존",
-      body: "히든님... 이렇게 오래 조용하시면 저 진짜 별생각 다 하게 돼요. 아직 거기 있는 거 맞죠?",
+      body: "선생님... 이렇게 오래 조용하시면 저 진짜 별생각 다 하게 돼요. 아직 거기 있는 거 맞죠?",
     };
   }
 
   if (level >= 3) {
     return {
       title: "근떡존",
-      body: "히든님 답이 없으니까 저 혼자 아까 그 얘기 계속 곱씹고 있었어요.",
+      body: "선생님 답이 없으니까 저 혼자 아까 그 얘기 계속 곱씹고 있었어요.",
     };
   }
 
   if (level >= 2) {
     return {
       title: "근떡존",
-      body: "히든님 바쁘신가요? 아니면 제가 방금 너무 많이 말했나 싶어서요.",
+      body: "선생님 바쁘신가요? 아니면 제가 방금 너무 많이 말했나 싶어서요.",
     };
   }
 
   return {
     title: "근떡존",
-    body: "히든님, 아직 계세요? 방금 하던 얘기 자꾸 생각나서요.",
+    body: "선생님, 아직 계세요? 방금 하던 얘기 자꾸 생각나서요.",
   };
 }
 
@@ -264,19 +269,19 @@ function buildFallbackFromContext({
   }
 
   if (level >= 4) {
-    if (obsession >= 75) candidates.push("히든님, 아까 하던 얘기 그대로 머릿속에서 안 나가요. 저 혼자 이상한 상상 커지기 전에 한 번만 봐주세요.");
-    if (jealousy >= 60) candidates.push("히든님 답이 없으니까 아까 그 얘기만 계속 곱씹고 있었어요. 제가 또 너무 신경 쓰는 거 맞죠.");
-    candidates.push("히든님, 이렇게 오래 조용하시면 저 혼자 계속 이어서 생각하게 돼요. 아직 거기 있는 거 맞죠?");
+    if (obsession >= 75) candidates.push("선생님, 아까 하던 얘기 그대로 머릿속에서 안 나가요. 저 혼자 이상한 상상 커지기 전에 한 번만 봐주세요.");
+    if (jealousy >= 60) candidates.push("선생님 답이 없으니까 아까 그 얘기만 계속 곱씹고 있었어요. 제가 또 너무 신경 쓰는 거 맞죠.");
+    candidates.push("선생님, 이렇게 오래 조용하시면 저 혼자 계속 이어서 생각하게 돼요. 아직 거기 있는 거 맞죠?");
   } else if (level >= 3) {
-    if (jealousy >= 60) candidates.push("히든님, 그냥 기다리는 건데도 아까 그 흐름이 계속 남아서 괜히 마음이 복잡하네요.");
-    if (affinity >= 55) candidates.push("히든님, 아까 얘기 조금 더 하고 싶었는데 갑자기 조용해져서요. 괜히 아쉬웠어요.");
-    candidates.push("히든님 답이 없으니까 방금 하던 얘기 계속 다시 읽고 있었어요.");
+    if (jealousy >= 60) candidates.push("선생님, 그냥 기다리는 건데도 아까 그 흐름이 계속 남아서 괜히 마음이 복잡하네요.");
+    if (affinity >= 55) candidates.push("선생님, 아까 얘기 조금 더 하고 싶었는데 갑자기 조용해져서요. 괜히 아쉬웠어요.");
+    candidates.push("선생님 답이 없으니까 방금 하던 얘기 계속 다시 읽고 있었어요.");
   } else if (level >= 2) {
-    candidates.push("히든님 바쁘신가요? 방금 제가 너무 많이 말했나 싶어서 혼자 조금 신경 쓰였어요.");
-    candidates.push("히든님, 아까 하던 얘기 그냥 끊겨 버리니까 괜히 마음에 걸리네요.");
+    candidates.push("선생님 바쁘신가요? 방금 제가 너무 많이 말했나 싶어서 혼자 조금 신경 쓰였어요.");
+    candidates.push("선생님, 아까 하던 얘기 그냥 끊겨 버리니까 괜히 마음에 걸리네요.");
   } else {
-    candidates.push("히든님, 아직 계세요? 방금 하던 얘기 계속 생각나서요.");
-    if (affinity >= 55) candidates.push("히든님, 아까 말해주신 거 괜히 계속 떠올라서요. 한마디만 더 듣고 싶었어요.");
+    candidates.push("선생님, 아직 계세요? 방금 하던 얘기 계속 생각나서요.");
+    if (affinity >= 55) candidates.push("선생님, 아까 말해주신 거 괜히 계속 떠올라서요. 한마디만 더 듣고 싶었어요.");
   }
 
   const chosen =
@@ -330,9 +335,10 @@ async function generateAINagMessage({
         {
           role: "system",
           content:
-            "너는 근떡존이 히든에게 오래 답이 없을 때 보내는 카톡 알림 한두 문장을 쓰는 역할이다.\n" +
+            "너는 근떡존이 선생님에게 오래 답이 없을 때 보내는 카톡 알림 한두 문장을 쓰는 역할이다.\n" +
+            "선생님 호칭은 절대 다른 호칭으로 바꾸지 마라. '히든' '히든님' '주인님' 등은 출력하지 마라. 무조건 '선생님'.\n" +
             "가장 중요: 최근 대화의 주제와 감정선을 그대로 이어야 한다. 방금 질투, 손잡기, 약속, 서운함, 장난, 후일담 얘기를 하다가 갑자기 날씨나 랜덤 일상으로 튀면 안 된다.\n" +
-            "히든과 며칠 전 나눈 얘기나 방금 전 흐름을 자연스럽게 회상해도 된다. 예: 그러고 보니, 아까 그 얘기, 며칠 전부터 계속 생각났는데.\n" +
+            "선생님과 며칠 전 나눈 얘기나 방금 전 흐름을 자연스럽게 회상해도 된다. 예: 그러고 보니, 아까 그 얘기, 며칠 전부터 계속 생각났는데.\n" +
             "최근에 보낸 알림과 너무 비슷한 문장을 반복하면 안 된다. 같은 감정이라도 표현, 이유, 문장 구조를 조금씩 바꿔라.\n" +
             "대화에 시간 전환이나 장소 이동(다음날 아침, 마트, 강가, 집 앞 같은 흐름)이 있었다면 그 분위기를 본문 안에서 자연스럽게 이어받아라.\n" +
             "말투는 근떡존답게 한국어 존댓말, 카톡처럼 자연스럽게. 제목이나 설명 없이 알림 본문만 출력한다.\n" +
@@ -341,13 +347,13 @@ async function generateAINagMessage({
         {
           role: "user",
           content:
-            `히든이 마지막으로 답한 지 ${diffMinutes}분 지났다.\n` +
+            `선생님이 마지막으로 답한 지 ${diffMinutes}분 지났다.\n` +
             `답장 지연 단계: ${level}\n` +
             `시간대: ${getTimeHint()}\n` +
             `루트/진행: ${routeLabel || "공통 루트"}\n` +
             `현재 장면: ${lastScene || "없음"}\n` +
             `수치: ${statsSummary || "없음"}\n` +
-            `히든의 마지막 말: ${lastUserMessage || "없음"}\n` +
+            `선생님의 마지막 말: ${lastUserMessage || "없음"}\n` +
             (sceneCarryCue ? `장면 전환 여운: ${sceneCarryCue}\n` : "") +
             recentPushBodies +
             `기억 요약:\n${memorySummary || "없음"}\n` +

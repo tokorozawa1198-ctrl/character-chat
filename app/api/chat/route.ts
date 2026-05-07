@@ -380,8 +380,11 @@ function stripStageDirections(reply: string): { reply: string; extractedNarratio
 }
 
 function normalizeHonorific(text: string) {
-  // 선생님/주인님 둘 다 허용. 히든님만 선생님으로 보정.
-  return text.replace(/히든님/g, "선생님");
+  // 주인님/선생님 둘 다 허용 (감금B 루트의 주인님은 의도적). 히든/히든님은 무조건 선생님으로 보정.
+  let result = text.replace(/(히든님|히든)/g, "선생님");
+  // 중복 정리
+  result = result.replace(/선생님(?:님)+/g, "선생님").replace(/(선생님)\1+/g, "선생님");
+  return result;
 }
 
 // reply 안의 반말 종결을 존댓말로 자동 변환
