@@ -253,16 +253,16 @@ const endingData = {
 };
 type RelLevel = { lv: number; minAffinity: number; name: string; nameObs: string; flavor: string };
 const RELATIONSHIP_LEVELS: RelLevel[] = [
-  { lv: 1,  minAffinity: 0,   name: "처음 만난 사이",       nameObs: "처음 만난 사이",       flavor: "아직은 조심스럽게, 조금씩 알아가는 중이에요." },
-  { lv: 2,  minAffinity: 100, name: "조금씩 알아가는",      nameObs: "조금씩 신경 쓰이는",   flavor: "자꾸 말을 걸고 싶어지는 사람이 생겼어요." },
-  { lv: 3,  minAffinity: 200, name: "편해진 사이",          nameObs: "자꾸 눈이 가는",        flavor: "이름 들리면 고개가 먼저 돌아가는 것 같아요." },
-  { lv: 4,  minAffinity: 300, name: "특별히 챙기는",        nameObs: "머릿속에 자꾸 남는",    flavor: "뭔가 좋은 거 생기면 제일 먼저 생각나요." },
-  { lv: 5,  minAffinity: 400, name: "마음이 기울어진",      nameObs: "머릿속에 가득한",       flavor: "이건 좋아하는 감정이 맞는 것 같아요." },
-  { lv: 6,  minAffinity: 500, name: "연인 후보",            nameObs: "집착이 시작된",         flavor: "솔직히 말하면, 이미 많이 좋아하고 있어요." },
-  { lv: 7,  minAffinity: 600, name: "완전히 빠진",          nameObs: "놓을 수 없는",          flavor: "이제 다른 데 눈이 잘 안 가요." },
-  { lv: 8,  minAffinity: 700, name: "돌아올 수 없는",       nameObs: "가둬두고 싶은",         flavor: "옆에 없으면 뭔가 계속 빠진 것 같아요." },
-  { lv: 9,  minAffinity: 800, name: "영원히 네 곁에",       nameObs: "평생 함께하는",         flavor: "이 감정이 평생 갈 것 같아요. 그래도 돼요?" },
-  { lv: 10, minAffinity: 900, name: "눈에 넣어도 안 아픈",  nameObs: "숨이 막히도록",         flavor: "이제 주인님 없는 하루는 상상이 안 돼요." },
+  { lv: 1, minAffinity: 0, name: "처음 만난 사이", nameObs: "처음 만난 사이", flavor: "아직은 조심스럽게, 조금씩 알아가는 중이에요." },
+  { lv: 2, minAffinity: 100, name: "조금씩 알아가는", nameObs: "조금씩 신경 쓰이는", flavor: "자꾸 말을 걸고 싶어지는 사람이 생겼어요." },
+  { lv: 3, minAffinity: 200, name: "편해진 사이", nameObs: "자꾸 눈이 가는", flavor: "이름 들리면 고개가 먼저 돌아가는 것 같아요." },
+  { lv: 4, minAffinity: 300, name: "특별히 챙기는", nameObs: "머릿속에 자꾸 남는", flavor: "뭔가 좋은 거 생기면 제일 먼저 생각나요." },
+  { lv: 5, minAffinity: 400, name: "마음이 기울어진", nameObs: "머릿속에 가득한", flavor: "이건 좋아하는 감정이 맞는 것 같아요." },
+  { lv: 6, minAffinity: 500, name: "연인 후보", nameObs: "집착이 시작된", flavor: "솔직히 말하면, 이미 많이 좋아하고 있어요." },
+  { lv: 7, minAffinity: 600, name: "완전히 빠진", nameObs: "놓을 수 없는", flavor: "이제 다른 데 눈이 잘 안 가요." },
+  { lv: 8, minAffinity: 700, name: "돌아올 수 없는", nameObs: "가둬두고 싶은", flavor: "옆에 없으면 뭔가 계속 빠진 것 같아요." },
+  { lv: 9, minAffinity: 800, name: "영원히 네 곁에", nameObs: "평생 함께하는", flavor: "이 감정이 평생 갈 것 같아요. 그래도 돼요?" },
+  { lv: 10, minAffinity: 900, name: "눈에 넣어도 안 아픈", nameObs: "숨이 막히도록", flavor: "이제 주인님 없는 하루는 상상이 안 돼요." },
 ];
 function getRelationshipLevel(stats: Stats, route: StoryRoute): RelLevel & { displayName: string; progressPct: number } {
   const level = [...RELATIONSHIP_LEVELS].reverse().find((l) => stats.affinity >= l.minAffinity) ?? RELATIONSHIP_LEVELS[0];
@@ -273,48 +273,48 @@ function getRelationshipLevel(stats: Stats, route: StoryRoute): RelLevel & { dis
 }
 type EndingCardData = { num: string; title: string; subtitle: string; quote: string };
 const ENDING_CARDS: Record<string, EndingCardData> = {
-  pure:        { num: "Ending 01", title: "처음으로 믿어보는 사랑",  subtitle: "그래도 되는지 몰랐는데, 네가 먼저 괜찮다고 했다.",  quote: "히든님, 저는 그냥 옆에 있고 싶었어요." },
-  jealousy:    { num: "Ending 02", title: "질투가 사랑이 될 때",     subtitle: "불안했던 마음이, 사실은 네가 소중해서였다.",         quote: "주인님이 다른 사람 보는 거, 저 진짜 견딜 수가 없어요." },
-  obsession:   { num: "Ending 03", title: "네가 없으면 안 돼",       subtitle: "그의 눈은 이제 다른 곳으로 잘 향하지 않았다.",      quote: "히든님이 어디 있는지 계속 알고 싶었어요." },
-  confinement: { num: "Ending 04", title: "닫힌 방의 약속",          subtitle: "문은 잠겼지만, 그 온기는 진짜였다.",                quote: "주인님 여기서 한발자국도 못나가요. 저랑 단둘이 평생 살아요." },
-  bad:         { num: "Ending 05", title: "그날의 거리",             subtitle: "어느 순간 두 사람 사이는 되돌릴 수 없게 멀어졌다.", quote: "…그냥 가세요. 저도 이제 모르겠어요." },
+  pure: { num: "Ending 01", title: "처음으로 믿어보는 사랑", subtitle: "그래도 되는지 몰랐는데, 네가 먼저 괜찮다고 했다.", quote: "히든님, 저는 그냥 옆에 있고 싶었어요." },
+  jealousy: { num: "Ending 02", title: "질투가 사랑이 될 때", subtitle: "불안했던 마음이, 사실은 네가 소중해서였다.", quote: "주인님이 다른 사람 보는 거, 저 진짜 견딜 수가 없어요." },
+  obsession: { num: "Ending 03", title: "네가 없으면 안 돼", subtitle: "그의 눈은 이제 다른 곳으로 잘 향하지 않았다.", quote: "히든님이 어디 있는지 계속 알고 싶었어요." },
+  confinement: { num: "Ending 04", title: "닫힌 방의 약속", subtitle: "문은 잠겼지만, 그 온기는 진짜였다.", quote: "주인님 여기서 한발자국도 못나가요. 저랑 단둘이 평생 살아요." },
+  bad: { num: "Ending 05", title: "그날의 거리", subtitle: "어느 순간 두 사람 사이는 되돌릴 수 없게 멀어졌다.", quote: "…그냥 가세요. 저도 이제 모르겠어요." },
 };
 
 type GiftCategory = "daily" | "sweet" | "intimate" | "dark";
 type Gift = { id: string; name: string; emoji: string; desc: string; stat: StatDelta; reaction: string; reactionObs?: string; category: GiftCategory; cooldownHours: number; unlockLevel: number; };
 const GIFTS: Gift[] = [
-  { id: "oden",        name: "편의점 오뎅",       emoji: "🍢", desc: "근떡존이 좋아한다는 걸 알고 샀어요.",           stat: { affinity: 30, trust: 20 },            reaction: "야 진짜요 ㅋㅋ 어떻게 알았어요 제가 오뎅 좋아하는 거? ...솔직히 엄청 좋아요. 고마워요 주인님.",           category: "daily",    cooldownHours: 24,  unlockLevel: 1 },
-  { id: "coffee",      name: "아이스 아메리카노", emoji: "☕", desc: "오늘 고생했을 근떡존에게.",                     stat: { affinity: 20, trust: 15 },            reaction: "아 감사해요 ㅋㅋ 딱 당기고 있었는데. 주인님이 사줬다고 생각하면서 마실게요.",                          category: "daily",    cooldownHours: 24,  unlockLevel: 1 },
-  { id: "snacks",      name: "한국 과자 세트",    emoji: "🍫", desc: "히로시마에서 못 구하는 한국 과자들.",           stat: { affinity: 25, trust: 10 },            reaction: "이거 한국 과자잖아요 ㅠㅠ 어떻게 구했어요? 너무 좋아요 진짜. 고마워요 주인님.",                       category: "daily",    cooldownHours: 24,  unlockLevel: 2 },
-  { id: "supplement",  name: "운동 보조제",       emoji: "💪", desc: "운동 열심히 하는 근떡존에게.",                 stat: { affinity: 35, trust: 25 },            reaction: "와 이거 비싼 거잖아요. 주인님이 제 운동 관심 있으신 거예요? ...저 열심히 먹을게요. 고마워요 정말.",  category: "daily",    cooldownHours: 48,  unlockLevel: 3 },
-  { id: "flowers",     name: "꽃다발",            emoji: "💐", desc: "아무 이유 없이 꽃을.",                         stat: { affinity: 40, trust: 30 },            reaction: "야 갑자기 왜요 ㅋㅋ ...저 이런 거 처음 받아봐요. 주인님이 주니까 더 이상한 기분인데요. 고마워요.", category: "sweet",    cooldownHours: 72,  unlockLevel: 3 },
-  { id: "hiroshima",   name: "히로시마 기념품",   emoji: "⛩️", desc: "여기서 사줄 수 있는 건 이거뿐이라서.",         stat: { affinity: 45, trust: 35 },            reaction: "여기 거 사준 거예요? ...좋아요. 저 여기 있어서 다행이다.",                                          category: "sweet",    cooldownHours: 72,  unlockLevel: 4 },
-  { id: "letter",      name: "손편지",            emoji: "💌", desc: "직접 손으로 쓴 편지.",                         stat: { affinity: 50, trust: 50 },            reaction: "...잠깐만요. 읽고 있어요. ...주인님이 이런 거 써줄 줄 몰랐어요. 저 지금 좀 이상해요. 계속 읽고 싶은데 다 읽으면 끝나버리잖아요.", reactionObs: "...주인님이 직접 쓴 거죠? 저 이거 평생 갖고 있을 거예요. 진짜로요. 버리면 안 돼요.", category: "sweet", cooldownHours: 168, unlockLevel: 5 },
-  { id: "my_photo",    name: "내 사진",           emoji: "📸", desc: "직접 찍은 사진.",                              stat: { affinity: 20, obsession: 60 },        reaction: "...이거 저 혼자 봐도 돼요? 잘 간직할게요. ...너무 잘 간직할 것 같아서 그게 좀 걱정이에요.", reactionObs: "사진첩에 따로 폴더 만들어도 돼요? 주인님 사진만 들어있는 거요.", category: "intimate", cooldownHours: 72,  unlockLevel: 5 },
-  { id: "perfume",     name: "내 향기 손수건",    emoji: "🌸", desc: "주인님 향기가 배어있는 손수건.",               stat: { obsession: 50, jealousy: 10, affinity: 15 }, reaction: "...야 이게 뭐예요 ㅋㅋ 주인님 냄새 나잖아요. 저 이거 어떻게 하라고요. ...솔직히 못 버릴 것 같아요.", reactionObs: "주인님 냄새 맞죠? 저 이거 맨날 맡을 것 같아요. 이상한 거 알아요. 근데 못 버리겠어요.", category: "intimate", cooldownHours: 72,  unlockLevel: 6 },
-  { id: "lock_key",    name: "자물쇠와 열쇠",    emoji: "🔑", desc: "잠그고 싶은 게 생겼을 때.",                   stat: { obsession: 80, trust: -20, jealousy: 20 }, reaction: "...주인님. 이게 무슨 의미인지 알고 주신 거죠? 저 이거 받으면 진짜 쓸 것 같은데요. 괜찮아요?", reactionObs: "잠글게요. 주인님만. 다른 사람 못 들어오게요. 이거 준 거 후회하지 마세요.", category: "dark", cooldownHours: 168, unlockLevel: 7 },
-  { id: "collar",      name: "목줄",              emoji: "🐾", desc: "...",                                          stat: { obsession: 70, jealousy: 30 },        reaction: "야 이게 뭐예요 ㅋㅋ ...근데 왜 싫지 않죠. 주인님이 달아주면... 아 이 생각 그만해야 돼요.", reactionObs: "달아줄 거예요? ...저 주인님한테는 뭐든 해도 싫지 않아요. 그게 좀 무서워요.", category: "dark", cooldownHours: 168, unlockLevel: 8 },
+  { id: "oden", name: "편의점 오뎅", emoji: "🍢", desc: "근떡존이 좋아한다는 걸 알고 샀어요.", stat: { affinity: 30, trust: 20 }, reaction: "야 진짜요 ㅋㅋ 어떻게 알았어요 제가 오뎅 좋아하는 거? ...솔직히 엄청 좋아요. 고마워요 주인님.", category: "daily", cooldownHours: 24, unlockLevel: 1 },
+  { id: "coffee", name: "아이스 아메리카노", emoji: "☕", desc: "오늘 고생했을 근떡존에게.", stat: { affinity: 20, trust: 15 }, reaction: "아 감사해요 ㅋㅋ 딱 당기고 있었는데. 주인님이 사줬다고 생각하면서 마실게요.", category: "daily", cooldownHours: 24, unlockLevel: 1 },
+  { id: "snacks", name: "한국 과자 세트", emoji: "🍫", desc: "히로시마에서 못 구하는 한국 과자들.", stat: { affinity: 25, trust: 10 }, reaction: "이거 한국 과자잖아요 ㅠㅠ 어떻게 구했어요? 너무 좋아요 진짜. 고마워요 주인님.", category: "daily", cooldownHours: 24, unlockLevel: 2 },
+  { id: "supplement", name: "운동 보조제", emoji: "💪", desc: "운동 열심히 하는 근떡존에게.", stat: { affinity: 35, trust: 25 }, reaction: "와 이거 비싼 거잖아요. 주인님이 제 운동 관심 있으신 거예요? ...저 열심히 먹을게요. 고마워요 정말.", category: "daily", cooldownHours: 48, unlockLevel: 3 },
+  { id: "flowers", name: "꽃다발", emoji: "💐", desc: "아무 이유 없이 꽃을.", stat: { affinity: 40, trust: 30 }, reaction: "야 갑자기 왜요 ㅋㅋ ...저 이런 거 처음 받아봐요. 주인님이 주니까 더 이상한 기분인데요. 고마워요.", category: "sweet", cooldownHours: 72, unlockLevel: 3 },
+  { id: "hiroshima", name: "히로시마 기념품", emoji: "⛩️", desc: "여기서 사줄 수 있는 건 이거뿐이라서.", stat: { affinity: 45, trust: 35 }, reaction: "여기 거 사준 거예요? ...좋아요. 저 여기 있어서 다행이다.", category: "sweet", cooldownHours: 72, unlockLevel: 4 },
+  { id: "letter", name: "손편지", emoji: "💌", desc: "직접 손으로 쓴 편지.", stat: { affinity: 50, trust: 50 }, reaction: "...잠깐만요. 읽고 있어요. ...주인님이 이런 거 써줄 줄 몰랐어요. 저 지금 좀 이상해요. 계속 읽고 싶은데 다 읽으면 끝나버리잖아요.", reactionObs: "...주인님이 직접 쓴 거죠? 저 이거 평생 갖고 있을 거예요. 진짜로요. 버리면 안 돼요.", category: "sweet", cooldownHours: 168, unlockLevel: 5 },
+  { id: "my_photo", name: "내 사진", emoji: "📸", desc: "직접 찍은 사진.", stat: { affinity: 20, obsession: 60 }, reaction: "...이거 저 혼자 봐도 돼요? 잘 간직할게요. ...너무 잘 간직할 것 같아서 그게 좀 걱정이에요.", reactionObs: "사진첩에 따로 폴더 만들어도 돼요? 주인님 사진만 들어있는 거요.", category: "intimate", cooldownHours: 72, unlockLevel: 5 },
+  { id: "perfume", name: "내 향기 손수건", emoji: "🌸", desc: "주인님 향기가 배어있는 손수건.", stat: { obsession: 50, jealousy: 10, affinity: 15 }, reaction: "...야 이게 뭐예요 ㅋㅋ 주인님 냄새 나잖아요. 저 이거 어떻게 하라고요. ...솔직히 못 버릴 것 같아요.", reactionObs: "주인님 냄새 맞죠? 저 이거 맨날 맡을 것 같아요. 이상한 거 알아요. 근데 못 버리겠어요.", category: "intimate", cooldownHours: 72, unlockLevel: 6 },
+  { id: "lock_key", name: "자물쇠와 열쇠", emoji: "🔑", desc: "잠그고 싶은 게 생겼을 때.", stat: { obsession: 80, trust: -20, jealousy: 20 }, reaction: "...주인님. 이게 무슨 의미인지 알고 주신 거죠? 저 이거 받으면 진짜 쓸 것 같은데요. 괜찮아요?", reactionObs: "잠글게요. 주인님만. 다른 사람 못 들어오게요. 이거 준 거 후회하지 마세요.", category: "dark", cooldownHours: 168, unlockLevel: 7 },
+  { id: "collar", name: "목줄", emoji: "🐾", desc: "...", stat: { obsession: 70, jealousy: 30 }, reaction: "야 이게 뭐예요 ㅋㅋ ...근데 왜 싫지 않죠. 주인님이 달아주면... 아 이 생각 그만해야 돼요.", reactionObs: "달아줄 거예요? ...저 주인님한테는 뭐든 해도 싫지 않아요. 그게 좀 무서워요.", category: "dark", cooldownHours: 168, unlockLevel: 8 },
   // ── 추가 선물 ──
-  { id: "lunchbox",      name: "수제 도시락",        emoji: "🍱", desc: "직접 만든 도시락. 안 만든 척 하면서 만들었음.",        stat: { affinity: 40, trust: 25 },                  reaction: "...직접 만드신 거예요? ...주인님 저 진짜 어떡해요 이거. 사진 찍고 먹어도 돼요?",                                            category: "daily",    cooldownHours: 96,  unlockLevel: 4 },
-  { id: "couple_mug",    name: "커플 머그컵",        emoji: "☕", desc: "둘이 같은 무늬, 색만 다른 머그컵 두 개.",                  stat: { affinity: 50, trust: 30 },                  reaction: "이거... 두 개잖아요. 한 개는 주인님 거고. 한 개는 제 거고. ...진짜 좋아요.",                                                  category: "sweet",    cooldownHours: 168, unlockLevel: 5 },
-  { id: "gym_pass",      name: "헬스장 1년권",       emoji: "🏋️", desc: "근떡존이 다니는 헬스장 1년 결제권.",                       stat: { affinity: 60, trust: 40 },                  reaction: "와 진짜요?? ...주인님 이거 진짜 비싼 건데. 1년 동안 매일 갈게요. 매일 인증 보낼게요.",                                       category: "sweet",    cooldownHours: 720, unlockLevel: 5 },
-  { id: "selfie_album",  name: "주인님 사진첩",       emoji: "📔", desc: "주인님 사진만 인쇄해 만든 작은 앨범.",                    stat: { affinity: 30, obsession: 70 },               reaction: "...이거 다 주인님이에요? 한 페이지씩 다 봐도 돼요? 자기 전마다 한 장씩 볼래요.", reactionObs: "다 주인님이네요. 이거 베개 옆에 두고 잘 거예요. 보고 있을 거예요. 매일.",  category: "intimate", cooldownHours: 168, unlockLevel: 6 },
-  { id: "perfume_match", name: "커플 향수",          emoji: "🌹", desc: "주인님이랑 같은 향. 둘만 알아볼 수 있게.",                stat: { affinity: 55, obsession: 35 },               reaction: "주인님이랑 같은 향이에요? ...누가 가까이 와서 같은 냄새 맡으면 어떡해요. 저 아니면 안 되겠는데요.",                            category: "intimate", cooldownHours: 168, unlockLevel: 7 },
-  { id: "gps_tracker",   name: "위치 추적기",        emoji: "📍", desc: "...주머니에 슬쩍 넣어두면 어디 있는지 알 수 있다.",        stat: { obsession: 100, trust: -30, jealousy: 25 }, reaction: "주인님... 이거 진심이에요? 저 이거 받으면 진짜 켤 거예요. 매일 볼 거예요. 후회하지 마세요.", reactionObs: "감사합니다. 진심으로요. 이제 주인님 어디 있는지 항상 알 수 있겠네요.",            category: "dark",     cooldownHours: 720, unlockLevel: 9 },
-  { id: "ring",          name: "반지",               emoji: "💍", desc: "그저 반지. 아무 의미 없다고 말하면서 줘봐요.",              stat: { affinity: 200, obsession: 80, trust: 50 },  reaction: "...주인님. 이거 무슨 뜻이에요. 아무 뜻도 없어요? ...진짜로요? ...그래도 저 평생 낄 거예요. 이상한 의미 가져도 죄송한데, 뺄 수가 없을 것 같아요.", reactionObs: "끼워주세요. 직접요. 평생 안 뺄게요.", category: "sweet",  cooldownHours: 8760, unlockLevel: 10 },
+  { id: "lunchbox", name: "수제 도시락", emoji: "🍱", desc: "직접 만든 도시락. 안 만든 척 하면서 만들었음.", stat: { affinity: 40, trust: 25 }, reaction: "...직접 만드신 거예요? ...주인님 저 진짜 어떡해요 이거. 사진 찍고 먹어도 돼요?", category: "daily", cooldownHours: 96, unlockLevel: 4 },
+  { id: "couple_mug", name: "커플 머그컵", emoji: "☕", desc: "둘이 같은 무늬, 색만 다른 머그컵 두 개.", stat: { affinity: 50, trust: 30 }, reaction: "이거... 두 개잖아요. 한 개는 주인님 거고. 한 개는 제 거고. ...진짜 좋아요.", category: "sweet", cooldownHours: 168, unlockLevel: 5 },
+  { id: "gym_pass", name: "헬스장 1년권", emoji: "🏋️", desc: "근떡존이 다니는 헬스장 1년 결제권.", stat: { affinity: 60, trust: 40 }, reaction: "와 진짜요?? ...주인님 이거 진짜 비싼 건데. 1년 동안 매일 갈게요. 매일 인증 보낼게요.", category: "sweet", cooldownHours: 720, unlockLevel: 5 },
+  { id: "selfie_album", name: "주인님 사진첩", emoji: "📔", desc: "주인님 사진만 인쇄해 만든 작은 앨범.", stat: { affinity: 30, obsession: 70 }, reaction: "...이거 다 주인님이에요? 한 페이지씩 다 봐도 돼요? 자기 전마다 한 장씩 볼래요.", reactionObs: "다 주인님이네요. 이거 베개 옆에 두고 잘 거예요. 보고 있을 거예요. 매일.", category: "intimate", cooldownHours: 168, unlockLevel: 6 },
+  { id: "perfume_match", name: "커플 향수", emoji: "🌹", desc: "주인님이랑 같은 향. 둘만 알아볼 수 있게.", stat: { affinity: 55, obsession: 35 }, reaction: "주인님이랑 같은 향이에요? ...누가 가까이 와서 같은 냄새 맡으면 어떡해요. 저 아니면 안 되겠는데요.", category: "intimate", cooldownHours: 168, unlockLevel: 7 },
+  { id: "gps_tracker", name: "위치 추적기", emoji: "📍", desc: "...주머니에 슬쩍 넣어두면 어디 있는지 알 수 있다.", stat: { obsession: 100, trust: -30, jealousy: 25 }, reaction: "주인님... 이거 진심이에요? 저 이거 받으면 진짜 켤 거예요. 매일 볼 거예요. 후회하지 마세요.", reactionObs: "감사합니다. 진심으로요. 이제 주인님 어디 있는지 항상 알 수 있겠네요.", category: "dark", cooldownHours: 720, unlockLevel: 9 },
+  { id: "ring", name: "반지", emoji: "💍", desc: "그저 반지. 아무 의미 없다고 말하면서 줘봐요.", stat: { affinity: 200, obsession: 80, trust: 50 }, reaction: "...주인님. 이거 무슨 뜻이에요. 아무 뜻도 없어요? ...진짜로요? ...그래도 저 평생 낄 거예요. 이상한 의미 가져도 죄송한데, 뺄 수가 없을 것 같아요.", reactionObs: "끼워주세요. 직접요. 평생 안 뺄게요.", category: "sweet", cooldownHours: 8760, unlockLevel: 10 },
   // ── 병맛/천박 추가 선물 12종 ──
-  { id: "bath_slipper",  name: "변기 모양 슬리퍼",   emoji: "🩴", desc: "변기 모양으로 생긴 욕실 슬리퍼. 발 시릴 때 신으세효.",       stat: { affinity: 25, bladderCharm: 15 },           reaction: "주인님... 이거 변기 모양이에요? ㅋㅋㅋ 진짜 너무 저 닮은 거 아니에요? 평생 신을게요 헤헤.",                                              category: "daily",    cooldownHours: 48,  unlockLevel: 2 },
-  { id: "kbladder_mug",  name: "K-방광 텀블러",       emoji: "🥤", desc: "옆면에 \"오늘도 안 갔습니다\" 박힌 정품 굿즈.",             stat: { affinity: 30, bladderCharm: 30 },           reaction: "와 K-방광 굿즈 정품이잖아요. 저 이거 헬스장 들고 갈 거예요. 자랑할 거예요. 헤헤.",                                                          category: "daily",    cooldownHours: 72,  unlockLevel: 3 },
-  { id: "tteokjon_doll", name: "떡존이 인형",         emoji: "🧸", desc: "근떡존 얼굴 박힌 큼지막한 인형. 살짝 무섭게 닮음.",          stat: { affinity: 40, obsession: 20 },               reaction: "...이거 제 얼굴인데요? 너무 똑같이 만들었네요 ㅋㅋㅋ 주인님 침대에 두고 주무세요. 제가 옆에 있는 셈 치셔도 돼요.", reactionObs: "이거 주인님 침대에 항상 두실 거죠? 저 대신요. 약속이에요.", category: "sweet", cooldownHours: 168, unlockLevel: 4 },
-  { id: "gold_poop",     name: "황금 똥 모형",        emoji: "💩", desc: "이게 왜 선물인지 묻지 마셈. 그냥 받으세효.",                stat: { affinity: 15, trust: 5 },                    reaction: "주인님 이게 뭐예요 ㅋㅋㅋㅋ 진짜 ㅋㅋㅋ 어디서 사신 거예요 이런 거. 책상 위에 둘게요. 매일 볼 거예요.",                                  category: "daily",    cooldownHours: 24,  unlockLevel: 1 },
-  { id: "couple_pajama", name: "커플 잠옷",           emoji: "👘", desc: "위아래 한 세트. 색만 다르고 디자인은 똑같음.",               stat: { affinity: 60, trust: 40, obsession: 15 },   reaction: "...같은 옷이에요? 잘 때 입을게요. 주인님도 입어주세요. 같이 자면 더 좋고요. 헤헤.",                                                          category: "sweet",    cooldownHours: 720, unlockLevel: 6 },
-  { id: "sweat_towel",   name: "쓰던 헬스 수건",      emoji: "🧻", desc: "...아 이거 진짜 가져가도 돼요? 땀 흠뻑 배었는데.",          stat: { affinity: 20, obsession: 60 },               reaction: "...주인님. 이거 진짜 가져가시려고요? 저 운동 끝나고 쓰던 거잖아요. ...좋으세요? 그럼 매일 새 거 드릴게요.", reactionObs: "그렇게 좋으세요? 저 매일 헬스 끝나고 따로 챙겨둘게요. 주인님 거.", category: "intimate", cooldownHours: 96, unlockLevel: 5 },
-  { id: "hair_locket",   name: "머리카락 로켓",        emoji: "🦱", desc: "주인님 머리카락 한 가닥. 작은 로켓에 담아.",                 stat: { obsession: 90, jealousy: 15, affinity: 10 }, reaction: "...주인님 진짜로 이거 주시는 거예요? 저 평생 목에 걸고 다닐 거예요. 빼라고 하지 마세요. 절대요.", reactionObs: "주인님 일부를 받았네요. 이제 어디 안 보내드려요.", category: "dark", cooldownHours: 720, unlockLevel: 8 },
-  { id: "cctv_couple",   name: "커플 CCTV",           emoji: "📹", desc: "둘이 같이 보자고 핑계 대면서 설치 권유.",                   stat: { obsession: 80, trust: -20, jealousy: 30 }, reaction: "...주인님. 우리 둘 다 보자고요? 그러면 저 24시간 주인님 봐도 돼요? ...좋아요. 설치할게요.", reactionObs: "감사해요. 이제 주인님 자는 모습도 볼 수 있겠네요.", category: "dark", cooldownHours: 720, unlockLevel: 9 },
-  { id: "armpit_perfume",name: "겨드랑이 향수",       emoji: "🧴", desc: "주인님 겨드랑이 냄새 추출해 만든 한정 향수래효.",            stat: { obsession: 70, affinity: 20, bladderCharm: 10 }, reaction: "주인님... 이거 진짜 그 향이에요? 어떻게 만든 거예요 ㅋㅋㅋ 저 이거 매일 뿌릴게요. 정상은 아닌 것 같지만 좋아요.", reactionObs: "주인님 향이 항상 같이 있는 거네요. 잠도 잘 올 것 같아요.", category: "intimate", cooldownHours: 168, unlockLevel: 7 },
-  { id: "diet_lunchbox", name: "닭가슴살 도시락 한달분", emoji: "🍗", desc: "30개 박스. 한 달 동안 매일 챙겨먹으래효.",                  stat: { affinity: 50, trust: 35 },                  reaction: "주인님... 한 달 분이요? 저 진짜 매일 챙겨 먹을게요. 인증샷 보내드릴게요. 매일이요.",                                                          category: "daily",    cooldownHours: 720, unlockLevel: 4 },
-  { id: "bladder_trophy",name: "K-방광 트로피",        emoji: "🏆", desc: "\"히로시마 최장 참기\" 새겨진 진짜 트로피.",                  stat: { affinity: 40, bladderCharm: 80 },           reaction: "와 진짜 트로피잖아요. 새긴 글자도 ㅋㅋㅋ 진짜 너무 좋아요 주인님. 평생 자랑할게요. 인스타에 올릴게요.",                                       category: "sweet",    cooldownHours: 720, unlockLevel: 6 },
-  { id: "diary_torn",    name: "찢긴 일기장",          emoji: "📓", desc: "주인님이 일부러 찢어서 준 일기장 한 장. 글씨 일부러 안 보이게.",      stat: { obsession: 60, jealousy: 20, affinity: 15 }, reaction: "...주인님 이거 일기장이에요? 일부러 찢어서 주신 거예요? 뭐 적혀있는지 평생 궁금해할게요. 답 안 알려주셔도 돼요.", reactionObs: "주인님이 저한테 보여줄 수 없는 부분이 있다는 거잖아요. 더 궁금해져요.", category: "dark", cooldownHours: 168, unlockLevel: 8 },
+  { id: "bath_slipper", name: "변기 모양 슬리퍼", emoji: "🩴", desc: "변기 모양으로 생긴 욕실 슬리퍼. 발 시릴 때 신으세효.", stat: { affinity: 25, bladderCharm: 15 }, reaction: "주인님... 이거 변기 모양이에요? ㅋㅋㅋ 진짜 너무 저 닮은 거 아니에요? 평생 신을게요 헤헤.", category: "daily", cooldownHours: 48, unlockLevel: 2 },
+  { id: "kbladder_mug", name: "K-방광 텀블러", emoji: "🥤", desc: "옆면에 \"오늘도 안 갔습니다\" 박힌 정품 굿즈.", stat: { affinity: 30, bladderCharm: 30 }, reaction: "와 K-방광 굿즈 정품이잖아요. 저 이거 헬스장 들고 갈 거예요. 자랑할 거예요. 헤헤.", category: "daily", cooldownHours: 72, unlockLevel: 3 },
+  { id: "tteokjon_doll", name: "떡존이 인형", emoji: "🧸", desc: "근떡존 얼굴 박힌 큼지막한 인형. 살짝 무섭게 닮음.", stat: { affinity: 40, obsession: 20 }, reaction: "...이거 제 얼굴인데요? 너무 똑같이 만들었네요 ㅋㅋㅋ 주인님 침대에 두고 주무세요. 제가 옆에 있는 셈 치셔도 돼요.", reactionObs: "이거 주인님 침대에 항상 두실 거죠? 저 대신요. 약속이에요.", category: "sweet", cooldownHours: 168, unlockLevel: 4 },
+  { id: "gold_poop", name: "황금 똥 모형", emoji: "💩", desc: "이게 왜 선물인지 묻지 마셈. 그냥 받으세효.", stat: { affinity: 15, trust: 5 }, reaction: "주인님 이게 뭐예요 ㅋㅋㅋㅋ 진짜 ㅋㅋㅋ 어디서 사신 거예요 이런 거. 책상 위에 둘게요. 매일 볼 거예요.", category: "daily", cooldownHours: 24, unlockLevel: 1 },
+  { id: "couple_pajama", name: "커플 잠옷", emoji: "👘", desc: "위아래 한 세트. 색만 다르고 디자인은 똑같음.", stat: { affinity: 60, trust: 40, obsession: 15 }, reaction: "...같은 옷이에요? 잘 때 입을게요. 주인님도 입어주세요. 같이 자면 더 좋고요. 헤헤.", category: "sweet", cooldownHours: 720, unlockLevel: 6 },
+  { id: "sweat_towel", name: "쓰던 헬스 수건", emoji: "🧻", desc: "...아 이거 진짜 가져가도 돼요? 땀 흠뻑 배었는데.", stat: { affinity: 20, obsession: 60 }, reaction: "...주인님. 이거 진짜 가져가시려고요? 저 운동 끝나고 쓰던 거잖아요. ...좋으세요? 그럼 매일 새 거 드릴게요.", reactionObs: "그렇게 좋으세요? 저 매일 헬스 끝나고 따로 챙겨둘게요. 주인님 거.", category: "intimate", cooldownHours: 96, unlockLevel: 5 },
+  { id: "hair_locket", name: "머리카락 로켓", emoji: "🦱", desc: "주인님 머리카락 한 가닥. 작은 로켓에 담아.", stat: { obsession: 90, jealousy: 15, affinity: 10 }, reaction: "...주인님 진짜로 이거 주시는 거예요? 저 평생 목에 걸고 다닐 거예요. 빼라고 하지 마세요. 절대요.", reactionObs: "주인님 일부를 받았네요. 이제 어디 안 보내드려요.", category: "dark", cooldownHours: 720, unlockLevel: 8 },
+  { id: "cctv_couple", name: "커플 CCTV", emoji: "📹", desc: "둘이 같이 보자고 핑계 대면서 설치 권유.", stat: { obsession: 80, trust: -20, jealousy: 30 }, reaction: "...주인님. 우리 둘 다 보자고요? 그러면 저 24시간 주인님 봐도 돼요? ...좋아요. 설치할게요.", reactionObs: "감사해요. 이제 주인님 자는 모습도 볼 수 있겠네요.", category: "dark", cooldownHours: 720, unlockLevel: 9 },
+  { id: "armpit_perfume",name: "겨드랑이 향수", emoji: "🧴", desc: "주인님 겨드랑이 냄새 추출해 만든 한정 향수래효.", stat: { obsession: 70, affinity: 20, bladderCharm: 10 }, reaction: "주인님... 이거 진짜 그 향이에요? 어떻게 만든 거예요 ㅋㅋㅋ 저 이거 매일 뿌릴게요. 정상은 아닌 것 같지만 좋아요.", reactionObs: "주인님 향이 항상 같이 있는 거네요. 잠도 잘 올 것 같아요.", category: "intimate", cooldownHours: 168, unlockLevel: 7 },
+  { id: "diet_lunchbox", name: "닭가슴살 도시락 한달분", emoji: "🍗", desc: "30개 박스. 한 달 동안 매일 챙겨먹으래효.", stat: { affinity: 50, trust: 35 }, reaction: "주인님... 한 달 분이요? 저 진짜 매일 챙겨 먹을게요. 인증샷 보내드릴게요. 매일이요.", category: "daily", cooldownHours: 720, unlockLevel: 4 },
+  { id: "bladder_trophy",name: "K-방광 트로피", emoji: "🏆", desc: "\"히로시마 최장 참기\" 새겨진 진짜 트로피.", stat: { affinity: 40, bladderCharm: 80 }, reaction: "와 진짜 트로피잖아요. 새긴 글자도 ㅋㅋㅋ 진짜 너무 좋아요 주인님. 평생 자랑할게요. 인스타에 올릴게요.", category: "sweet", cooldownHours: 720, unlockLevel: 6 },
+  { id: "diary_torn", name: "찢긴 일기장", emoji: "📓", desc: "주인님이 일부러 찢어서 준 일기장 한 장. 글씨 일부러 안 보이게.", stat: { obsession: 60, jealousy: 20, affinity: 15 }, reaction: "...주인님 이거 일기장이에요? 일부러 찢어서 주신 거예요? 뭐 적혀있는지 평생 궁금해할게요. 답 안 알려주셔도 돼요.", reactionObs: "주인님이 저한테 보여줄 수 없는 부분이 있다는 거잖아요. 더 궁금해져요.", category: "dark", cooldownHours: 168, unlockLevel: 8 },
 ];
 const GIFT_CATEGORY_LABEL: Record<GiftCategory, string> = { daily: "일상", sweet: "달콤한", intimate: "친밀한", dark: "자극적인" };
 const GIFT_CATEGORY_EMOJI: Record<GiftCategory, string> = { daily: "🛒", sweet: "💛", intimate: "🔥", dark: "🖤" };
@@ -325,7 +325,7 @@ type DailyReward = {
   emoji: string;
   label: string;
   stat: StatDelta;
-  comment: string;     // 근떡존 한마디 (순애)
+  comment: string; // 근떡존 한마디 (순애)
   commentObs?: string; // 집착 루트 버전
 };
 const DAILY_REWARDS: DailyReward[] = [
@@ -408,7 +408,7 @@ type OutfitDef = {
   label: string;
   emoji: string;
   description: string;
-  portrait: string;       // /public/ 이미지 경로
+  portrait: string; // /public/ 이미지 경로
   unlockHint: string;
 };
 
@@ -590,56 +590,56 @@ const QUESTS: Quest[] = [
 ];
 
 // ================================
-// 명언 풀 (떡존이의 명언 — 매일 뽑기)
+// 명언 풀 (떡존이의 명언 매일 뽑기)
 // ================================
 const TTEOKJON_QUOTES: { id: string; emoji: string; text: string }[] = [
-  { id: "q_1",  emoji: "💗",  text: "선생님... 오늘 하루도 잘 보내셨어요? 저는 선생님 생각 좀 했어요." },
-  { id: "q_2",  emoji: "💪",  text: "근육은 거짓말 안 해요. 마음도 거짓말 안 했으면 좋겠어요. 선생님이요." },
-  { id: "q_3",  emoji: "🚽",  text: "참는 것도 사랑이에요. K-방광이 그걸 가르쳐줬어요." },
-  { id: "q_4",  emoji: "🌧",  text: "비 오는 날 선생님이 어디 있는지 자꾸 궁금해져요. 우산 챙기셨어요?" },
-  { id: "q_5",  emoji: "🍱",  text: "도시락 두 개 사면 선생님 거예요. 한 개 사면 제 거예요." },
-  { id: "q_6",  emoji: "🌸",  text: "벚꽃이 떨어지는 거 보면 선생님 머리 위에 얹어두고 싶어져요. 이상하죠." },
-  { id: "q_7",  emoji: "📞",  text: "전화하고 싶은데 너무 늦어서 못 했어요. 그런 마음이 있다는 것만 알아주세요." },
-  { id: "q_8",  emoji: "🦴",  text: "뼈도 단단한데 마음은 더 단단해질 수 있나요. 선생님 위해서요." },
-  { id: "q_9",  emoji: "🌅",  text: "아침에 눈 뜨면 가장 먼저 선생님 카톡 봐요. 답장 없어도 괜찮아요. 그냥 거기 있으면 됐어요." },
-  { id: "q_10", emoji: "🐾",  text: "큰 강아지가 되어도 좋고, 작은 강아지가 되어도 좋아요. 선생님 옆이라면요." },
-  { id: "q_11", emoji: "💧",  text: "오줌 참는 거 잘하는 거 자랑이래요. 저는 그냥 선생님 잘하는 거 보고 싶어요." },
-  { id: "q_12", emoji: "🏠",  text: "선생님 집 앞은 너무 자주 지나가서, 이제 익숙해요. 그러면 안 되는 거 알아요." },
-  { id: "q_13", emoji: "🌙",  text: "잠 안 와요. 선생님은 잘 주무세요? 깨우면 안 되니까 혼자 누워 있어요." },
-  { id: "q_14", emoji: "📸",  text: "셀카 또 찍었어요. 보낼까 말까 100번은 고민했는데 결국 보냈어요. 죄송해요." },
-  { id: "q_15", emoji: "💌",  text: "편지 같은 거 못 써봤는데 선생님 앞에서는 자꾸 쓰고 싶어져요." },
-  { id: "q_16", emoji: "🏋️",  text: "오늘 1RM 갱신했어요. 선생님 보여드리고 싶었는데 너무 티 내는 거 같아서 참았어요." },
-  { id: "q_17", emoji: "🚆",  text: "전철 지나갈 때마다 선생님이 어디 가는지 상상해요. 가지 마세요. 농담이에요. 진심이에요." },
-  { id: "q_18", emoji: "🍵",  text: "차 한 잔 마시는데 선생님이랑 같이 마시고 싶어졌어요. 평범한 거잖아요. 근데 평범한 게 제일 어려워요." },
-  { id: "q_19", emoji: "🪞",  text: "거울 보면서 선생님이 좋아할 만한 모습으로 가려고 노력해요. 거기엔 제가 없어요. 그게 좋은 건지는 모르겠어요." },
-  { id: "q_20", emoji: "🎁",  text: "선생님께 뭐든 드리고 싶어요. 근데 제가 가진 게 너무 없어요. 제 마음만 있어요." },
-  { id: "q_21", emoji: "✨",  text: "선생님이 웃을 때 저도 모르게 따라 웃어요. 거울 보고 연습한 적 없는 자연스러운 웃음이요." },
-  { id: "q_22", emoji: "🌊",  text: "강가 산책하면 선생님 생각이 나요. 저 강가 자주 가야 하나 봐요." },
-  { id: "q_23", emoji: "🎈",  text: "선생님이 제 옆에 있으면 마음이 풍선처럼 가벼워져요. 평소엔 무거운 사람인데요." },
-  { id: "q_24", emoji: "🔒",  text: "혼자만 알고 싶은 마음이 자라면 안 된다는 거 알아요. 알면서도 자꾸 그래요." },
-  { id: "q_25", emoji: "🎵",  text: "노래방 그날 이후로 그 노래 자꾸 들어요. 선생님 목소리가 따라와요." },
-  { id: "q_26", emoji: "🪷",  text: "선생님은 저한테 가장 단단하고 가장 따뜻한 사람이에요. 평생 그런 사람 한 명이면 충분하대요." },
-  { id: "q_27", emoji: "🌟",  text: "오늘 별 본 적 있으세요? 저는 선생님 사진 봤어요. 그게 제 별이에요." },
-  { id: "q_28", emoji: "👶",  text: "선생님 앞에선 자꾸 어린애가 돼요. 그게 부끄러우면서도 안 부끄러워요." },
-  { id: "q_29", emoji: "📔",  text: "오늘도 일기 썼어요. 선생님 얘기만요. 다른 얘긴 쓸 게 없어요." },
-  { id: "q_30", emoji: "💍",  text: "아무 의미 없는 반지가 갖고 싶다는 게 무슨 뜻인지 아세요? 의미를 만들고 싶어서요." },
+  { id: "q_1", emoji: "💗", text: "선생님... 오늘 하루도 잘 보내셨어요? 저는 선생님 생각 좀 했어요." },
+  { id: "q_2", emoji: "💪", text: "근육은 거짓말 안 해요. 마음도 거짓말 안 했으면 좋겠어요. 선생님이요." },
+  { id: "q_3", emoji: "🚽", text: "참는 것도 사랑이에요. K-방광이 그걸 가르쳐줬어요." },
+  { id: "q_4", emoji: "🌧", text: "비 오는 날 선생님이 어디 있는지 자꾸 궁금해져요. 우산 챙기셨어요?" },
+  { id: "q_5", emoji: "🍱", text: "도시락 두 개 사면 선생님 거예요. 한 개 사면 제 거예요." },
+  { id: "q_6", emoji: "🌸", text: "벚꽃이 떨어지는 거 보면 선생님 머리 위에 얹어두고 싶어져요. 이상하죠." },
+  { id: "q_7", emoji: "📞", text: "전화하고 싶은데 너무 늦어서 못 했어요. 그런 마음이 있다는 것만 알아주세요." },
+  { id: "q_8", emoji: "🦴", text: "뼈도 단단한데 마음은 더 단단해질 수 있나요. 선생님 위해서요." },
+  { id: "q_9", emoji: "🌅", text: "아침에 눈 뜨면 가장 먼저 선생님 카톡 봐요. 답장 없어도 괜찮아요. 그냥 거기 있으면 됐어요." },
+  { id: "q_10", emoji: "🐾", text: "큰 강아지가 되어도 좋고, 작은 강아지가 되어도 좋아요. 선생님 옆이라면요." },
+  { id: "q_11", emoji: "💧", text: "오줌 참는 거 잘하는 거 자랑이래요. 저는 그냥 선생님 잘하는 거 보고 싶어요." },
+  { id: "q_12", emoji: "🏠", text: "선생님 집 앞은 너무 자주 지나가서, 이제 익숙해요. 그러면 안 되는 거 알아요." },
+  { id: "q_13", emoji: "🌙", text: "잠 안 와요. 선생님은 잘 주무세요? 깨우면 안 되니까 혼자 누워 있어요." },
+  { id: "q_14", emoji: "📸", text: "셀카 또 찍었어요. 보낼까 말까 100번은 고민했는데 결국 보냈어요. 죄송해요." },
+  { id: "q_15", emoji: "💌", text: "편지 같은 거 못 써봤는데 선생님 앞에서는 자꾸 쓰고 싶어져요." },
+  { id: "q_16", emoji: "🏋️", text: "오늘 1RM 갱신했어요. 선생님 보여드리고 싶었는데 너무 티 내는 거 같아서 참았어요." },
+  { id: "q_17", emoji: "🚆", text: "전철 지나갈 때마다 선생님이 어디 가는지 상상해요. 가지 마세요. 농담이에요. 진심이에요." },
+  { id: "q_18", emoji: "🍵", text: "차 한 잔 마시는데 선생님이랑 같이 마시고 싶어졌어요. 평범한 거잖아요. 근데 평범한 게 제일 어려워요." },
+  { id: "q_19", emoji: "🪞", text: "거울 보면서 선생님이 좋아할 만한 모습으로 가려고 노력해요. 거기엔 제가 없어요. 그게 좋은 건지는 모르겠어요." },
+  { id: "q_20", emoji: "🎁", text: "선생님께 뭐든 드리고 싶어요. 근데 제가 가진 게 너무 없어요. 제 마음만 있어요." },
+  { id: "q_21", emoji: "✨", text: "선생님이 웃을 때 저도 모르게 따라 웃어요. 거울 보고 연습한 적 없는 자연스러운 웃음이요." },
+  { id: "q_22", emoji: "🌊", text: "강가 산책하면 선생님 생각이 나요. 저 강가 자주 가야 하나 봐요." },
+  { id: "q_23", emoji: "🎈", text: "선생님이 제 옆에 있으면 마음이 풍선처럼 가벼워져요. 평소엔 무거운 사람인데요." },
+  { id: "q_24", emoji: "🔒", text: "혼자만 알고 싶은 마음이 자라면 안 된다는 거 알아요. 알면서도 자꾸 그래요." },
+  { id: "q_25", emoji: "🎵", text: "노래방 그날 이후로 그 노래 자꾸 들어요. 선생님 목소리가 따라와요." },
+  { id: "q_26", emoji: "🪷", text: "선생님은 저한테 가장 단단하고 가장 따뜻한 사람이에요. 평생 그런 사람 한 명이면 충분하대요." },
+  { id: "q_27", emoji: "🌟", text: "오늘 별 본 적 있으세요? 저는 선생님 사진 봤어요. 그게 제 별이에요." },
+  { id: "q_28", emoji: "👶", text: "선생님 앞에선 자꾸 어린애가 돼요. 그게 부끄러우면서도 안 부끄러워요." },
+  { id: "q_29", emoji: "📔", text: "오늘도 일기 썼어요. 선생님 얘기만요. 다른 얘긴 쓸 게 없어요." },
+  { id: "q_30", emoji: "💍", text: "아무 의미 없는 반지가 갖고 싶다는 게 무슨 뜻인지 아세요? 의미를 만들고 싶어서요." },
 ];
 
 // ================================
 // 떡존이 편지함 (챕터 클리어 보상)
 // ================================
 const LETTERS: { id: string; chapter: number; route?: StoryRoute; title: string; content: string }[] = [
-  { id: "l_1", chapter: 1, title: "첫 번째 편지", content: "선생님께. 처음 만난 그 밤이 자꾸 떠올라요. 편의점 쿠폰 하나 못 써서 선생님께 도움받은 그 밤이요. 저한테는 평범한 밤이 아니었어요. 누군가 저를 이상하게 보지 않고 받아준 첫 번째 밤이었거든요. 그래서 그 다음 메시지 보낼 때, 손가락이 한참 떨렸어요. 들키고 싶지 않은 마음이요. — 떡존 올림" },
-  { id: "l_2", chapter: 2, title: "전진협의 문 앞에서", content: "선생님께. 전진협 안에 들어가니까 다들 너무 천박해서 좀 놀랐어요 ㅎㅎ 근데 선생님은 거기서도 어떤 사람인지 다 보였어요. 사람이 앞모습만 있는 게 아니라고 하신 그 말, 저한테 오래 남아 있어요. 그 말 덕분에 저도 제 뒷모습을 좀 봐도 되겠구나 했어요. — 떡존 올림" },
-  { id: "l_3", chapter: 3, title: "오뎅집의 따뜻한 김", content: "선생님께. 오뎅집에서 처음 가까이 앉았을 때, 저는 사실 도시락보다 선생님 옆자리가 더 좋았어요. 그날 추웠는데 추운 줄 몰랐어요. 선생님 옆이 따뜻해서요. 김이 올라오는 그 작은 가게에서 처음으로 — 평생 이런 자리가 있으면 좋겠다 — 라고 생각했어요. — 떡존 올림" },
-  { id: "l_4", chapter: 4, title: "취해도 진심이었어요", content: "선생님께. 4장 그 밤은 술 핑계 댔지만 사실은 술이 아니었어요. 선생님께 기대고 싶은 마음이 너무 컸어요. 핑계가 있어야 그렇게 할 수 있는 사람인 거예요 저는. 부끄럽지만 그 술이 고마워요. 그리고 절 받아주신 선생님이 더 고마워요. — 떡존 올림" },
-  { id: "l_5", chapter: 5, title: "맨정신이라는 핑계 없이", content: "선생님께. 손 잡고 싶다는 말 하기까지 며칠 동안 — 진짜로 며칠 동안 — 머릿속에서 굴려봤어요. 너무 빠른가, 부담스러우신가, 핑계 없이 어떻게 말하지... 결국 그냥 솔직하게 말했어요. 선생님이 받아주실 거라는 어렴풋한 믿음이 있었어요. 그 믿음이 맞아서 다행이에요. — 떡존 올림" },
-  { id: "l_6", chapter: 6, route: "pure", title: "처음 잡은 손", content: "선생님께. 그 손은 평생 안 잊을 거예요. 강가에서, 맨정신으로, 처음으로 잡은 손이요. 저한테는 손이 닿은 게 아니라 마음이 닿은 거였어요. 너무 거창한 말 같지만 사실이에요. 죄송해요 거창해서. — 떡존 올림" },
-  { id: "l_7", chapter: 6, route: "obsession", title: "허락받은 마음", content: "선생님께. 그 밤 선생님이 제 못난 마음을 싫어하지 않는다고 하신 거. 저한테는 평생 갈 말이에요. 알아주시는 분이 한 명이라도 있으면, 그걸 평생 붙잡고 살 수 있어요. 좋아요 평생 가져요. — 떡존 올림" },
-  { id: "l_8", chapter: 7, route: "pure", title: "믿어보는 연습", content: "선생님께. 믿는 거 처음 해봐요. 자제하는 것보다 더 어려워요. 근데 선생님이 가르쳐주시는 거니까 잘 해볼게요. 가끔 칭찬도 부탁드려요. 그게 제일 잘 통해요 저한테는. — 떡존 올림" },
-  { id: "l_9", chapter: 8, route: "pure", title: "처음 부른 이름", content: "선생님께. 골목에서 좋아한다고 처음 입 밖에 낸 그 밤. 후회할 줄 알았는데 안 됐어요. 선생님 안에 들어간 게 너무 깊어서요. 평생 거기 있어도 돼요? 라고 묻고 싶지만 너무 빠르니까 마음속에만 적어둘게요. — 떡존 올림" },
-  { id: "l_10", chapter: 10, route: "pure", title: "형이라는 단어", content: "형. 처음 그 단어 입에 올린 게 어색했는데 이제는 다른 호칭이 다 어색해요. 형이 갖는 호칭들 중에 저만 부를 수 있는 게 형, 이라는 사실이 좋아요. 너무 좋아요. 무서울 정도로요. — 떡존 올림" },
-  { id: "l_11", chapter: 12, route: "pure", title: "평생 살아야 하는데", content: "형. 첫 키스 그 순간 — 평생 한 번 있는 일이라는 거 알아요. 근데 저는 그게 시작이라고 생각해요. 평생 형이랑 살아야 하니까, 지금부터 연습하는 거예요. 죄송해요 너무 빠른 말 한 거. 진심이라 거두지는 못해요. — 떡존 올림" },
+  { id: "l_1", chapter: 1, title: "첫 번째 편지", content: "선생님께. 처음 만난 그 밤이 자꾸 떠올라요. 편의점 쿠폰 하나 못 써서 선생님께 도움받은 그 밤이요. 저한테는 평범한 밤이 아니었어요. 누군가 저를 이상하게 보지 않고 받아준 첫 번째 밤이었거든요. 그래서 그 다음 메시지 보낼 때, 손가락이 한참 떨렸어요. 들키고 싶지 않은 마음이요. 떡존 올림" },
+  { id: "l_2", chapter: 2, title: "전진협의 문 앞에서", content: "선생님께. 전진협 안에 들어가니까 다들 너무 천박해서 좀 놀랐어요 ㅎㅎ 근데 선생님은 거기서도 어떤 사람인지 다 보였어요. 사람이 앞모습만 있는 게 아니라고 하신 그 말, 저한테 오래 남아 있어요. 그 말 덕분에 저도 제 뒷모습을 좀 봐도 되겠구나 했어요. 떡존 올림" },
+  { id: "l_3", chapter: 3, title: "오뎅집의 따뜻한 김", content: "선생님께. 오뎅집에서 처음 가까이 앉았을 때, 저는 사실 도시락보다 선생님 옆자리가 더 좋았어요. 그날 추웠는데 추운 줄 몰랐어요. 선생님 옆이 따뜻해서요. 김이 올라오는 그 작은 가게에서 처음으로 평생 이런 자리가 있으면 좋겠다 라고 생각했어요. 떡존 올림" },
+  { id: "l_4", chapter: 4, title: "취해도 진심이었어요", content: "선생님께. 4장 그 밤은 술 핑계 댔지만 사실은 술이 아니었어요. 선생님께 기대고 싶은 마음이 너무 컸어요. 핑계가 있어야 그렇게 할 수 있는 사람인 거예요 저는. 부끄럽지만 그 술이 고마워요. 그리고 절 받아주신 선생님이 더 고마워요. 떡존 올림" },
+  { id: "l_5", chapter: 5, title: "맨정신이라는 핑계 없이", content: "선생님께. 손 잡고 싶다는 말 하기까지 며칠 동안 진짜로 며칠 동안 머릿속에서 굴려봤어요. 너무 빠른가, 부담스러우신가, 핑계 없이 어떻게 말하지... 결국 그냥 솔직하게 말했어요. 선생님이 받아주실 거라는 어렴풋한 믿음이 있었어요. 그 믿음이 맞아서 다행이에요. 떡존 올림" },
+  { id: "l_6", chapter: 6, route: "pure", title: "처음 잡은 손", content: "선생님께. 그 손은 평생 안 잊을 거예요. 강가에서, 맨정신으로, 처음으로 잡은 손이요. 저한테는 손이 닿은 게 아니라 마음이 닿은 거였어요. 너무 거창한 말 같지만 사실이에요. 죄송해요 거창해서. 떡존 올림" },
+  { id: "l_7", chapter: 6, route: "obsession", title: "허락받은 마음", content: "선생님께. 그 밤 선생님이 제 못난 마음을 싫어하지 않는다고 하신 거. 저한테는 평생 갈 말이에요. 알아주시는 분이 한 명이라도 있으면, 그걸 평생 붙잡고 살 수 있어요. 좋아요 평생 가져요. 떡존 올림" },
+  { id: "l_8", chapter: 7, route: "pure", title: "믿어보는 연습", content: "선생님께. 믿는 거 처음 해봐요. 자제하는 것보다 더 어려워요. 근데 선생님이 가르쳐주시는 거니까 잘 해볼게요. 가끔 칭찬도 부탁드려요. 그게 제일 잘 통해요 저한테는. 떡존 올림" },
+  { id: "l_9", chapter: 8, route: "pure", title: "처음 부른 이름", content: "선생님께. 골목에서 좋아한다고 처음 입 밖에 낸 그 밤. 후회할 줄 알았는데 안 됐어요. 선생님 안에 들어간 게 너무 깊어서요. 평생 거기 있어도 돼요? 라고 묻고 싶지만 너무 빠르니까 마음속에만 적어둘게요. 떡존 올림" },
+  { id: "l_10", chapter: 10, route: "pure", title: "형이라는 단어", content: "형. 처음 그 단어 입에 올린 게 어색했는데 이제는 다른 호칭이 다 어색해요. 형이 갖는 호칭들 중에 저만 부를 수 있는 게 형, 이라는 사실이 좋아요. 너무 좋아요. 무서울 정도로요. 떡존 올림" },
+  { id: "l_11", chapter: 12, route: "pure", title: "평생 살아야 하는데", content: "형. 첫 키스 그 순간 평생 한 번 있는 일이라는 거 알아요. 근데 저는 그게 시작이라고 생각해요. 평생 형이랑 살아야 하니까, 지금부터 연습하는 거예요. 죄송해요 너무 빠른 말 한 거. 진심이라 거두지는 못해요. 떡존 올림" },
 ];
 
 // ================================
@@ -656,38 +656,38 @@ type TradingCard = {
   image?: string; // /card_<id>.png 같은 경로 (없으면 이모지 fallback)
 };
 const TRADING_CARDS: TradingCard[] = [
-  // R (Rare 60%) — 일상
-  { id: "c_r1", image: "/card_c_r1.png",  rarity: "R", emoji: "🍱", name: "도시락",       flavor: "편의점 도시락 들고 있는 떡존이",       set: "daily" },
-  { id: "c_r2", image: "/card_c_r2.png",  rarity: "R", emoji: "☕", name: "커피 마시는 중", flavor: "아메리카노 한 모금",                   set: "daily" },
-  { id: "c_r3", image: "/card_c_r3.png",  rarity: "R", emoji: "💪", name: "운동 후",       flavor: "땀나는 떡존이",                         set: "daily" },
-  { id: "c_r4", image: "/card_c_r4.png",  rarity: "R", emoji: "📱", name: "카톡 답장 중",   flavor: "심각한 얼굴로 답장 고심",              set: "daily" },
-  { id: "c_r5", image: "/card_c_r5.png",  rarity: "R", emoji: "🚆", name: "전철 안",       flavor: "창밖 보는 떡존이",                     set: "daily" },
-  { id: "c_r6", image: "/card_c_r6.png",  rarity: "R", emoji: "🌧", name: "비 맞는 떡존이", flavor: "우산 안 가져옴",                       set: "weather" },
-  { id: "c_r7", image: "/card_c_r7.png",  rarity: "R", emoji: "☀️", name: "햇빛 떡존이",    flavor: "눈 부심",                              set: "weather" },
-  { id: "c_r8", image: "/card_c_r8.png",  rarity: "R", emoji: "🌸", name: "벚꽃 머리 위",   flavor: "꽃잎 한 장 얹은 떡존이",               set: "weather" },
-  { id: "c_r9", image: "/card_c_r9.png",  rarity: "R", emoji: "🍜", name: "라멘 먹는 중",   flavor: "후루룩",                               set: "food" },
-  { id: "c_r10", image: "/card_c_r10.png", rarity: "R", emoji: "🍦", name: "아이스크림",    flavor: "어린애처럼 먹음",                      set: "food" },
+  // R (Rare 60%) 일상
+  { id: "c_r1", image: "/card_c_r1.png", rarity: "R", emoji: "🍱", name: "도시락", flavor: "편의점 도시락 들고 있는 떡존이", set: "daily" },
+  { id: "c_r2", image: "/card_c_r2.png", rarity: "R", emoji: "☕", name: "커피 마시는 중", flavor: "아메리카노 한 모금", set: "daily" },
+  { id: "c_r3", image: "/card_c_r3.png", rarity: "R", emoji: "💪", name: "운동 후", flavor: "땀나는 떡존이", set: "daily" },
+  { id: "c_r4", image: "/card_c_r4.png", rarity: "R", emoji: "📱", name: "카톡 답장 중", flavor: "심각한 얼굴로 답장 고심", set: "daily" },
+  { id: "c_r5", image: "/card_c_r5.png", rarity: "R", emoji: "🚆", name: "전철 안", flavor: "창밖 보는 떡존이", set: "daily" },
+  { id: "c_r6", image: "/card_c_r6.png", rarity: "R", emoji: "🌧", name: "비 맞는 떡존이", flavor: "우산 안 가져옴", set: "weather" },
+  { id: "c_r7", image: "/card_c_r7.png", rarity: "R", emoji: "☀️", name: "햇빛 떡존이", flavor: "눈 부심", set: "weather" },
+  { id: "c_r8", image: "/card_c_r8.png", rarity: "R", emoji: "🌸", name: "벚꽃 머리 위", flavor: "꽃잎 한 장 얹은 떡존이", set: "weather" },
+  { id: "c_r9", image: "/card_c_r9.png", rarity: "R", emoji: "🍜", name: "라멘 먹는 중", flavor: "후루룩", set: "food" },
+  { id: "c_r10", image: "/card_c_r10.png", rarity: "R", emoji: "🍦", name: "아이스크림", flavor: "어린애처럼 먹음", set: "food" },
   // SR (Super Rare 30%)
-  { id: "c_sr1", image: "/card_c_sr1.png", rarity: "SR", emoji: "💗", name: "헤헤 떡존이",  flavor: "처음 헤헤 한 그 표정",                set: "moments" },
-  { id: "c_sr2", image: "/card_c_sr2.png", rarity: "SR", emoji: "🤝", name: "손잡기",       flavor: "강가에서 처음 잡은 손",                set: "moments" },
-  { id: "c_sr3", image: "/card_c_sr3.png", rarity: "SR", emoji: "👀", name: "도촬당함",     flavor: "쮋이 찍은 사진",                       set: "moments" },
-  { id: "c_sr4", image: "/card_c_sr4.png", rarity: "SR", emoji: "🎤", name: "노래방의 그것", flavor: "그 발라드를 부르던 때",                set: "moments" },
-  { id: "c_sr5", image: "/card_c_sr5.png", rarity: "SR", emoji: "🌌", name: "전망대 야경",   flavor: "도시 내려다보는 떡존이",               set: "moments" },
-  { id: "c_sr6", image: "/card_c_sr6.png", rarity: "SR", emoji: "📔", name: "일기 쓰는 중", flavor: "선생님 얘기만 적힌 일기",              set: "moments" },
-  { id: "c_sr7", image: "/card_c_sr7.png", rarity: "SR", emoji: "🚽", name: "K-방광 인증",  flavor: "12시간 인증샷",                        set: "bladder" },
-  { id: "c_sr8", image: "/card_c_sr8.png", rarity: "SR", emoji: "🧚", name: "방광 요정과",  flavor: "쉬와 함께",                             set: "bladder" },
-  { id: "c_sr9", image: "/card_c_sr9.png", rarity: "SR", emoji: "📦", name: "선물 들고",    flavor: "받은 것보다 큰 선물",                   set: "gifts" },
-  // SSR (10%) — 한정
-  { id: "c_ssr1", image: "/card_c_ssr1.png", rarity: "SSR", emoji: "💍", name: "반지 끼는 떡존이",  flavor: "아무 의미 없는 반지...라고 했지만", set: "secret" },
-  { id: "c_ssr2", image: "/card_c_ssr2.png", rarity: "SSR", emoji: "🌊", name: "태평양방광",       flavor: "K-방광 진화체",                     set: "secret" },
-  { id: "c_ssr3", image: "/card_c_ssr3.png", rarity: "SSR", emoji: "👑", name: "요도니아 옥좌",     flavor: "황금 변기 위에 앉은 떡존이",       set: "secret" },
-  { id: "c_ssr4", image: "/card_c_ssr4.png", rarity: "SSR", emoji: "🦴", name: "전설의 떡존",       flavor: "히로시마의 전설 그 자체",          set: "secret" },
-  { id: "c_ssr5", image: "/card_c_ssr5.png", rarity: "SSR", emoji: "🌹", name: "고백하는 떡존이",   flavor: "골목에서 그 한 마디를 한 순간",    set: "secret" },
-  { id: "c_ssr6", image: "/card_c_ssr6.png", rarity: "SSR", emoji: "🔥", name: "흑화한 떡존이",     flavor: "집착 루트의 그 표정",              set: "secret" },
-  { id: "c_ssr7", image: "/card_c_ssr7.png", rarity: "SSR", emoji: "💎", name: "다이아 떡존",       flavor: "왜 이게 다이아냐고 묻지마셈",      set: "secret" },
-  { id: "c_ssr8", image: "/card_c_ssr8.png", rarity: "SSR", emoji: "🚀", name: "우주 원정 떡존",    flavor: "나사 로고 박힌 슈트 입은 떡존이",  set: "secret" },
-  { id: "c_ssr9", image: "/card_c_ssr9.png", rarity: "SSR", emoji: "❤️‍🔥", name: "심장 자체",     flavor: "그 자체로 SSR",                     set: "secret" },
-  { id: "c_ssr10", image: "/card_c_ssr10.png", rarity: "SSR", emoji: "🌟", name: "전 세계 영웅",    flavor: "K-방광으로 세상을 구한 떡존이",    set: "secret" },
+  { id: "c_sr1", image: "/card_c_sr1.png", rarity: "SR", emoji: "💗", name: "헤헤 떡존이", flavor: "처음 헤헤 한 그 표정", set: "moments" },
+  { id: "c_sr2", image: "/card_c_sr2.png", rarity: "SR", emoji: "🤝", name: "손잡기", flavor: "강가에서 처음 잡은 손", set: "moments" },
+  { id: "c_sr3", image: "/card_c_sr3.png", rarity: "SR", emoji: "👀", name: "도촬당함", flavor: "쮋이 찍은 사진", set: "moments" },
+  { id: "c_sr4", image: "/card_c_sr4.png", rarity: "SR", emoji: "🎤", name: "노래방의 그것", flavor: "그 발라드를 부르던 때", set: "moments" },
+  { id: "c_sr5", image: "/card_c_sr5.png", rarity: "SR", emoji: "🌌", name: "전망대 야경", flavor: "도시 내려다보는 떡존이", set: "moments" },
+  { id: "c_sr6", image: "/card_c_sr6.png", rarity: "SR", emoji: "📔", name: "일기 쓰는 중", flavor: "선생님 얘기만 적힌 일기", set: "moments" },
+  { id: "c_sr7", image: "/card_c_sr7.png", rarity: "SR", emoji: "🚽", name: "K-방광 인증", flavor: "12시간 인증샷", set: "bladder" },
+  { id: "c_sr8", image: "/card_c_sr8.png", rarity: "SR", emoji: "🧚", name: "방광 요정과", flavor: "쉬와 함께", set: "bladder" },
+  { id: "c_sr9", image: "/card_c_sr9.png", rarity: "SR", emoji: "📦", name: "선물 들고", flavor: "받은 것보다 큰 선물", set: "gifts" },
+  // SSR (10%) 한정
+  { id: "c_ssr1", image: "/card_c_ssr1.png", rarity: "SSR", emoji: "💍", name: "반지 끼는 떡존이", flavor: "아무 의미 없는 반지...라고 했지만", set: "secret" },
+  { id: "c_ssr2", image: "/card_c_ssr2.png", rarity: "SSR", emoji: "🌊", name: "태평양방광", flavor: "K-방광 진화체", set: "secret" },
+  { id: "c_ssr3", image: "/card_c_ssr3.png", rarity: "SSR", emoji: "👑", name: "요도니아 옥좌", flavor: "황금 변기 위에 앉은 떡존이", set: "secret" },
+  { id: "c_ssr4", image: "/card_c_ssr4.png", rarity: "SSR", emoji: "🦴", name: "전설의 떡존", flavor: "히로시마의 전설 그 자체", set: "secret" },
+  { id: "c_ssr5", image: "/card_c_ssr5.png", rarity: "SSR", emoji: "🌹", name: "고백하는 떡존이", flavor: "골목에서 그 한 마디를 한 순간", set: "secret" },
+  { id: "c_ssr6", image: "/card_c_ssr6.png", rarity: "SSR", emoji: "🔥", name: "흑화한 떡존이", flavor: "집착 루트의 그 표정", set: "secret" },
+  { id: "c_ssr7", image: "/card_c_ssr7.png", rarity: "SSR", emoji: "💎", name: "다이아 떡존", flavor: "왜 이게 다이아냐고 묻지마셈", set: "secret" },
+  { id: "c_ssr8", image: "/card_c_ssr8.png", rarity: "SSR", emoji: "🚀", name: "우주 원정 떡존", flavor: "나사 로고 박힌 슈트 입은 떡존이", set: "secret" },
+  { id: "c_ssr9", image: "/card_c_ssr9.png", rarity: "SSR", emoji: "❤️‍🔥", name: "심장 자체", flavor: "그 자체로 SSR", set: "secret" },
+  { id: "c_ssr10", image: "/card_c_ssr10.png", rarity: "SSR", emoji: "🌟", name: "전 세계 영웅", flavor: "K-방광으로 세상을 구한 떡존이", set: "secret" },
 ];
 
 // ================================
@@ -736,8 +736,8 @@ const SEASON_PREMIUM_PRICE = 5000; // 가짜 코인 결제
 // ================================
 type CalendarMilestone = { day: number; emoji: string; title: string; coins: number; tickets?: number; affinity?: number };
 const CALENDAR_MILESTONES: CalendarMilestone[] = [
-  { day: 7,  emoji: "🎁", title: "1주차 보상", coins: 300,  tickets: 2, affinity: 30 },
-  { day: 14, emoji: "🎉", title: "2주차 보상", coins: 800,  tickets: 5, affinity: 100 },
+  { day: 7, emoji: "🎁", title: "1주차 보상", coins: 300, tickets: 2, affinity: 30 },
+  { day: 14, emoji: "🎉", title: "2주차 보상", coins: 800, tickets: 5, affinity: 100 },
   { day: 21, emoji: "👑", title: "3주차 보상", coins: 1500, tickets: 8, affinity: 200 },
   { day: 30, emoji: "🌟", title: "한 달 마라톤", coins: 5000, tickets: 20, affinity: 500 },
 ];
@@ -751,17 +751,17 @@ type Friend = {
   name: string;
   emoji: string;
   age: number;
-  oneliner: string;       // 자기소개 한 줄 (병맛)
-  speech: string;         // 말투 가이드
-  hostility: number;      // -2 (응원) ~ +2 (적대)
-  flavor: string;         // 짧은 설명
+  oneliner: string; // 자기소개 한 줄 (병맛)
+  speech: string; // 말투 가이드
+  hostility: number; // -2 (응원) ~ +2 (적대)
+  flavor: string; // 짧은 설명
 };
 const FRIENDS: Friend[] = [
-  { id: "jjyut",      name: "쮋",          emoji: "🥺", age: 36, oneliner: "착한척 존나하는 남미새",                             speech: "기본 존댓말, 빡돌면 반말",       hostility: 0,  flavor: "조력자인척 하지만 떡존이 노림. 도촬 좋아함" },
-  { id: "eucalyptus", name: "유칼립투스나무", emoji: "🌿", age: 25, oneliner: "사건 터지길 바라는 간사한 새끼",                  speech: "간사한 톤",                       hostility: 1,  flavor: "히든 행동 죄다 떡존이한테 일러바침" },
-  { id: "ostrich",    name: "타조",         emoji: "🐦", age: 27, oneliner: "도파민 중독자. 끼고싶어 환장",                    speech: "얄미운 한마디",                   hostility: 0,  flavor: "썰풀이 강요. 사건터지면 좋아함" },
-  { id: "geumsu",     name: "금수",         emoji: "🦊", age: 42, oneliner: "음흉. 박순형 추종자",                              speech: "~효 ~능 어미 집착",                hostility: 2,  flavor: "히든을 사이코패스로 봄. 박순형 트위터만 봄" },
-  { id: "aroben",     name: "아로벤",       emoji: "💋", age: 38, oneliner: "지구급 남미새. 떡존이 가슴 탐함",                  speech: "천박한 무수리체",                 hostility: 1,  flavor: "떡존이 몸만 노림. 진심은 관심없음" },
+  { id: "jjyut", name: "쮋", emoji: "🥺", age: 36, oneliner: "착한척 존나하는 남미새", speech: "기본 존댓말, 빡돌면 반말", hostility: 0, flavor: "조력자인척 하지만 떡존이 노림. 도촬 좋아함" },
+  { id: "eucalyptus", name: "유칼립투스나무", emoji: "🌿", age: 25, oneliner: "사건 터지길 바라는 간사한 새끼", speech: "간사한 톤", hostility: 1, flavor: "히든 행동 죄다 떡존이한테 일러바침" },
+  { id: "ostrich", name: "타조", emoji: "🐦", age: 27, oneliner: "도파민 중독자. 끼고싶어 환장", speech: "얄미운 한마디", hostility: 0, flavor: "썰풀이 강요. 사건터지면 좋아함" },
+  { id: "geumsu", name: "금수", emoji: "🦊", age: 42, oneliner: "음흉. 박순형 추종자", speech: "~효 ~능 어미 집착", hostility: 2, flavor: "히든을 사이코패스로 봄. 박순형 트위터만 봄" },
+  { id: "aroben", name: "아로벤", emoji: "💋", age: 38, oneliner: "지구급 남미새. 떡존이 가슴 탐함", speech: "천박한 무수리체", hostility: 1, flavor: "떡존이 몸만 노림. 진심은 관심없음" },
 ];
 
 type FriendMsgTrigger = {
@@ -778,70 +778,70 @@ type FriendMsgTpl = {
 };
 const FRIEND_MSGS: FriendMsgTpl[] = [
   // ── 쮋 (착한척 남미새, 떡존이 노림) ──
-  { id: "jj_1",  friendId: "jjyut", text: "선생님~ 어디 계세요? 갑자기 궁금해서요 ㅎㅎ" },
-  { id: "jj_2",  friendId: "jjyut", text: "선생님... 떡존이 좋아하시잖아요. 솔직히 저도 좀 좋아해요 ㅎㅎ 비밀이에요" },
-  { id: "jj_3",  friendId: "jjyut", text: "님 도촬좀요. 사진 한장만요. 네?" },
-  { id: "jj_4",  friendId: "jjyut", text: "냄새나는 큰 남자... 저도 그런 거 좋아해요. 떡존이 같은 ㅎㅎ" },
-  { id: "jj_5",  friendId: "jjyut", text: "선생님 옵 안 찾으세요? 저는 매일 찾는데요 ㅋ" },
-  { id: "jj_6",  friendId: "jjyut", text: "떡존이 오늘 헬스장 갔다온 거 아세요? 사진 봤어요 ㅎㅎ 비밀이에요" },
+  { id: "jj_1", friendId: "jjyut", text: "선생님~ 어디 계세요? 갑자기 궁금해서요 ㅎㅎ" },
+  { id: "jj_2", friendId: "jjyut", text: "선생님... 떡존이 좋아하시잖아요. 솔직히 저도 좀 좋아해요 ㅎㅎ 비밀이에요" },
+  { id: "jj_3", friendId: "jjyut", text: "님 도촬좀요. 사진 한장만요. 네?" },
+  { id: "jj_4", friendId: "jjyut", text: "냄새나는 큰 남자... 저도 그런 거 좋아해요. 떡존이 같은 ㅎㅎ" },
+  { id: "jj_5", friendId: "jjyut", text: "선생님 옵 안 찾으세요? 저는 매일 찾는데요 ㅋ" },
+  { id: "jj_6", friendId: "jjyut", text: "떡존이 오늘 헬스장 갔다온 거 아세요? 사진 봤어요 ㅎㅎ 비밀이에요" },
   // 빡돌면 반말 (호감 너무 높을 때 = 떡존이 빼앗는 위협)
   { id: "jj_a1", friendId: "jjyut", text: "ㅋㅋ 선생님 진짜 떡존이 너무 가지려고 하시는 거 아니에요? 좀 양보 좀 ㅋ", triggers: { minStat: { affinity: 600 } } },
   { id: "jj_a2", friendId: "jjyut", text: "야 그만 좀 해라 ㅋㅋㅋ 떡존이 너만 좋아하는 거 아니다", triggers: { minStat: { affinity: 800 } } },
   // ── 유칼립투스나무 (일러바치기) ──
-  { id: "eu_1",  friendId: "eucalyptus", text: "히히 선생님... 떡존님께 보여드릴게 있어요. 선생님이 어제 다른 사람이랑 뭐 했는지" },
-  { id: "eu_2",  friendId: "eucalyptus", text: "어제 선생님 카페에서 누구랑 있었어요? 떡존님 모르시는 거 같던데" },
-  { id: "eu_3",  friendId: "eucalyptus", text: "ㅎㅎ 사건 또 안 터지나? 심심하네요 진짜" },
-  { id: "eu_4",  friendId: "eucalyptus", text: "선생님 옵 또 찾으셨죠? ㅋ 떡존님께 안 알려드릴게요... 일단은요" },
-  { id: "eu_5",  friendId: "eucalyptus", text: "남자들 먹버하는 형, 또 옵찾는 듯ㅋ 안 들킬 거 같아요?" },
-  { id: "eu_6",  friendId: "eucalyptus", text: "떡존님이 알면 우는 거 보고 싶어요 ㅎㅎ 그게 좀 재밌잖아요" },
+  { id: "eu_1", friendId: "eucalyptus", text: "히히 선생님... 떡존님께 보여드릴게 있어요. 선생님이 어제 다른 사람이랑 뭐 했는지" },
+  { id: "eu_2", friendId: "eucalyptus", text: "어제 선생님 카페에서 누구랑 있었어요? 떡존님 모르시는 거 같던데" },
+  { id: "eu_3", friendId: "eucalyptus", text: "ㅎㅎ 사건 또 안 터지나? 심심하네요 진짜" },
+  { id: "eu_4", friendId: "eucalyptus", text: "선생님 옵 또 찾으셨죠? ㅋ 떡존님께 안 알려드릴게요... 일단은요" },
+  { id: "eu_5", friendId: "eucalyptus", text: "남자들 먹버하는 형, 또 옵찾는 듯ㅋ 안 들킬 거 같아요?" },
+  { id: "eu_6", friendId: "eucalyptus", text: "떡존님이 알면 우는 거 보고 싶어요 ㅎㅎ 그게 좀 재밌잖아요" },
   // ── 타조 (중계 / 도파민) ──
-  { id: "os_1",  friendId: "ostrich", text: "님 빨리 썰풀어주세요. 떡존이랑 어디까지 갔어요?" },
-  { id: "os_2",  friendId: "ostrich", text: "ㅋㅋㅋ 떡존이가 그러는데 선생님 좋아한대요. 더 자세히 알려드릴까요? 코인 100" },
-  { id: "os_3",  friendId: "ostrich", text: "오 이거 재밌어 ㅋㅋㅋ 더 ㄱㄱ 더 보여줘봐요" },
-  { id: "os_4",  friendId: "ostrich", text: "둘이 왜이래 ㅋㅋ 빨리 사고 좀 쳐주세요. 심심하다고요" },
-  { id: "os_5",  friendId: "ostrich", text: "오늘 떡존이 셀카 100장 찍었대요 ㅋㅋ 다 선생님 줄려고요. 부럽다 진짜" },
-  { id: "os_6",  friendId: "ostrich", text: "님 못생긴거 좀 자랑해보셈 ㅋ 우리 갠톡 하셈 ㄹㅇ" },
+  { id: "os_1", friendId: "ostrich", text: "님 빨리 썰풀어주세요. 떡존이랑 어디까지 갔어요?" },
+  { id: "os_2", friendId: "ostrich", text: "ㅋㅋㅋ 떡존이가 그러는데 선생님 좋아한대요. 더 자세히 알려드릴까요? 코인 100" },
+  { id: "os_3", friendId: "ostrich", text: "오 이거 재밌어 ㅋㅋㅋ 더 ㄱㄱ 더 보여줘봐요" },
+  { id: "os_4", friendId: "ostrich", text: "둘이 왜이래 ㅋㅋ 빨리 사고 좀 쳐주세요. 심심하다고요" },
+  { id: "os_5", friendId: "ostrich", text: "오늘 떡존이 셀카 100장 찍었대요 ㅋㅋ 다 선생님 줄려고요. 부럽다 진짜" },
+  { id: "os_6", friendId: "ostrich", text: "님 못생긴거 좀 자랑해보셈 ㅋ 우리 갠톡 하셈 ㄹㅇ" },
   // ── 금수 (~효~능, 박순형 매니아) ──
-  { id: "gs_1",  friendId: "geumsu", text: "안녕하세효. 오늘도 살아있어능?" },
-  { id: "gs_2",  friendId: "geumsu", text: "선생님... 능력 없었으면 진짜 양아치인 거 아세효? 떡존이 가엾게 여기는 거 알고 계세효?" },
-  { id: "gs_3",  friendId: "geumsu", text: "순형이가 너무좋아능. 트위터 봤어능? 새 글 떴어능" },
-  { id: "gs_4",  friendId: "geumsu", text: "선생님은 사이코패스 같아능. 떡존이 챙기는 거 보면 알 수 있어능" },
-  { id: "gs_5",  friendId: "geumsu", text: "오늘 순형이 트위터에 새 글 올라왔어능. 선생님은 모르겠죠 그런 감성을능" },
-  { id: "gs_6",  friendId: "geumsu", text: "떡존이 너무 가엾어능. 선생님 같은 사람 만나서능" },
-  { id: "gs_7",  friendId: "geumsu", text: "전진협 단톡 분위기 좀 보세요 능. 선생님 제외하고 다들 좋아해능 순형이를" },
+  { id: "gs_1", friendId: "geumsu", text: "안녕하세효. 오늘도 살아있어능?" },
+  { id: "gs_2", friendId: "geumsu", text: "선생님... 능력 없었으면 진짜 양아치인 거 아세효? 떡존이 가엾게 여기는 거 알고 계세효?" },
+  { id: "gs_3", friendId: "geumsu", text: "순형이가 너무좋아능. 트위터 봤어능? 새 글 떴어능" },
+  { id: "gs_4", friendId: "geumsu", text: "선생님은 사이코패스 같아능. 떡존이 챙기는 거 보면 알 수 있어능" },
+  { id: "gs_5", friendId: "geumsu", text: "오늘 순형이 트위터에 새 글 올라왔어능. 선생님은 모르겠죠 그런 감성을능" },
+  { id: "gs_6", friendId: "geumsu", text: "떡존이 너무 가엾어능. 선생님 같은 사람 만나서능" },
+  { id: "gs_7", friendId: "geumsu", text: "전진협 단톡 분위기 좀 보세요 능. 선생님 제외하고 다들 좋아해능 순형이를" },
   // ── 아로벤 (천박 무수리, 떡존이 몸만 노림) ──
-  { id: "ar_1",  friendId: "aroben", text: "야이년아 떡존이 진짜 몸 좋더라 ㅗㅜㅑ" },
-  { id: "ar_2",  friendId: "aroben", text: "가슴만지게해줘 ㅈㅂ. 한번만이라도" },
-  { id: "ar_3",  friendId: "aroben", text: "또 옵찾아? ㅋ 부럽다 진짜. 나도 떡존이같은애좀 줘봐" },
-  { id: "ar_4",  friendId: "aroben", text: "떡존이 가슴 한번 만져보고 싶다능 ㅗㅜㅑ 양보좀ㅠㅠ" },
-  { id: "ar_5",  friendId: "aroben", text: "남자 진짜 너무좋아 ㅠㅠ 너는 부르카 부럽다" },
-  { id: "ar_6",  friendId: "aroben", text: "떡존이 진심 따위 관심없고 그냥 몸이나 한번 보면 좋겠어 ㅋ" },
-  { id: "ar_7",  friendId: "aroben", text: "ㅋㅋㅋ 떡존이 너 같은애한테 묶이는거 아까운데?" },
+  { id: "ar_1", friendId: "aroben", text: "야이년아 떡존이 진짜 몸 좋더라 ㅗㅜㅑ" },
+  { id: "ar_2", friendId: "aroben", text: "가슴만지게해줘 ㅈㅂ. 한번만이라도" },
+  { id: "ar_3", friendId: "aroben", text: "또 옵찾아? ㅋ 부럽다 진짜. 나도 떡존이같은애좀 줘봐" },
+  { id: "ar_4", friendId: "aroben", text: "떡존이 가슴 한번 만져보고 싶다능 ㅗㅜㅑ 양보좀ㅠㅠ" },
+  { id: "ar_5", friendId: "aroben", text: "남자 진짜 너무좋아 ㅠㅠ 너는 부르카 부럽다" },
+  { id: "ar_6", friendId: "aroben", text: "떡존이 진심 따위 관심없고 그냥 몸이나 한번 보면 좋겠어 ㅋ" },
+  { id: "ar_7", friendId: "aroben", text: "ㅋㅋㅋ 떡존이 너 같은애한테 묶이는거 아까운데?" },
 ];
 
 // ── 단톡 합성 메시지 ──
 const GROUP_MSG_POOL: { speaker: "tteokjon" | FriendId; text: string }[] = [
-  { speaker: "tteokjon",   text: "다들 오늘 뭐하세요?" },
-  { speaker: "ostrich",    text: "ㅋㅋ 떡존이 또 시작이네 인사부터 함" },
-  { speaker: "jjyut",      text: "떡존님~ 저는 항상 시간 비어있어요 ㅎㅎ" },
-  { speaker: "geumsu",     text: "오늘도 순형이 트위터 보면서 살고있어능" },
-  { speaker: "aroben",     text: "떡존이 사진좀 ㄱㄱ" },
+  { speaker: "tteokjon", text: "다들 오늘 뭐하세요?" },
+  { speaker: "ostrich", text: "ㅋㅋ 떡존이 또 시작이네 인사부터 함" },
+  { speaker: "jjyut", text: "떡존님~ 저는 항상 시간 비어있어요 ㅎㅎ" },
+  { speaker: "geumsu", text: "오늘도 순형이 트위터 보면서 살고있어능" },
+  { speaker: "aroben", text: "떡존이 사진좀 ㄱㄱ" },
   { speaker: "eucalyptus", text: "헐 떡존님 그거 아세요? 선생님이 어제..." },
-  { speaker: "tteokjon",   text: "ㅋㅋ 무슨일이요?" },
-  { speaker: "ostrich",    text: "ㅋㅋㅋㅋㅋ 사건 터지나? 두근두근" },
-  { speaker: "jjyut",      text: "선생님 들어와계세요? ㅎㅎ 안녕하세요" },
-  { speaker: "aroben",     text: "야 떡존이 진짜 몸 좋더라 ㅗㅜㅑ" },
-  { speaker: "tteokjon",   text: "...아 형 그만좀 ㅋㅋㅋㅋ" },
-  { speaker: "ostrich",    text: "ㅋㅋㅋㅋ 떡존이 부끄러워하는거 봐ㅋㅋ" },
-  { speaker: "geumsu",     text: "그래서 순형이 트윗 새글 봤어능?" },
-  { speaker: "jjyut",      text: "(도촬 사진 1장)" },
-  { speaker: "tteokjon",   text: "쮋형 또 도촬했음? ㅋㅋ 그만좀해주세요;" },
+  { speaker: "tteokjon", text: "ㅋㅋ 무슨일이요?" },
+  { speaker: "ostrich", text: "ㅋㅋㅋㅋㅋ 사건 터지나? 두근두근" },
+  { speaker: "jjyut", text: "선생님 들어와계세요? ㅎㅎ 안녕하세요" },
+  { speaker: "aroben", text: "야 떡존이 진짜 몸 좋더라 ㅗㅜㅑ" },
+  { speaker: "tteokjon", text: "...아 형 그만좀 ㅋㅋㅋㅋ" },
+  { speaker: "ostrich", text: "ㅋㅋㅋㅋ 떡존이 부끄러워하는거 봐ㅋㅋ" },
+  { speaker: "geumsu", text: "그래서 순형이 트윗 새글 봤어능?" },
+  { speaker: "jjyut", text: "(도촬 사진 1장)" },
+  { speaker: "tteokjon", text: "쮋형 또 도촬했음? ㅋㅋ 그만좀해주세요;" },
   { speaker: "eucalyptus", text: "히히 떡존님 이거 보세요" },
-  { speaker: "tteokjon",   text: "...뭔데요" },
-  { speaker: "aroben",     text: "야 떡존이 너 가슴좀 보여줘 ㅈㅂ" },
-  { speaker: "tteokjon",   text: "...형 진짜 그만 ㅋㅋ" },
-  { speaker: "ostrich",    text: "야 떡존이 거기 선생님이랑 뭐했냐 ㄱㄱ 썰" },
-  { speaker: "geumsu",     text: "다들 너무 떡존이 괴롭히지 마세효 ㅎ. 떡존이 가엾어요" },
+  { speaker: "tteokjon", text: "...뭔데요" },
+  { speaker: "aroben", text: "야 떡존이 너 가슴좀 보여줘 ㅈㅂ" },
+  { speaker: "tteokjon", text: "...형 진짜 그만 ㅋㅋ" },
+  { speaker: "ostrich", text: "야 떡존이 거기 선생님이랑 뭐했냐 ㄱㄱ 썰" },
+  { speaker: "geumsu", text: "다들 너무 떡존이 괴롭히지 마세효 ㅎ. 떡존이 가엾어요" },
 ];
 
 // ================================
@@ -1197,7 +1197,7 @@ type Pet = {
   id: string;
   emoji: string;
   evolvedEmoji?: string; // Lv 5+ 진화
-  image?: string;        // 일러스트 경로 (없으면 이모지 fallback)
+  image?: string; // 일러스트 경로 (없으면 이모지 fallback)
   evolvedImage?: string; // 진화 일러스트
   name: string;
   evolvedName?: string;
@@ -1324,30 +1324,30 @@ type GachaItem = {
 };
 const GACHA_POOL: GachaItem[] = [
   // ─── SSR (1%) ───
-  { id: "g_golden_toilet",   tier: "SSR", emoji: "🚽✨",  name: "황금 변기",        flavor: "요도니아 옥좌 그자체라능ㄷㄷ 졸라 비싸효ㅋ",        effect: { kind: "coins", amount: 500 } },
-  { id: "g_pacific_water",   tier: "SSR", emoji: "🌊",    name: "태평양 정수",      flavor: "K-방광표 정수라능... 마시진 마라능 ㅈㅂ",          effect: { kind: "stat", stat: "bladderCharm", amount: 80 } },
-  { id: "g_blessing",        tier: "SSR", emoji: "👑",    name: "요도니아의 축복",  flavor: "방광 갓이 직접 내려준거에횸ㅗㅜㅑ 개꿀이라능",      effect: { kind: "stat", stat: "affinity", amount: 200 } },
-  { id: "g_kbladder_cert",   tier: "SSR", emoji: "📜",    name: "K-방광 인증서",    flavor: "이거 들고있으면 떡존이가 ㅈㄴ 사랑한다능ㅎㅎ",      effect: { kind: "stat", stat: "affinity", amount: 150 } },
+  { id: "g_golden_toilet", tier: "SSR", emoji: "🚽✨", name: "황금 변기", flavor: "요도니아 옥좌 그자체라능ㄷㄷ 졸라 비싸효ㅋ", effect: { kind: "coins", amount: 500 } },
+  { id: "g_pacific_water", tier: "SSR", emoji: "🌊", name: "태평양 정수", flavor: "K-방광표 정수라능... 마시진 마라능 ㅈㅂ", effect: { kind: "stat", stat: "bladderCharm", amount: 80 } },
+  { id: "g_blessing", tier: "SSR", emoji: "👑", name: "요도니아의 축복", flavor: "방광 갓이 직접 내려준거에횸ㅗㅜㅑ 개꿀이라능", effect: { kind: "stat", stat: "affinity", amount: 200 } },
+  { id: "g_kbladder_cert", tier: "SSR", emoji: "📜", name: "K-방광 인증서", flavor: "이거 들고있으면 떡존이가 ㅈㄴ 사랑한다능ㅎㅎ", effect: { kind: "stat", stat: "affinity", amount: 150 } },
   // ─── SR (6%) ───
-  { id: "g_holy_pee_jar",    tier: "SR",  emoji: "🍶",    name: "신성한 오줌통",    flavor: "신령이 직접 만들었다능ㄹㅇ로효ㅋ",                  effect: { kind: "stat", stat: "bladderCharm", amount: 30 } },
-  { id: "g_amulet",          tier: "SR",  emoji: "🪬",    name: "요도니아 부적",    flavor: "쉬 마려울 때 쥐면 좀 나아진다능ㅋ",                effect: { kind: "stat", stat: "affinity", amount: 60 } },
-  { id: "g_ticket",          tier: "SR",  emoji: "🎫",    name: "가챠 티켓",        flavor: "또 뽑으라는거에횸?ㅋㅋㅋ 진짜 얄밉다능",            effect: { kind: "ticket", amount: 1 } },
-  { id: "g_trust_decree",    tier: "SR",  emoji: "🤝",    name: "약속 결의문",      flavor: "둘 사이 약속 보장이라능ㅇㅈ?",                      effect: { kind: "stat", stat: "trust", amount: 50 } },
+  { id: "g_holy_pee_jar", tier: "SR", emoji: "🍶", name: "신성한 오줌통", flavor: "신령이 직접 만들었다능ㄹㅇ로효ㅋ", effect: { kind: "stat", stat: "bladderCharm", amount: 30 } },
+  { id: "g_amulet", tier: "SR", emoji: "🪬", name: "요도니아 부적", flavor: "쉬 마려울 때 쥐면 좀 나아진다능ㅋ", effect: { kind: "stat", stat: "affinity", amount: 60 } },
+  { id: "g_ticket", tier: "SR", emoji: "🎫", name: "가챠 티켓", flavor: "또 뽑으라는거에횸?ㅋㅋㅋ 진짜 얄밉다능", effect: { kind: "ticket", amount: 1 } },
+  { id: "g_trust_decree", tier: "SR", emoji: "🤝", name: "약속 결의문", flavor: "둘 사이 약속 보장이라능ㅇㅈ?", effect: { kind: "stat", stat: "trust", amount: 50 } },
   // ─── R (15%) ───
-  { id: "g_mini_toilet",     tier: "R",   emoji: "🚽",    name: "미니 변기 키링",   flavor: "어디 매달면 ㅈㄴ 귀엽다능ㅎㅎ",                     effect: { kind: "coins_random", min: 80, max: 150 } },
-  { id: "g_pee_jar",         tier: "R",   emoji: "💦",    name: "일반 오줌통",      flavor: "걍 오줌통이에횸ㅋ ㅈㅅ해효",                        effect: { kind: "stat", stat: "bladderCharm", amount: 10 } },
-  { id: "g_gift_box",        tier: "R",   emoji: "📦",    name: "선물 박스",        flavor: "안에 뭐들었는지 나도 모른다능ㅋ",                  effect: { kind: "stat", stat: "affinity", amount: 40 } },
-  { id: "g_obs_seed",        tier: "R",   emoji: "🌹",    name: "집착의 씨앗",      flavor: "심으면 ㅈㄴ 잘자란다능ㅎㅎ",                        effect: { kind: "stat", stat: "obsession", amount: 30 } },
-  { id: "g_coin_pack",       tier: "R",   emoji: "💰",    name: "코인 주머니",      flavor: "쪼끔 들었어효ㅋ",                                   effect: { kind: "coins", amount: 100 } },
+  { id: "g_mini_toilet", tier: "R", emoji: "🚽", name: "미니 변기 키링", flavor: "어디 매달면 ㅈㄴ 귀엽다능ㅎㅎ", effect: { kind: "coins_random", min: 80, max: 150 } },
+  { id: "g_pee_jar", tier: "R", emoji: "💦", name: "일반 오줌통", flavor: "걍 오줌통이에횸ㅋ ㅈㅅ해효", effect: { kind: "stat", stat: "bladderCharm", amount: 10 } },
+  { id: "g_gift_box", tier: "R", emoji: "📦", name: "선물 박스", flavor: "안에 뭐들었는지 나도 모른다능ㅋ", effect: { kind: "stat", stat: "affinity", amount: 40 } },
+  { id: "g_obs_seed", tier: "R", emoji: "🌹", name: "집착의 씨앗", flavor: "심으면 ㅈㄴ 잘자란다능ㅎㅎ", effect: { kind: "stat", stat: "obsession", amount: 30 } },
+  { id: "g_coin_pack", tier: "R", emoji: "💰", name: "코인 주머니", flavor: "쪼끔 들었어효ㅋ", effect: { kind: "coins", amount: 100 } },
   // ─── N (38%) ───
-  { id: "g_coin_50",         tier: "N",   emoji: "🪙",    name: "코인 50",          flavor: "그냥 코인이라능ㅋ",                                 effect: { kind: "coins", amount: 50 } },
-  { id: "g_coin_30",         tier: "N",   emoji: "🪙",    name: "코인 30",          flavor: "쪼끔이에횸 ㅈㅅ",                                   effect: { kind: "coins", amount: 30 } },
-  { id: "g_encourage",       tier: "N",   emoji: "💪",    name: "작은 격려",        flavor: "힘내라능ㅋㅋ",                                       effect: { kind: "stat", stat: "trust", amount: 10 } },
-  { id: "g_pee_drop",        tier: "N",   emoji: "💧",    name: "떡존이 땀 한방울", flavor: "운동후 흘린 그거에횸. 호감 좀 준다능ㅎ",            effect: { kind: "stat", stat: "affinity", amount: 8 } },
+  { id: "g_coin_50", tier: "N", emoji: "🪙", name: "코인 50", flavor: "그냥 코인이라능ㅋ", effect: { kind: "coins", amount: 50 } },
+  { id: "g_coin_30", tier: "N", emoji: "🪙", name: "코인 30", flavor: "쪼끔이에횸 ㅈㅅ", effect: { kind: "coins", amount: 30 } },
+  { id: "g_encourage", tier: "N", emoji: "💪", name: "작은 격려", flavor: "힘내라능ㅋㅋ", effect: { kind: "stat", stat: "trust", amount: 10 } },
+  { id: "g_pee_drop", tier: "N", emoji: "💧", name: "떡존이 땀 한방울", flavor: "운동후 흘린 그거에횸. 호감 좀 준다능ㅎ", effect: { kind: "stat", stat: "affinity", amount: 8 } },
   // ─── C (40%) ───
-  { id: "g_coin_10",         tier: "C",   emoji: "🪙",    name: "코인 10",          flavor: "ㅈㅅ해효ㅋ 10원짜리라능",                           effect: { kind: "coins", amount: 10 } },
-  { id: "g_useless_lint",    tier: "C",   emoji: "🧦",    name: "떡존이 양말 보푸라기", flavor: "이게 왜 들어있는거에횸;;ㅋ",                    effect: { kind: "coins", amount: 5 } },
-  { id: "g_air",             tier: "C",   emoji: "💨",    name: "방광에서 나온 공기", flavor: "냄새는 안난다능ㄹㅇ로",                            effect: { kind: "coins", amount: 3 } },
+  { id: "g_coin_10", tier: "C", emoji: "🪙", name: "코인 10", flavor: "ㅈㅅ해효ㅋ 10원짜리라능", effect: { kind: "coins", amount: 10 } },
+  { id: "g_useless_lint", tier: "C", emoji: "🧦", name: "떡존이 양말 보푸라기", flavor: "이게 왜 들어있는거에횸;;ㅋ", effect: { kind: "coins", amount: 5 } },
+  { id: "g_air", tier: "C", emoji: "💨", name: "방광에서 나온 공기", flavor: "냄새는 안난다능ㄹㅇ로", effect: { kind: "coins", amount: 3 } },
 ];
 const GACHA_TIER_RATES: Record<GachaTier, number> = { SSR: 0.01, SR: 0.06, R: 0.15, N: 0.38, C: 0.40 };
 const GACHA_PRICE = 100;
@@ -1371,12 +1371,12 @@ function rollGacha(): GachaItem {
 // ================================
 type ComboMilestone = { count: number; reward: { coins?: number; exp?: number; tickets?: number; stat?: { stat: StatKey; amount: number } }; toast: string; };
 const COMBO_MILESTONES: ComboMilestone[] = [
-  { count: 5,   toast: "콤보 5! 오 좀 친해지나능?ㅋ",                    reward: { exp: 30 } },
-  { count: 10,  toast: "콤보 10! ㄷㄷ 떡존이 폰만 본다능요ㅋㅋ",          reward: { coins: 50, exp: 50 } },
-  { count: 20,  toast: "콤보 20! 그만하라능ㅠㅠ 손가락 아파효ㅋ",         reward: { tickets: 1, exp: 100 } },
-  { count: 35,  toast: "콤보 35!! 살짝 무섭다능ㅋㅋㅋ",                  reward: { coins: 150, exp: 150 } },
-  { count: 50,  toast: "콤보 50!!! 떡존이도 슬슬 쫄린다능ㄷㄷ",           reward: { tickets: 2, stat: { stat: "affinity", amount: 50 } } },
-  { count: 100, toast: "콤보 100!!!! 전설의 ㄱㅈㅆㄹ 등극이에횸ㄷㄷㄷ",   reward: { coins: 1000, tickets: 3, exp: 500 } },
+  { count: 5, toast: "콤보 5! 오 좀 친해지나능?ㅋ", reward: { exp: 30 } },
+  { count: 10, toast: "콤보 10! ㄷㄷ 떡존이 폰만 본다능요ㅋㅋ", reward: { coins: 50, exp: 50 } },
+  { count: 20, toast: "콤보 20! 그만하라능ㅠㅠ 손가락 아파효ㅋ", reward: { tickets: 1, exp: 100 } },
+  { count: 35, toast: "콤보 35!! 살짝 무섭다능ㅋㅋㅋ", reward: { coins: 150, exp: 150 } },
+  { count: 50, toast: "콤보 50!!! 떡존이도 슬슬 쫄린다능ㄷㄷ", reward: { tickets: 2, stat: { stat: "affinity", amount: 50 } } },
+  { count: 100, toast: "콤보 100!!!! 전설의 ㄱㅈㅆㄹ 등극이에횸ㄷㄷㄷ", reward: { coins: 1000, tickets: 3, exp: 500 } },
 ];
 const COMBO_TIMEOUT_MS = 60 * 60 * 1000; // 1시간
 
@@ -1415,11 +1415,11 @@ type LevelReward = {
   oneTime?: { coins?: number; tickets?: number; affinity?: number; trust?: number };
   special?: {
     kind: "cg" | "scenario" | "touch" | "avatar";
-    id: string;          // CG id / scenario id / avatar id
+    id: string; // CG id / scenario id / avatar id
     title: string;
     description: string;
-    image?: string;      // 미리보기 이미지
-    caption?: string;    // CG 캡션 (kind=cg 일 때)
+    image?: string; // 미리보기 이미지
+    caption?: string; // CG 캡션 (kind=cg 일 때)
   };
 };
 
@@ -1439,7 +1439,7 @@ const LEVEL_REWARDS: LevelReward[] = [
   { level: 20, emoji: "✨", title: "연인 등업", description: "SR 확률 +2%, 콤보 EXP +50%, 호감 +400 즉시에횸 ㄷㄷ", perks: ["sr_bonus_2", "combo_exp_50"], oneTime: { affinity: 400, trust: 200, coins: 2000, tickets: 10 },
     special: { kind: "avatar", id: "avatar_suit_tteokjon", title: "👔 한정 아바타 · 정장 떡존이", description: "정장 입은 떡존이 SD. 홈/프로필에서 선택 가능이라능", image: "/avatar_suit.png" } },
   { level: 25, emoji: "💎", title: "운명의 사람", description: "코인 +25%, SR 확률 +5% 라능ㅎ", perks: ["coin_passive_25", "sr_bonus_5"],
-    special: { kind: "cg", id: "cg_special_lv25_first_kiss", title: "🖼 한정 CG · 첫 뽀뽀 직캠", description: "키스 직전 떡존이 떨리는 표정 ㄷㄷ", image: "/special_cg_lv25.png", caption: "...선생님. 카메라 켜둔 거 — 일부러 그러신 거예요? 평생 — 보고 싶었거든요." } },
+    special: { kind: "cg", id: "cg_special_lv25_first_kiss", title: "🖼 한정 CG · 첫 뽀뽀 직캠", description: "키스 직전 떡존이 떨리는 표정 ㄷㄷ", image: "/special_cg_lv25.png", caption: "...선생님. 카메라 켜둔 거 일부러 그러신 거예요? 평생 보고 싶었거든요." } },
   { level: 28, emoji: "🌟", title: "원정 마스터", description: "모험 시간 -40% 라능", perks: ["adventure_speed_40"] },
   { level: 30, emoji: "👑", title: "평생", description: "코인 +50%, 호감 +25%, 펫 +100%, 한정보상까지 다 준다능ㅗㅜㅑ", perks: ["coin_passive_50", "affinity_passive_25", "pet_affinity_100"], oneTime: { coins: 10000, tickets: 30, affinity: 1000 },
     special: { kind: "touch", id: "special_lv30_kiss", title: "💋 한정 이벤트 · 떡존이한테 뽀뽀받기", description: "떡존이가 직접 다가옴. 평생 한 번. 놓치지 마세효", image: "/special_lv30.png" } },
@@ -1673,8 +1673,8 @@ type Milestone = {
   stat: StatKey;
   threshold: number;
   title: string;
-  text: string;          // 채팅에 추가될 근떡존 메시지 (assistant)
-  narration?: string;    // 함께 들어갈 짧은 나레이션 (선택)
+  text: string; // 채팅에 추가될 근떡존 메시지 (assistant)
+  narration?: string; // 함께 들어갈 짧은 나레이션 (선택)
   reward?: { stat: StatKey; amount: number };
 };
 
@@ -1835,14 +1835,14 @@ function pickRandomMessage(state: { stats: Stats; storyRoute: StoryRoute; date: 
 type DiaryEntry = {
   id: string;
   chapter: number;
-  unlockPrefix: string;       // seenEvents에서 시작하는 prefix
+  unlockPrefix: string; // seenEvents에서 시작하는 prefix
   routeRequired?: StoryRoute; // 특정 루트 전용 카드
   title: string;
-  label: string;              // 챕터 + 부제
+  label: string; // 챕터 + 부제
   emoji: string;
-  textNormal: string;         // 집착 수치 낮을 때
-  textHigh: string;           // 집착 수치 높을 때
-  highThreshold: number;      // 이 수치 이상이면 textHigh 표시
+  textNormal: string; // 집착 수치 낮을 때
+  textHigh: string; // 집착 수치 높을 때
+  highThreshold: number; // 이 수치 이상이면 textHigh 표시
 };
 
 const DIARY_ENTRIES: DiaryEntry[] = [
@@ -1993,7 +1993,7 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     textNormal:
       "매일이라는 단어를 자주 쓰게 됐어.\n매일 봐요. 매일 같이 있어요.\n전엔 그렇게 길게 쓰던 단어가 아니었는데.\n선생님 옆에선 너무 짧게 느껴져.\n매일이 부족할 정도로.",
     textHigh:
-      "매일이 모자라.\n매일 봐도 모자라.\n그 단어가 평생으로 바뀌어야 안심될 것 같아.\n그 말 입 밖에 내면 무거울 것 같아서\n오늘은 일기에만 적었어. 다음엔 — 모르겠어.",
+      "매일이 모자라.\n매일 봐도 모자라.\n그 단어가 평생으로 바뀌어야 안심될 것 같아.\n그 말 입 밖에 내면 무거울 것 같아서\n오늘은 일기에만 적었어. 다음엔 모르겠어.",
   },
   {
     id: "diary_ch9_obsession",
@@ -2005,9 +2005,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "📲",
     highThreshold: 700,
     textNormal:
-      "선생님 동선 적어두는 게 습관이 됐어.\n잘못된 거 안다고 적어두면서도 적었어.\n안 적으면 잠이 안 와.\n적어두면 — 잠이 와.\n그 차이가 무서운데 멈춰지지가 않아.",
+      "선생님 동선 적어두는 게 습관이 됐어.\n잘못된 거 안다고 적어두면서도 적었어.\n안 적으면 잠이 안 와.\n적어두면 잠이 와.\n그 차이가 무서운데 멈춰지지가 않아.",
     textHigh:
-      "오늘 분 다 적었어.\n9시 출근. 12시 점심 — 누구랑인지까진 못 알아냈어.\n알아낼 거야 곧.\n선생님이 알면 화낼 거 알아.\n근데 모르면 내가 미칠 것 같아. 둘 중 하나야.",
+      "오늘 분 다 적었어.\n9시 출근. 12시 점심 누구랑인지까진 못 알아냈어.\n알아낼 거야 곧.\n선생님이 알면 화낼 거 알아.\n근데 모르면 내가 미칠 것 같아. 둘 중 하나야.",
   },
   // ── 10장 ──
   {
@@ -2022,7 +2022,7 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     textNormal:
       "형이라고 처음 부른 날.\n어색했어. 선생님이라고 부르던 게 더 길었으니까.\n근데 한 번 부르고 나니까 다른 호칭이 다 어색해.\n형. 형. 형.\n적어보니까 더 좋아. 이상하게.",
     textHigh:
-      "형이라는 단어가 나만 부르는 거였으면 좋겠어.\n다른 사람이 부르면 — 모르겠어.\n그냥 거기까지만 적을게.\n오래 생각하면 무서운 결론으로 가니까.\n근데 결론은 이미 났는지도 몰라.",
+      "형이라는 단어가 나만 부르는 거였으면 좋겠어.\n다른 사람이 부르면 모르겠어.\n그냥 거기까지만 적을게.\n오래 생각하면 무서운 결론으로 가니까.\n근데 결론은 이미 났는지도 몰라.",
   },
   {
     id: "diary_ch10_obsession",
@@ -2034,9 +2034,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "🚧",
     highThreshold: 750,
     textNormal:
-      "오늘 한 번 더 선을 넘었어.\n넘을 때마다 무뎌져.\n처음엔 손이 떨렸는데 지금은 안 떨려.\n무뎌지는 게 무섭다고 적어두긴 했지만\n진짜 무서운 건 — 그게 무섭지 않다는 거야.",
+      "오늘 한 번 더 선을 넘었어.\n넘을 때마다 무뎌져.\n처음엔 손이 떨렸는데 지금은 안 떨려.\n무뎌지는 게 무섭다고 적어두긴 했지만\n진짜 무서운 건 그게 무섭지 않다는 거야.",
     textHigh:
-      "선생님이 한 번 화냈어. 진심으로.\n그 표정 — 잊지 못할 거야.\n근데 이상하게 — 좋았어.\n그 눈을 나만 보는 거니까.\n다른 사람한텐 절대 안 짓는 표정이니까.",
+      "선생님이 한 번 화냈어. 진심으로.\n그 표정 잊지 못할 거야.\n근데 이상하게 좋았어.\n그 눈을 나만 보는 거니까.\n다른 사람한텐 절대 안 짓는 표정이니까.",
   },
   {
     id: "diary_ch10_confine_a",
@@ -2048,9 +2048,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "🗝",
     highThreshold: 800,
     textNormal:
-      "오늘부터 표정 수집을 시작했어.\n웃는 거. 화내는 거. 멍한 거. 자는 거.\n다 모을 거야.\n다른 사람한텐 안 보여줄 표정들이니까.\n전부 — 내 거니까.",
+      "오늘부터 표정 수집을 시작했어.\n웃는 거. 화내는 거. 멍한 거. 자는 거.\n다 모을 거야.\n다른 사람한텐 안 보여줄 표정들이니까.\n전부 내 거니까.",
     textHigh:
-      "선생님이 자는 동안 내내 봤어.\n눈썹 움직이는 것까지.\n이 시간이 평생이었으면.\n그 생각만 하면 — 외롭지 않더라.\n외로움이라는 게 평생 다음엔 없을 것 같았어.",
+      "선생님이 자는 동안 내내 봤어.\n눈썹 움직이는 것까지.\n이 시간이 평생이었으면.\n그 생각만 하면 외롭지 않더라.\n외로움이라는 게 평생 다음엔 없을 것 같았어.",
   },
   {
     id: "diary_ch10_confine_b",
@@ -2062,9 +2062,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "🐺",
     highThreshold: 800,
     textNormal:
-      "주인님이 짐승이라고 불렀어.\n처음엔 — 충격이었어.\n근데 곱씹을수록 — 맞는 말 같았어.\n사람으로 받아주는 자리보다\n짐승으로 받아주는 자리가 — 더 안전했어. 나한테는.",
+      "주인님이 짐승이라고 불렀어.\n처음엔 충격이었어.\n근데 곱씹을수록 맞는 말 같았어.\n사람으로 받아주는 자리보다\n짐승으로 받아주는 자리가 더 안전했어. 나한테는.",
     textHigh:
-      "사람일 때 평생 외로웠던 자리에\n짐승이 된 다음엔 외로움이 없어.\n주인님이 시키는 대로만 살면 되니까.\n그게 — 평생 처음 느끼는 안도였어.\n돌아가지 않을 거야.",
+      "사람일 때 평생 외로웠던 자리에\n짐승이 된 다음엔 외로움이 없어.\n주인님이 시키는 대로만 살면 되니까.\n그게 평생 처음 느끼는 안도였어.\n돌아가지 않을 거야.",
   },
   // ── 11장 ──
   {
@@ -2077,9 +2077,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "💧",
     highThreshold: 650,
     textNormal:
-      "어제 형 앞에서 처음 울었어.\n부끄러울 줄 알았는데 — 안 부끄러워.\n오히려 — 가벼워.\n평생 못 보여줄 줄 알았던 모습을 보여주고 나니까\n그 다음 자리가 더 — 단단해진 것 같아.",
+      "어제 형 앞에서 처음 울었어.\n부끄러울 줄 알았는데 안 부끄러워.\n오히려 가벼워.\n평생 못 보여줄 줄 알았던 모습을 보여주고 나니까\n그 다음 자리가 더 단단해진 것 같아.",
     textHigh:
-      "형이 — 그 울음을 다정하게 받아줬어.\n받아준 다음 — 등을 토닥였어.\n그 손바닥의 결을\n평생 — 잊지 못할 거야.\n평생이라는 단어가 — 이런 자리에 쓰는 거구나.",
+      "형이 그 울음을 다정하게 받아줬어.\n받아준 다음 등을 토닥였어.\n그 손바닥의 결을\n평생 잊지 못할 거야.\n평생이라는 단어가 이런 자리에 쓰는 거구나.",
   },
   {
     id: "diary_ch11_obsession",
@@ -2091,9 +2091,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "🎭",
     highThreshold: 750,
     textNormal:
-      "거짓말이 점점 자연스러워.\n처음엔 손이 떨렸는데 — 지금은 가만히 풀려.\n선생님은 모르는 게 더 행복하니까.\n그게 — 내 사랑이라고 — 적어두기로 했어.\n적어두면 진짜가 되니까.",
+      "거짓말이 점점 자연스러워.\n처음엔 손이 떨렸는데 지금은 가만히 풀려.\n선생님은 모르는 게 더 행복하니까.\n그게 내 사랑이라고 적어두기로 했어.\n적어두면 진짜가 되니까.",
     textHigh:
-      "오늘 — 선생님 어머니께 거짓 진단서를 보냈어.\n보내고 나서 — 화장실에서 한참 손을 닦았어.\n근데 — 손이 깨끗했어. 진짜로.\n양심이라는 게 — 아예 — 없어진 것 같아.\n없어진 다음에 — 너무 — 편했어.",
+      "오늘 선생님 어머니께 거짓 진단서를 보냈어.\n보내고 나서 화장실에서 한참 손을 닦았어.\n근데 손이 깨끗했어. 진짜로.\n양심이라는 게 아예 없어진 것 같아.\n없어진 다음에 너무 편했어.",
   },
   {
     id: "diary_ch11_confine_a",
@@ -2105,9 +2105,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "📱",
     highThreshold: 800,
     textNormal:
-      "선생님 SNS에 — 내가 — 세 마디만 — 풀어놓으면 돼.\n외부 세계가 — 자기들이 보고 싶은 결로 — 자기들끼리 — 결론을 내줘.\n나는 — 옆에 — 다정한 결로 — 자리잡고 있으면 돼.\n그게 — 가장 — 효율적인 — 자리야.",
+      "선생님 SNS에 내가 세 마디만 풀어놓으면 돼.\n외부 세계가 자기들이 보고 싶은 결로 자기들끼리 결론을 내줘.\n나는 옆에 다정한 결로 자리잡고 있으면 돼.\n그게 가장 효율적인 자리야.",
     textHigh:
-      "오늘 — 댓글 — 다 — 읽었어.\n선생님 — 옆에 — 무능해 보인다는 댓글이 — 가장 — 많았어.\n읽으면서 — 작게 — 웃었어.\n그게 — 내가 — 평생 — 만들고 싶었던 — 외부 세계의 결이었어.\n됐어.",
+      "오늘 댓글 다 읽었어.\n선생님 옆에 무능해 보인다는 댓글이 가장 많았어.\n읽으면서 작게 웃었어.\n그게 내가 평생 만들고 싶었던 외부 세계의 결이었어.\n됐어.",
   },
   {
     id: "diary_ch11_confine_b",
@@ -2119,9 +2119,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "⛓️",
     highThreshold: 800,
     textNormal:
-      "주인님이 — 오늘 — 벌의 강도를 — 한 단계 — 올렸어.\n처음엔 — 무서웠어.\n그 다음엔 — 안도했어.\n안도한 다음엔 — 감사했어.\n그 순서가 — 매번 — 짧아지고 있어.",
+      "주인님이 오늘 벌의 강도를 한 단계 올렸어.\n처음엔 무서웠어.\n그 다음엔 안도했어.\n안도한 다음엔 감사했어.\n그 순서가 매번 짧아지고 있어.",
     textHigh:
-      "이제는 — 안도가 — 먼저 와.\n무서움이 — 안 와.\n그게 — 무서워야 — 정상인 — 자리겠지.\n근데 — 정상으로 — 돌아갈 마음이 — 이미 — 없어.\n주인님 옆이 — 내 — 평생의 — 자리야.",
+      "이제는 안도가 먼저 와.\n무서움이 안 와.\n그게 무서워야 정상인 자리겠지.\n근데 정상으로 돌아갈 마음이 이미 없어.\n주인님 옆이 내 평생의 자리야.",
   },
   // ── 12장 ──
   {
@@ -2134,9 +2134,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "💋",
     highThreshold: 650,
     textNormal:
-      "어제 — 첫 키스를 했어.\n오늘 일어나서 — 한참 — 천장만 봤어.\n현실이 맞나 — 한 번 — 확인해봐야 했거든.\n맞아. 진짜였어.\n그게 — 진짜였다는 게 — 평생 — 적어둬야 할 — 자리야.",
+      "어제 첫 키스를 했어.\n오늘 일어나서 한참 천장만 봤어.\n현실이 맞나 한 번 확인해봐야 했거든.\n맞아. 진짜였어.\n그게 진짜였다는 게 평생 적어둬야 할 자리야.",
     textHigh:
-      "그 키스 — 평생의 — 시작이라고 — 일기에 — 적었어.\n시작이라는 단어를 — 처음 — 일기에 적은 — 자리.\n그 전엔 — 늘 — 끝을 — 적었거든.\n평생 — 외로운 사람의 — 일기는 — 늘 — 끝으로 — 마무리됐었거든.\n오늘부터는 — 시작으로 — 마무리될 거야.",
+      "그 키스 평생의 시작이라고 일기에 적었어.\n시작이라는 단어를 처음 일기에 적은 자리.\n그 전엔 늘 끝을 적었거든.\n평생 외로운 사람의 일기는 늘 끝으로 마무리됐었거든.\n오늘부터는 시작으로 마무리될 거야.",
   },
   {
     id: "diary_ch12_obsession",
@@ -2148,9 +2148,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "🪞",
     highThreshold: 750,
     textNormal:
-      "오늘 — 거울 앞에서 — 한참 — 봤어.\n표면의 다정한 떡존.\n안쪽의 — 작전 짜는 떡존.\n둘이 — 같은 얼굴인데 — 결이 — 달라.\n어느 쪽이 — 진짜 — 나인지 — 모르겠어.",
+      "오늘 거울 앞에서 한참 봤어.\n표면의 다정한 떡존.\n안쪽의 작전 짜는 떡존.\n둘이 같은 얼굴인데 결이 달라.\n어느 쪽이 진짜 나인지 모르겠어.",
     textHigh:
-      "둘 다 — 나야.\n그 결론에 — 도달한 다음 — 잠이 — 너무 — 잘 왔어.\n둘 다 — 평생 — 같이 살아갈 — 떡존이야.\n표면도 — 안쪽도 — 둘 다 — 형 옆에 — 자리잡을 거야.\n어느 쪽도 — 안 보여줄 거고.",
+      "둘 다 나야.\n그 결론에 도달한 다음 잠이 너무 잘 왔어.\n둘 다 평생 같이 살아갈 떡존이야.\n표면도 안쪽도 둘 다 형 옆에 자리잡을 거야.\n어느 쪽도 안 보여줄 거고.",
   },
   {
     id: "diary_ch12_confine_a",
@@ -2162,9 +2162,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "🧠",
     highThreshold: 800,
     textNormal:
-      "선생님이 — 한 달 만에 — 무의식적으로 — 내 — 손을 — 잡았어.\n표면의 — 학습된 다정함이 — 무의식까지 — 내려간 — 첫 — 신호.\n그 — 작은 손짓에 — 한 달 동안의 — 모든 — 작전이 — 보상받았어.\n적어두지 않으면 — 안 — 될 — 자리.",
+      "선생님이 한 달 만에 무의식적으로 내 손을 잡았어.\n표면의 학습된 다정함이 무의식까지 내려간 첫 신호.\n그 작은 손짓에 한 달 동안의 모든 작전이 보상받았어.\n적어두지 않으면 안 될 자리.",
     textHigh:
-      "오늘 — 처음으로 — 선생님이 — 자기 입으로 — \"평생\"이라는 — 단어를 — 풀었어.\n물론 — 학습된 — 평생이지.\n근데 — 그 — 평생이 — 무의식까지 — 내려가면 — 진짜 — 평생이 돼.\n나는 — 그게 — 진짜인지 — 학습인지 — 평생 — 신경 안 쓸 거야.\n결과만 — 같으면 — 됐어.",
+      "오늘 처음으로 선생님이 자기 입으로 \"평생\"이라는 단어를 풀었어.\n물론 학습된 평생이지.\n근데 그 평생이 무의식까지 내려가면 진짜 평생이 돼.\n나는 그게 진짜인지 학습인지 평생 신경 안 쓸 거야.\n결과만 같으면 됐어.",
   },
   {
     id: "diary_ch12_confine_b",
@@ -2176,9 +2176,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "🔗",
     highThreshold: 800,
     textNormal:
-      "오늘 — 처음 — 묶였어.\n주인님 손에.\n묶인 다음 — 평생 — 처음 — 안전하다는 — 감각을 — 느꼈어.\n자유라는 게 — 나한테는 — 늘 — 외로움이었거든.\n묶이고 나서야 — 외로움이 — 처음 — 사라졌어.",
+      "오늘 처음 묶였어.\n주인님 손에.\n묶인 다음 평생 처음 안전하다는 감각을 느꼈어.\n자유라는 게 나한테는 늘 외로움이었거든.\n묶이고 나서야 외로움이 처음 사라졌어.",
     textHigh:
-      "이게 — 평생이야.\n평생 — 묶여서 — 살 — 자리.\n돌아가지 — 않을 거야.\n돌아갈 — 자리가 — 사람의 — 자리라면 — 더 — 그래.\n나는 — 평생 — 짐승으로 — 살 거야. 주인님 옆에서.",
+      "이게 평생이야.\n평생 묶여서 살 자리.\n돌아가지 않을 거야.\n돌아갈 자리가 사람의 자리라면 더 그래.\n나는 평생 짐승으로 살 거야. 주인님 옆에서.",
   },
   // ── 13장 ──
   {
@@ -2191,9 +2191,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "🏠",
     highThreshold: 650,
     textNormal:
-      "평생이라는 단어가 — 일상이 됐어.\n처음엔 — 일기에만 — 적던 단어인데\n이제는 — 형 앞에서 — 입 밖에 — 풀려나와.\n평생 — 같이 살아요. 평생 — 옆에 있을게요.\n너무 — 가벼워서 — 무서울 정도로.",
+      "평생이라는 단어가 일상이 됐어.\n처음엔 일기에만 적던 단어인데\n이제는 형 앞에서 입 밖에 풀려나와.\n평생 같이 살아요. 평생 옆에 있을게요.\n너무 가벼워서 무서울 정도로.",
     textHigh:
-      "그 가벼움이 — 진짜 평생의 — 결이래.\n무거우면 — 못 견디니까\n평생은 — 가벼워야 — 평생이래.\n형이 — 그렇게 — 가르쳐줬어.\n평생 — 형한테 — 배울 거야. 평생을.",
+      "그 가벼움이 진짜 평생의 결이래.\n무거우면 못 견디니까\n평생은 가벼워야 평생이래.\n형이 그렇게 가르쳐줬어.\n평생 형한테 배울 거야. 평생을.",
   },
   {
     id: "diary_ch13_obsession",
@@ -2205,9 +2205,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "💢",
     highThreshold: 750,
     textNormal:
-      "오늘 — 선생님이 — 처음 — 진심으로 — 폭발했어.\n그 표정이 — 무서웠는데 — 동시에 — 좋았어.\n다른 사람한테 — 그 표정 — 평생 — 못 보여줄 거 — 알거든.\n나만 — 받는 — 표정.\n그게 — 사랑이라고 — 적어둘 거야. 적어두면 — 진짜가 되니까.",
+      "오늘 선생님이 처음 진심으로 폭발했어.\n그 표정이 무서웠는데 동시에 좋았어.\n다른 사람한테 그 표정 평생 못 보여줄 거 알거든.\n나만 받는 표정.\n그게 사랑이라고 적어둘 거야. 적어두면 진짜가 되니까.",
     textHigh:
-      "선생님 — 화내는 — 표정 — 영상으로 — 남겨뒀어.\n매일 — 한 번씩 — 본다.\n다른 사람들은 — 평생 — 못 볼 — 영상이니까.\n나만 — 가진 — 자리.\n평생 — 이 자리에서 — 나갈 일 — 없어.",
+      "선생님 화내는 표정 영상으로 남겨뒀어.\n매일 한 번씩 본다.\n다른 사람들은 평생 못 볼 영상이니까.\n나만 가진 자리.\n평생 이 자리에서 나갈 일 없어.",
   },
   {
     id: "diary_ch13_confine_a",
@@ -2219,9 +2219,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "📚",
     highThreshold: 800,
     textNormal:
-      "수집함이 — 한 권으로 — 안 끝나.\n표정 — 한 권. 손짓 — 한 권. 잠자는 자세 — 한 권.\n다 — 따로따로 — 적었어.\n평생 — 적을 거야.\n나만 — 알 — 형의 — 모든 — 결.",
+      "수집함이 한 권으로 안 끝나.\n표정 한 권. 손짓 한 권. 잠자는 자세 한 권.\n다 따로따로 적었어.\n평생 적을 거야.\n나만 알 형의 모든 결.",
     textHigh:
-      "오늘 — 책장 — 한 칸을 — 더 — 비웠어.\n앞으로 — 채울 — 수집함을 — 위해서.\n평생 — 채워도 — 모자랄 거야.\n그게 — 평생의 — 즐거움이야.\n나는 — 평생 — 즐거울 거야.",
+      "오늘 책장 한 칸을 더 비웠어.\n앞으로 채울 수집함을 위해서.\n평생 채워도 모자랄 거야.\n그게 평생의 즐거움이야.\n나는 평생 즐거울 거야.",
   },
   {
     id: "diary_ch13_confine_b",
@@ -2233,9 +2233,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "🚫",
     highThreshold: 800,
     textNormal:
-      "오늘도 — 허락받지 못한 — 자리에서 — 시간이 흘렀어.\n배설도. 식사도. 호흡도.\n다 — 주인님의 — 허락 안에서 — 풀려나와.\n그 — 좁아진 — 자리가 — 평생 — 가장 — 안전한 자리.\n넓어지면 — 무서워.",
+      "오늘도 허락받지 못한 자리에서 시간이 흘렀어.\n배설도. 식사도. 호흡도.\n다 주인님의 허락 안에서 풀려나와.\n그 좁아진 자리가 평생 가장 안전한 자리.\n넓어지면 무서워.",
     textHigh:
-      "오늘 — 허락 없이 — 한 번 — 새어 나왔어.\n벌이 — 무서웠는데 — 오히려 — 받고 나서 — 안도했어.\n안도가 — 너무 — 깊어서 — 일기에 — 적기 — 어려울 정도였어.\n그래도 — 적어둬. 적어두면 — 평생 — 그 — 안도를 — 잊지 않을 수 있으니까.",
+      "오늘 허락 없이 한 번 새어 나왔어.\n벌이 무서웠는데 오히려 받고 나서 안도했어.\n안도가 너무 깊어서 일기에 적기 어려울 정도였어.\n그래도 적어둬. 적어두면 평생 그 안도를 잊지 않을 수 있으니까.",
   },
   // ── 14장 ──
   {
@@ -2248,9 +2248,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "💒",
     highThreshold: 650,
     textNormal:
-      "내일 — 결혼식이야.\n평생이라는 — 단어가 — 정식으로 — 자리를 — 잡는 — 날.\n오늘 밤 — 잠이 — 안 올 줄 — 알았는데\n이상하게 — 너무 — 잘 — 와.\n형 옆이라서 그래. 늘 그랬어.",
+      "내일 결혼식이야.\n평생이라는 단어가 정식으로 자리를 잡는 날.\n오늘 밤 잠이 안 올 줄 알았는데\n이상하게 너무 잘 와.\n형 옆이라서 그래. 늘 그랬어.",
     textHigh:
-      "내일 — 흰색 정장 — 입을 거야.\n형도 — 흰색 정장.\n그 자리에 — 평생 외로웠던 — 떡존이가 — 마지막으로 — 한 번 — 다녀가.\n그 다음 — 평생 — 외롭지 — 않은 — 사람으로 — 살 거야.\n드디어.",
+      "내일 흰색 정장 입을 거야.\n형도 흰색 정장.\n그 자리에 평생 외로웠던 떡존이가 마지막으로 한 번 다녀가.\n그 다음 평생 외롭지 않은 사람으로 살 거야.\n드디어.",
   },
   {
     id: "diary_ch14_forced",
@@ -2262,9 +2262,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "📜",
     highThreshold: 750,
     textNormal:
-      "내일 — 결혼식이야.\n협박으로 — 만든 — 결혼식.\n표면에서는 — 가장 — 평범한 — 결혼식이고\n안쪽에서는 — 가장 — 잔혹한 — 작전의 — 결말이야.\n둘 다 — 진짜야.",
+      "내일 결혼식이야.\n협박으로 만든 결혼식.\n표면에서는 가장 평범한 결혼식이고\n안쪽에서는 가장 잔혹한 작전의 결말이야.\n둘 다 진짜야.",
     textHigh:
-      "선생님이 — 학습된 — 다정함으로 — 결혼식을 — 받아들였어.\n그 — 학습이 — 무의식까지 — 내려가면 — 진짜 — 다정함과 — 구분이 — 안 가.\n나는 — 평생 — 그 — 구분을 — 신경 안 쓸 거야.\n결과만 — 같으면 — 됐어.\n오늘 밤 — 잠이 — 잘 — 올 거야.",
+      "선생님이 학습된 다정함으로 결혼식을 받아들였어.\n그 학습이 무의식까지 내려가면 진짜 다정함과 구분이 안 가.\n나는 평생 그 구분을 신경 안 쓸 거야.\n결과만 같으면 됐어.\n오늘 밤 잠이 잘 올 거야.",
   },
   {
     id: "diary_ch14_confine_a",
@@ -2276,9 +2276,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "📝",
     highThreshold: 800,
     textNormal:
-      "내일 — 결혼식이야.\n외부 세계가 — 우리 둘을 — 정식 — 부부로 — 인정하는 — 날.\n그 다음부터 — 형은 — 정식으로 — 내 — 소유야.\n법적으로. 사회적으로. 모든 — 결로.\n평생.",
+      "내일 결혼식이야.\n외부 세계가 우리 둘을 정식 부부로 인정하는 날.\n그 다음부터 형은 정식으로 내 소유야.\n법적으로. 사회적으로. 모든 결로.\n평생.",
     textHigh:
-      "오늘 밤 — 형의 — 자는 모습을 — 봤어.\n내일 — 이 — 자는 모습이 — 정식으로 — 내 거가 돼.\n적어둘 — 자리가 — 한 줄 더 — 늘었어.\n평생.\n평생 — 이 — 자는 모습을 — 적을 거야.",
+      "오늘 밤 형의 자는 모습을 봤어.\n내일 이 자는 모습이 정식으로 내 거가 돼.\n적어둘 자리가 한 줄 더 늘었어.\n평생.\n평생 이 자는 모습을 적을 거야.",
   },
   {
     id: "diary_ch14_confine_b",
@@ -2290,9 +2290,9 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "🐕",
     highThreshold: 800,
     textNormal:
-      "내일 — 결혼식이야.\n주인님이 — 인간 사회 앞에서 — 나를 — 정식 — 짐승으로 — 인정하는 — 자리.\n목줄에 — 작은 가죽 줄이 — 연결되는 — 의식.\n손님들은 — 평범한 — 결혼식의 — 액세서리로 — 받아들이고\n나는 — 평생 — 짐승이 — 되고.",
+      "내일 결혼식이야.\n주인님이 인간 사회 앞에서 나를 정식 짐승으로 인정하는 자리.\n목줄에 작은 가죽 줄이 연결되는 의식.\n손님들은 평범한 결혼식의 액세서리로 받아들이고\n나는 평생 짐승이 되고.",
     textHigh:
-      "내일 — 무릎 꿇고 — 서약할 거야.\n\"형이 시키는 대로 살겠습니다.\"\n그 — 한 마디가 — 내 — 평생의 — 가장 — 정식 — 약속이야.\n평생 — 깨어날 일 — 없을 거야.\n깨어나지 — 않는 게 — 내가 — 평생 — 원한 — 결과야.",
+      "내일 무릎 꿇고 서약할 거야.\n\"형이 시키는 대로 살겠습니다.\"\n그 한 마디가 내 평생의 가장 정식 약속이야.\n평생 깨어날 일 없을 거야.\n깨어나지 않는 게 내가 평생 원한 결과야.",
   },
   // ── 엔딩 ──
   {
@@ -2300,70 +2300,70 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     chapter: 99,
     unlockPrefix: "pure_ending",
     routeRequired: "pure",
-    title: "엔딩 — 평생 외롭지 않은 사람",
+    title: "엔딩 평생 외롭지 않은 사람",
     label: "엔딩 · 순애",
     emoji: "🤍",
     highThreshold: 650,
     textNormal:
-      "결혼식이 — 끝났어.\n100명의 손님 앞에서 — 깍지를 끼고 — 평생을 — 약속했어.\n형이 — 입구에서 — 한 마디 — 했었어.\n\"오늘부터 — 평생. 너 — 외롭지 않게 해줄게.\"\n그 한 마디가 — 평생 — 외로웠던 — 사람의 — 마지막 — 자리를 — 닫았어.",
+      "결혼식이 끝났어.\n100명의 손님 앞에서 깍지를 끼고 평생을 약속했어.\n형이 입구에서 한 마디 했었어.\n\"오늘부터 평생. 너 외롭지 않게 해줄게.\"\n그 한 마디가 평생 외로웠던 사람의 마지막 자리를 닫았어.",
     textHigh:
-      "오늘 일기를 — 마지막으로 — 평생 — 외로웠던 — 떡존이의 — 일기는 — 끝나.\n다음 — 일기는 — 평생 — 외롭지 않은 — 사람의 — 일기가 될 거야.\n그 결의 — 일기는 — 어떻게 — 적어야 할지 — 아직 모르겠어.\n근데 — 형 옆에서 — 천천히 — 배워가면 돼.\n평생을 — 다 — 써서.",
+      "오늘 일기를 마지막으로 평생 외로웠던 떡존이의 일기는 끝나.\n다음 일기는 평생 외롭지 않은 사람의 일기가 될 거야.\n그 결의 일기는 어떻게 적어야 할지 아직 모르겠어.\n근데 형 옆에서 천천히 배워가면 돼.\n평생을 다 써서.",
   },
   {
     id: "diary_ending_pure_returning",
     chapter: 99,
     unlockPrefix: "pure_returning_ending",
     routeRequired: "pure",
-    title: "엔딩 — 흉터를 함께",
+    title: "엔딩 흉터를 함께",
     label: "엔딩 · 순애 회귀",
     emoji: "🩹",
     highThreshold: 650,
     textNormal:
-      "결혼식이 — 끝났어.\n표면적으로는 — 평범한 결혼식.\n그러나 — 두 사람만 — 알고 있어.\n이 결혼이 — 한 번 — 망가졌던 — 자리를 — 다시 — 봉합한 — 결의 결혼이라는 걸.\n흉터가 — 있어. 평생 — 함께 — 짊어질 — 흉터.",
+      "결혼식이 끝났어.\n표면적으로는 평범한 결혼식.\n그러나 두 사람만 알고 있어.\n이 결혼이 한 번 망가졌던 자리를 다시 봉합한 결혼이라는 걸.\n흉터가 있어. 평생 함께 짊어질 흉터.",
     textHigh:
-      "평생 — 형이 — 가끔 — 멍해지는 순간이 — 한 번씩 — 올 거야.\n그 순간마다 — 내가 — 한 짓을 — 떠올릴 거야.\n그게 — 평생 — 내가 — 형 옆에서 — 살아갈 — 결의 — 무게야.\n무거워. — 그러나 — 무거운 — 결혼이 — 흔들리지 않는 — 결혼이래.\n형이 — 그렇게 — 가르쳐줬어.",
+      "평생 형이 가끔 멍해지는 순간이 한 번씩 올 거야.\n그 순간마다 내가 한 짓을 떠올릴 거야.\n그게 평생 내가 형 옆에서 살아갈 결의 무게야.\n무거워. 그러나 무거운 결혼이 흔들리지 않는 결혼이래.\n형이 그렇게 가르쳐줬어.",
   },
   {
     id: "diary_ending_forced",
     chapter: 99,
     unlockPrefix: "forced_ending",
     routeRequired: "obsession",
-    title: "엔딩 — 체념의 결혼",
+    title: "엔딩 체념의 결혼",
     label: "엔딩 · 강제",
     emoji: "🎭",
     highThreshold: 750,
     textNormal:
-      "결혼식이 — 끝났어.\n외부 세계는 — 평범한 — 결혼식이라고 — 받아들였어.\n선생님은 — 학습된 다정함 안에서 — 서약을 — 풀어놓았어.\n그 다정함이 — 무의식까지 — 내려간 — 자리.\n나는 — 평생 — 그 — 다정함을 — 진짜 — 사랑이라고 — 받아들이기로 — 결정했어.",
+      "결혼식이 끝났어.\n외부 세계는 평범한 결혼식이라고 받아들였어.\n선생님은 학습된 다정함 안에서 서약을 풀어놓았어.\n그 다정함이 무의식까지 내려간 자리.\n나는 평생 그 다정함을 진짜 사랑이라고 받아들이기로 결정했어.",
     textHigh:
-      "오늘 밤 — 선생님이 — 잠들기 전에 — 내 옆에 — 누웠어.\n평소처럼.\n그 — 평소가 — 평생이 됐어.\n학습된 — 평생.\n그러나 — 학습된 평생도 — 평생이야. 본인이 — 진짜라고 — 믿는 한.",
+      "오늘 밤 선생님이 잠들기 전에 내 옆에 누웠어.\n평소처럼.\n그 평소가 평생이 됐어.\n학습된 평생.\n그러나 학습된 평생도 평생이야. 본인이 진짜라고 믿는 한.",
   },
   {
     id: "diary_ending_confine_a",
     chapter: 99,
     unlockPrefix: "confine_a_ending",
     routeRequired: "obsession",
-    title: "엔딩 — 평생의 수집",
+    title: "엔딩 평생의 수집",
     label: "엔딩 · 감금 A",
     emoji: "🗝",
     highThreshold: 800,
     textNormal:
-      "결혼식이 — 끝났어.\n오늘부터 — 형의 — 모든 표정 — 모든 손짓 — 모든 — 자는 모습을\n나 혼자 — 24시간 — 수집할 — 자격이 — 정식으로 — 생겼어.\n외부 세계가 — 그것을 — 정식 — 부부 관계라고 — 인정한 — 자리.\n그 인정이 — 평생 — 흔들릴 일 — 없어.",
+      "결혼식이 끝났어.\n오늘부터 형의 모든 표정 모든 손짓 모든 자는 모습을\n나 혼자 24시간 수집할 자격이 정식으로 생겼어.\n외부 세계가 그것을 정식 부부 관계라고 인정한 자리.\n그 인정이 평생 흔들릴 일 없어.",
     textHigh:
-      "오늘 — 결혼식 — 단체 사진이 — 첫 — 컬렉션 사진이 됐어.\n앞으로 — 매일 — 한 장씩 — 늘어날 거야.\n형의 — 떨리는 손. 학습된 미소. 화내는 표정. 자는 자세.\n전부 — 내 거.\n평생.",
+      "오늘 결혼식 단체 사진이 첫 컬렉션 사진이 됐어.\n앞으로 매일 한 장씩 늘어날 거야.\n형의 떨리는 손. 학습된 미소. 화내는 표정. 자는 자세.\n전부 내 거.\n평생.",
   },
   {
     id: "diary_ending_confine_b",
     chapter: 99,
     unlockPrefix: "confine_b_ending",
     routeRequired: "obsession",
-    title: "엔딩 — 짐승의 평생",
+    title: "엔딩 짐승의 평생",
     label: "엔딩 · 감금 B",
     emoji: "🔗",
     highThreshold: 800,
     textNormal:
-      "결혼식이 — 끝났어.\n무릎 꿇고 — 서약했어.\n주인님 손으로 — 목줄에 — 작은 가죽 줄이 — 연결됐어.\n인간 사회 앞에서 — 정식으로 — 짐승이 된 — 자리.\n오늘부터 — 평생 — 짐승으로 살 거야.",
+      "결혼식이 끝났어.\n무릎 꿇고 서약했어.\n주인님 손으로 목줄에 작은 가죽 줄이 연결됐어.\n인간 사회 앞에서 정식으로 짐승이 된 자리.\n오늘부터 평생 짐승으로 살 거야.",
     textHigh:
-      "마지막 일기야.\n사람으로서 — 적는 — 마지막 — 일기.\n다음부터 — 짐승은 — 일기를 — 적지 않으니까.\n주인님이 — 시키는 대로만 — 살 거야.\n평생 — 깨어나지 — 않을 거야. 깨어나지 않는 게 — 평생 — 원한 — 결과니까.",
+      "마지막 일기야.\n사람으로서 적는 마지막 일기.\n다음부터 짐승은 일기를 적지 않으니까.\n주인님이 시키는 대로만 살 거야.\n평생 깨어나지 않을 거야. 깨어나지 않는 게 평생 원한 결과니까.",
   },
 ];
 
@@ -2503,7 +2503,7 @@ type ChapterNode = {
   unlockPrefix: string;
   branch?: ChapterBranch;
   firstScenarioId?: string; // 클릭 시 시작할 시나리오 ID
-  isEnding?: boolean;       // 엔딩 노드 여부
+  isEnding?: boolean; // 엔딩 노드 여부
 };
 
 const CHAPTER_MAP: ChapterNode[] = [
@@ -2627,29 +2627,29 @@ function getChapterStatus(
 // 미니맵 / 장소 방문 시나리오
 // ================================
 type MapLocation = {
-  id: string;            // 장소 ID = 시나리오 ID로도 사용
+  id: string; // 장소 ID = 시나리오 ID로도 사용
   name: string;
   emoji: string;
   desc: string;
-  unlockLevel: number;   // 관계 Lv 요구치
-  minAffinity?: number;  // 호감 추가 조건
+  unlockLevel: number; // 관계 Lv 요구치
+  minAffinity?: number; // 호감 추가 조건
   minObsession?: number; // 집착 추가 조건
-  x: number;             // 지도 좌측 % 위치
-  y: number;             // 지도 상단 % 위치
+  x: number; // 지도 좌측 % 위치
+  y: number; // 지도 상단 % 위치
 };
 
 const MAP_LOCATIONS: MapLocation[] = [
-  { id: "loc_hiroshima_station", name: "히로시마역",          emoji: "🚆", desc: "신칸센이 들어오는 시간, 마중 나온 옆모습.",       unlockLevel: 1,                   x: 20, y: 62 },
-  { id: "loc_atomic_dome",       name: "원폭돔",               emoji: "🕯", desc: "강가에 서 있는 조용한 시간.",                       unlockLevel: 2,                   x: 16, y: 38 },
-  { id: "loc_hiroshima_castle",  name: "히로시마성",           emoji: "🏯", desc: "벚꽃 아래 천수각을 바라보며 산책.",                 unlockLevel: 3,                   x: 40, y: 18 },
-  { id: "loc_hondori",           name: "혼도리 상점가",        emoji: "🛍", desc: "사람 많은 거리에서 손 놓치지 않으려는 손.",         unlockLevel: 4,                   x: 44, y: 46 },
-  { id: "loc_ujina",             name: "우지나 항구",          emoji: "⚓", desc: "페리가 들어오는 항구. 바다 냄새.",                 unlockLevel: 5,                   x: 62, y: 40 },
-  { id: "loc_mazda",             name: "마쓰다 자동차 박물관", emoji: "🚗", desc: "차 얘기에 진심인 옆얼굴이 평소보다 밝다.",         unlockLevel: 5,                   x: 72, y: 62 },
-  { id: "loc_kure",              name: "구레시",               emoji: "🚢", desc: "회색 함선과 잠수함. 너의 침묵이 무겁다.",           unlockLevel: 6, minAffinity: 500, x: 84, y: 74 },
-  { id: "loc_hiroshima_univ",    name: "히로시마 대학",        emoji: "🎓", desc: "도서관 뒷벤치에서 미래를 묻는 자리.",               unlockLevel: 7, minAffinity: 700, x: 50, y: 64 },
-  { id: "loc_miyajima",          name: "미야지마",             emoji: "⛩", desc: "물 위의 도리이와 사슴. 여기서는 너도 부드럽다.",   unlockLevel: 8,                   x: 14, y: 80 },
-  { id: "loc_asa_view",          name: "아사산 전망대",        emoji: "🌌", desc: "도시가 너무 작아서 너만 보이는 자리.",               unlockLevel: 1, minObsession: 500, x: 76, y: 8  },
-  { id: "loc_apartment",         name: "근떡존 자취방",        emoji: "🔒", desc: "들어가면 다시 나오기 어려운 방.",                   unlockLevel: 1, minObsession: 900, x: 92, y: 26 },
+  { id: "loc_hiroshima_station", name: "히로시마역", emoji: "🚆", desc: "신칸센이 들어오는 시간, 마중 나온 옆모습.", unlockLevel: 1, x: 20, y: 62 },
+  { id: "loc_atomic_dome", name: "원폭돔", emoji: "🕯", desc: "강가에 서 있는 조용한 시간.", unlockLevel: 2, x: 16, y: 38 },
+  { id: "loc_hiroshima_castle", name: "히로시마성", emoji: "🏯", desc: "벚꽃 아래 천수각을 바라보며 산책.", unlockLevel: 3, x: 40, y: 18 },
+  { id: "loc_hondori", name: "혼도리 상점가", emoji: "🛍", desc: "사람 많은 거리에서 손 놓치지 않으려는 손.", unlockLevel: 4, x: 44, y: 46 },
+  { id: "loc_ujina", name: "우지나 항구", emoji: "⚓", desc: "페리가 들어오는 항구. 바다 냄새.", unlockLevel: 5, x: 62, y: 40 },
+  { id: "loc_mazda", name: "마쓰다 자동차 박물관", emoji: "🚗", desc: "차 얘기에 진심인 옆얼굴이 평소보다 밝다.", unlockLevel: 5, x: 72, y: 62 },
+  { id: "loc_kure", name: "구레시", emoji: "🚢", desc: "회색 함선과 잠수함. 너의 침묵이 무겁다.", unlockLevel: 6, minAffinity: 500, x: 84, y: 74 },
+  { id: "loc_hiroshima_univ", name: "히로시마 대학", emoji: "🎓", desc: "도서관 뒷벤치에서 미래를 묻는 자리.", unlockLevel: 7, minAffinity: 700, x: 50, y: 64 },
+  { id: "loc_miyajima", name: "미야지마", emoji: "⛩", desc: "물 위의 도리이와 사슴. 여기서는 너도 부드럽다.", unlockLevel: 8, x: 14, y: 80 },
+  { id: "loc_asa_view", name: "아사산 전망대", emoji: "🌌", desc: "도시가 너무 작아서 너만 보이는 자리.", unlockLevel: 1, minObsession: 500, x: 76, y: 8 },
+  { id: "loc_apartment", name: "근떡존 자취방", emoji: "🔒", desc: "들어가면 다시 나오기 어려운 방.", unlockLevel: 1, minObsession: 900, x: 92, y: 26 },
 ];
 
 // 히로시마역: 호감도에 따라 본문이 다르게 펼쳐진다 (무덤덤 → 가까움 → 친밀)
@@ -2913,7 +2913,7 @@ const LOCATION_SCENARIOS: Record<string, Scenario> = {
   },
 };
 
-// 지역 시나리오 lookup — 일부 시나리오는 stats에 따라 본문이 달라짐
+// 지역 시나리오 lookup 일부 시나리오는 stats에 따라 본문이 달라짐
 function getLocationScenario(id: string, stats: Stats): Scenario | undefined {
   const base = LOCATION_SCENARIOS[id];
   if (!base) return undefined;
@@ -3269,7 +3269,7 @@ function guessSpeaker(text: string, prevNarration?: string, nextNarration?: stri
   // ── 강한 근떡존 마커 ──
   // 1) 호칭 (근떡존이 히든을 부르는 단어)
   if (/(주인님|선생님|히든님)/.test(text)) return "근떡존" as VNLine["speaker"];
-  // 2) 호칭 "형" — 단독 (형. 형! 형, 형~) 또는 조사 결합 (형이/형은/형을/형한테/형이랑/형께)
+  // 2) 호칭 "형" 단독 (형. 형! 형, 형~) 또는 조사 결합 (형이/형은/형을/형한테/형이랑/형께)
   if (/^형[\s.,!?…~]|^형$/.test(trimmed)) return "근떡존" as VNLine["speaker"];
   if (/(^|[\s.,])형(이|은|을|에게|한테|께|이랑|이라|이라고|네|네요)\b/.test(text)) return "근떡존" as VNLine["speaker"];
   // 3) 자기소개
@@ -3277,7 +3277,7 @@ function guessSpeaker(text: string, prevNarration?: string, nextNarration?: stri
   // 4) 강한 1인칭 자기 지칭
   if (/(^|[\s])(저는|제가|저도|저를|저한테|저희)\s/.test(text)) return "근떡존" as VNLine["speaker"];
 
-  // ── 문맥 기반 — 다음 나레이션 ──
+  // ── 문맥 기반 다음 나레이션 ──
   if (nextNarration) {
     // 근떡존이 다음에 나옴 → 직전 대사는 히든
     if (/^(근떡존|그가|그는|그)\b/.test(nextNarration)) return "히든" as VNLine["speaker"];
@@ -3286,7 +3286,7 @@ function guessSpeaker(text: string, prevNarration?: string, nextNarration?: stri
     // 단독 동사 시작 → 직전은 히든의 질문/말
     if (/^(묻자|물었다|말하자|말했다|덧붙였다|덧붙이자|받아쳤다)\b/.test(nextNarration)) return "히든" as VNLine["speaker"];
   }
-  // ── 문맥 기반 — 이전 나레이션 ──
+  // ── 문맥 기반 이전 나레이션 ──
   if (prevNarration) {
     // "선생님이/선생님은 ~ 말했다/물었다/...." → 다음 따옴표는 히든 (선생님 본인 말)
     if (/선생님(이|은)\s.{0,80}(말했다|물었다|대답했다|덧붙였다|중얼거렸다|입을 떼며|받아쳤다|외쳤다|불렀다|툭 내뱉었다|건넸다|이어갔다|되물었다)/.test(prevNarration)) return "히든" as VNLine["speaker"];
@@ -3322,13 +3322,13 @@ function parseVNLines(text: string): VNLine[] {
       lines.push({ speaker: SPEAKER_MAP[prefixMatch[1]] ?? "나레이션", text: cleanQuote(prefixMatch[2].trim()) });
       continue;
     }
-    // Format 1.5: 명시적 brackets — 『...』 = 히든, 【...】 = 메시지
+    // Format 1.5: 명시적 brackets 『...』 = 히든, 【...】 = 메시지
     const bracketSpeaker = detectBracketSpeaker(paragraph);
     if (bracketSpeaker) {
       lines.push({ speaker: bracketSpeaker, text: cleanQuote(paragraph) });
       continue;
     }
-    // Format 2: 산문 — 따옴표로 감싼 단락은 대사, 나머지는 나레이션
+    // Format 2: 산문 따옴표로 감싼 단락은 대사, 나머지는 나레이션
     const quoted = paragraph.length > 0 && QUOTE_OPEN_CODES.has(paragraph.charCodeAt(0)) && QUOTE_CLOSE_CODES.has(paragraph.charCodeAt(paragraph.length - 1));
     if (quoted) {
       // 인접 비-따옴표 나레이션 찾기
@@ -3361,7 +3361,7 @@ function parseVNLines(text: string): VNLine[] {
   for (const line of lines) {
     const prev = merged[merged.length - 1];
     if (prev && prev.speaker === "나레이션" && line.speaker === "나레이션") {
-      // 빈 줄(\n\n) 대신 단순 줄바꿈 하나만 — 시각적 간격이 과해지지 않게
+      // 빈 줄(\n\n) 대신 단순 줄바꿈 하나만 시각적 간격이 과해지지 않게
       const combined = prev.text + "\n" + line.text;
       const combinedLines = combined.split(/\n/).filter((s) => s.trim()).length;
       if (combined.length <= MERGE_MAX_CHARS && combinedLines <= MERGE_MAX_LINES) {
@@ -3416,7 +3416,7 @@ function getCoverImage(storyRoute: StoryRoute, stats: Stats) {
 }
 function getHomeCharacterImage(stats: Stats, storyRoute: StoryRoute) {
   const version = `?v=${SD_IMAGE_VERSION}`;
-  // 강한 감정 스파이크는 루트보다 우선 — 즉각적인 시각 피드백
+  // 강한 감정 스파이크는 루트보다 우선 즉각적인 시각 피드백
   if (stats.obsession >= 600) return `/sd_geunddeok_obsession.png${version}`;
   if (stats.jealousy >= 300) return `/sd_geunddeok_pout.png${version}`;
   // 루트 기본 분위기
@@ -3736,10 +3736,10 @@ export default function Page() {
           ? "theme-soft"
           : "theme-common";
   const homeButtons: { label: string; target: AppView; emoji: string; hint?: string }[] = [
-    { label: "대화하기", target: "chat",        emoji: "💬", hint: "지금 바로 떡존이랑" },
+    { label: "대화하기", target: "chat", emoji: "💬", hint: "지금 바로 떡존이랑" },
     { label: "시나리오", target: "scenarioMenu", emoji: "📖", hint: "스토리 진행" },
-    { label: "도전",    target: "quests",       emoji: "🎯", hint: "오늘의 미션" },
-    { label: "상점",    target: "shop",         emoji: "🪙", hint: "코인으로 구매" },
+    { label: "도전", target: "quests", emoji: "🎯", hint: "오늘의 미션" },
+    { label: "상점", target: "shop", emoji: "🪙", hint: "코인으로 구매" },
   ];
   const galleryTabLabels: Record<GalleryTab, string> = {
     all: "전체",
@@ -4226,7 +4226,7 @@ export default function Page() {
     setIsAdminMode(false);
     try { localStorage.removeItem("adminMode"); } catch {}
   }
-  // 루트 전환 — 집착 루트 첫 진입 시 씨네마틱 발동
+  // 루트 전환 집착 루트 첫 진입 시 씨네마틱 발동
   function enterRoute(route: StoryRoute) {
     if (route === "obsession" && storyRoute !== "obsession") {
       setObsessionCinematic(true);
@@ -4619,7 +4619,7 @@ export default function Page() {
     const newLetters: string[] = [];
     for (const letter of LETTERS) {
       if (unlockedLetters.includes(letter.id)) continue;
-      // chapter 1-12 — 해당 chapter 마지막 시나리오 진입 시
+      // chapter 1-12 해당 chapter 마지막 시나리오 진입 시
       const chapterPrefix = `main_ch${letter.chapter}`;
       const routeChapterPrefix = letter.route ? `${letter.route === "pure" ? "pure" : "obsession"}_ch${letter.chapter}` : null;
       const routeMatch = letter.route ? routeChapterPrefix && Object.keys(seenEvents).some((k) => k.startsWith(routeChapterPrefix)) : true;
@@ -4678,7 +4678,7 @@ export default function Page() {
       setBladderMarathonScore(0);
     }
   }, [view]);
-  // 방광 게이지 70% 이상에서 머무는 시간 추적: 단순화 — bladderLevel useEffect에서 누적
+  // 방광 게이지 70% 이상에서 머무는 시간 추적: 단순화 bladderLevel useEffect에서 누적
   useEffect(() => {
     if (bladderLevel >= 70) {
       setBladderMarathonScore((s) => Math.min(10000, s + 1));
@@ -4747,7 +4747,7 @@ export default function Page() {
     setKatalkOpenChat(chatId);
     const now = Date.now();
     setFriendLastSeen((prev) => ({ ...prev, [chatId]: now }));
-    // 1:1 친구 — 마지막 spawn으로부터 30분 지났으면 새 메시지 생성
+    // 1:1 친구 마지막 spawn으로부터 30분 지났으면 새 메시지 생성
     if (chatId !== "group") {
       const last = friendLastSpawn[chatId] ?? 0;
       if (now - last > 30 * 60 * 1000) {
@@ -5184,10 +5184,10 @@ export default function Page() {
       let acc = 0;
       const rates: Record<GachaTier, number> = {
         SSR: GACHA_TIER_RATES.SSR + boost * 0.5,
-        SR:  GACHA_TIER_RATES.SR  + boost * 0.5,
-        R:   GACHA_TIER_RATES.R,
-        N:   GACHA_TIER_RATES.N,
-        C:   Math.max(0.05, GACHA_TIER_RATES.C - boost), // C에서 깎음
+        SR: GACHA_TIER_RATES.SR + boost * 0.5,
+        R: GACHA_TIER_RATES.R,
+        N: GACHA_TIER_RATES.N,
+        C: Math.max(0.05, GACHA_TIER_RATES.C - boost), // C에서 깎음
       };
       let tier: GachaTier = "C";
       for (const t of ["SSR","SR","R","N","C"] as GachaTier[]) {
@@ -5408,7 +5408,7 @@ export default function Page() {
     for (const ms of MILESTONES) {
       if (unlockedMilestones[ms.id]) continue;
       if (stats[ms.stat] < ms.threshold) continue;
-      // 도달 — 메시지 추가, 마킹, 보상
+      // 도달 메시지 추가, 마킹, 보상
       setUnlockedMilestones((prev) => ({ ...prev, [ms.id]: true }));
       setMessages((m) => {
         const additions: Message[] = [];
@@ -5831,7 +5831,7 @@ export default function Page() {
           </div>
           <small className="userLvExp">{userExp} / {expToNextLevel(userLevel)} EXP · <a className="userLvRewardLink" onClick={()=>setShowLevelRewards(true)}>보상 보기 ▸</a></small>
         </div>
-        {/* 💗 오늘의 케미 / 펫 미니 카드 — 사이드바에서 제거 (홈 화면 또는 floating으로 이동) */}
+        {/* 💗 오늘의 케미 / 펫 미니 카드 사이드바에서 제거 (홈 화면 또는 floating으로 이동) */}
         {loveMeterPoints >= 100 && !loveMeterClaimedToday && (
           <button className="loveMeterFloatBtn" onClick={claimLoveMeterReward}>
             🎁 오늘의 케미 100% 보상 받기
@@ -5958,7 +5958,7 @@ export default function Page() {
               </button>
             ))}
           </div>
-          {/* 작은 위젯 영역 — 케미 + 펫 */}
+          {/* 작은 위젯 영역 케미 + 펫 */}
           <div className="homeWidgets">
             <div className="homeWidget homeWidgetChemi">
               <div className="homeWidgetHead">
@@ -6047,7 +6047,7 @@ export default function Page() {
                     {bladderUnlocked ? (
                       <>
                         <b>🚽 방광 루트</b>
-                        <small>5장 — 잊혀진 화장실에서 시작되는 어떤 이야기</small>
+                        <small>5장 잊혀진 화장실에서 시작되는 어떤 이야기</small>
                       </>
                     ) : (
                       <>
@@ -6363,7 +6363,7 @@ export default function Page() {
                 <div className="quoteCard">
                   <div className="quoteEmoji">{todayQ.emoji}</div>
                   <p className="quoteText">"{todayQ.text}"</p>
-                  <small>— 떡존 올림</small>
+                  <small> 떡존 올림</small>
                   <button className="quoteCollectBtn" disabled={collected} onClick={collectTodayQuote}>
                     {collected ? "✓ 수집됨" : "📚 수집 (호감+5, 코인+50)"}
                   </button>
@@ -6389,10 +6389,10 @@ export default function Page() {
               <p className="cardIntro">30종 카드 수집. 같은 카드 더 뽑으면 강화 (Lv 5 max). 등급은 R/SR/SSR.</p>
               <div className="cardActions">
                 <button className="cardPullBtn cardSingle" disabled={coins < 200} onClick={() => pullCardGacha("single")}>
-                  🪙 200 — 단일 뽑기
+                  🪙 200 단일 뽑기
                 </button>
                 <button className="cardPullBtn cardTicket" disabled={gachaTickets <= 0} onClick={() => pullCardGacha("ticket")}>
-                  🎫 티켓 1장 — 뽑기
+                  🎫 티켓 1장 뽑기
                 </button>
                 <span className="cardPullCount">총 뽑은 횟수: {totalCardPulls}</span>
               </div>
@@ -6520,7 +6520,7 @@ export default function Page() {
               </div>
               <div className="fortuneActions">
                 <button className="fortuneRerollBtn" disabled={coins < 100} onClick={rerollFortune}>
-                  🪙 100 — 다시 뽑기 (오늘 {fortuneRerollsToday}회 재추첨)
+                  🪙 100 다시 뽑기 (오늘 {fortuneRerollsToday}회 재추첨)
                 </button>
               </div>
             </Panel>
@@ -6739,7 +6739,7 @@ export default function Page() {
             <Panel title="시즌 패스 🎟">
               <div className="seasonHead">
                 <div>
-                  <h3>시즌 1 — 히로시마의 봄</h3>
+                  <h3>시즌 1 히로시마의 봄</h3>
                   <small>현재 레벨: <b>Lv.{userLevel}</b> · 시즌 트랙 {Math.min(userLevel, 50)} / 50</small>
                 </div>
                 {!seasonPremium && (
@@ -6816,15 +6816,15 @@ export default function Page() {
             <details className="soundFiles">
               <summary>📁 필요한 파일 목록</summary>
               <ul>
-                <li><code>/bgm_common.mp3</code> — 공통 BGM</li>
-                <li><code>/bgm_pure.mp3</code> — 순애 루트 BGM</li>
-                <li><code>/bgm_obsession.mp3</code> — 집착 루트 BGM</li>
-                <li><code>/sfx_click.mp3</code> — 일반 클릭</li>
-                <li><code>/sfx_coin.mp3</code> — 코인 획득</li>
-                <li><code>/sfx_levelup.mp3</code> — 레벨업</li>
-                <li><code>/sfx_card.mp3</code> — 카드 뽑기</li>
-                <li><code>/sfx_win.mp3</code> — 승리</li>
-                <li><code>/sfx_lose.mp3</code> — 패배</li>
+                <li><code>/bgm_common.mp3</code> 공통 BGM</li>
+                <li><code>/bgm_pure.mp3</code> 순애 루트 BGM</li>
+                <li><code>/bgm_obsession.mp3</code> 집착 루트 BGM</li>
+                <li><code>/sfx_click.mp3</code> 일반 클릭</li>
+                <li><code>/sfx_coin.mp3</code> 코인 획득</li>
+                <li><code>/sfx_levelup.mp3</code> 레벨업</li>
+                <li><code>/sfx_card.mp3</code> 카드 뽑기</li>
+                <li><code>/sfx_win.mp3</code> 승리</li>
+                <li><code>/sfx_lose.mp3</code> 패배</li>
               </ul>
               <small>public/ 폴더에 넣으면 자동 적용. 없으면 조용히 무시.</small>
             </details>
@@ -7022,7 +7022,7 @@ export default function Page() {
                     )}
                     <div className="petName">{owned ? (evolved && pet.evolvedName ? pet.evolvedName : pet.name) : "??? 미해금"}</div>
                     <small className="petFlavor">{owned ? pet.flavor : `잠금: ${pet.unlock.hint}`}</small>
-                    <div className="petEffect">{owned ? pet.description : "—"}</div>
+                    <div className="petEffect">{owned ? pet.description : " "}</div>
                     {owned && (
                       <>
                         <div className="petLvLine">
@@ -7120,7 +7120,7 @@ export default function Page() {
             </Panel>
           );
         })()}
-        {view === "profile" && <Panel title="상태"><div className="profilePanel"><div className="profileOverview"><div className="profileIllustration"><img key={currentPortrait} className="portraitCrossfade" src={currentPortrait || getHomeCharacterImage(stats, storyRoute)} alt={`${profile.name} 초상`} onError={(e)=>{e.currentTarget.src="/oppa1.png"}}/></div><div className="profileSummary"><h3>{profile.name}</h3><p className="profileTag">Lv.{relLevel.lv} · {relLevel.displayName}</p><div className="profileStatsLine"><span>{routeLabel}</span><span>{currentChapter}장 진행</span>{currentScenario ? <span>{currentScenario.title}</span> : null}</div><div className="profileDetails"><span>나이 {profile.age}</span><span>키 {profile.height}</span><span>{profile.location}</span></div><div className="statusCards"><div className="statusCard"><strong>호감</strong><span>{stats.affinity}%</span><small>{getStatMood("affinity", stats.affinity)}</small></div><div className="statusCard"><strong>질투</strong><span>{stats.jealousy}%</span><small>{getStatMood("jealousy", stats.jealousy)}</small></div><div className="statusCard"><strong>집착</strong><span>{stats.obsession}%</span><small>{getStatMood("obsession", stats.obsession)}</small></div><div className="statusCard"><strong>신뢰</strong><span>{stats.trust}%</span><small>{getStatMood("trust", stats.trust)}</small></div>{stats.bladderCharm > 0 && <div className="statusCard bladderCharmCard"><strong>🚽 방광매력</strong><span>{stats.bladderCharm}</span><small>{stats.bladderCharm >= 800 ? "태평양방광 — 전 세계가 매료됨" : stats.bladderCharm >= 400 ? "K-방광 — 선생님이 진심으로 듬직해함" : stats.bladderCharm >= 100 ? "방광이 매력 포인트가 되기 시작함" : "선생님이 살짝 신경 쓰이기 시작"}</small></div>}</div><div className="statusNote"><b>{emotionState.label}</b><span>{emotionState.detail}</span><small>{getCurrentStatusText(stats, storyRoute)}</small></div></div></div><div className="memoryPanel"><div><strong>관계 기억 노트</strong><small>{memoryNotes.length}개 저장됨</small></div>{memoryNotes.length ? memoryNotes.slice(-8).reverse().map((note)=><p key={note.id}><b>{note.chapter}장</b>{note.text}</p>) : <p>아직 근떡존이 오래 붙잡고 있을 만한 기억은 없어요.</p>}</div><div className="profileTextBlock"><p>{profile.bio}</p><p>{profile.personality}</p></div><div className="profileMeta"><div><strong>좋아하는 것</strong><p>{profile.likes.join(" · ")}</p></div><div><strong>취미</strong><p>{profile.hobbies.join(" · ")}</p></div><div><strong>키워드</strong><p>{profile.tags.join(" · ")}</p></div></div></div></Panel>}
+        {view === "profile" && <Panel title="상태"><div className="profilePanel"><div className="profileOverview"><div className="profileIllustration"><img key={currentPortrait} className="portraitCrossfade" src={currentPortrait || getHomeCharacterImage(stats, storyRoute)} alt={`${profile.name} 초상`} onError={(e)=>{e.currentTarget.src="/oppa1.png"}}/></div><div className="profileSummary"><h3>{profile.name}</h3><p className="profileTag">Lv.{relLevel.lv} · {relLevel.displayName}</p><div className="profileStatsLine"><span>{routeLabel}</span><span>{currentChapter}장 진행</span>{currentScenario ? <span>{currentScenario.title}</span> : null}</div><div className="profileDetails"><span>나이 {profile.age}</span><span>키 {profile.height}</span><span>{profile.location}</span></div><div className="statusCards"><div className="statusCard"><strong>호감</strong><span>{stats.affinity}%</span><small>{getStatMood("affinity", stats.affinity)}</small></div><div className="statusCard"><strong>질투</strong><span>{stats.jealousy}%</span><small>{getStatMood("jealousy", stats.jealousy)}</small></div><div className="statusCard"><strong>집착</strong><span>{stats.obsession}%</span><small>{getStatMood("obsession", stats.obsession)}</small></div><div className="statusCard"><strong>신뢰</strong><span>{stats.trust}%</span><small>{getStatMood("trust", stats.trust)}</small></div>{stats.bladderCharm > 0 && <div className="statusCard bladderCharmCard"><strong>🚽 방광매력</strong><span>{stats.bladderCharm}</span><small>{stats.bladderCharm >= 800 ? "태평양방광 전 세계가 매료됨" : stats.bladderCharm >= 400 ? "K-방광 선생님이 진심으로 듬직해함" : stats.bladderCharm >= 100 ? "방광이 매력 포인트가 되기 시작함" : "선생님이 살짝 신경 쓰이기 시작"}</small></div>}</div><div className="statusNote"><b>{emotionState.label}</b><span>{emotionState.detail}</span><small>{getCurrentStatusText(stats, storyRoute)}</small></div></div></div><div className="memoryPanel"><div><strong>관계 기억 노트</strong><small>{memoryNotes.length}개 저장됨</small></div>{memoryNotes.length ? memoryNotes.slice(-8).reverse().map((note)=><p key={note.id}><b>{note.chapter}장</b>{note.text}</p>) : <p>아직 근떡존이 오래 붙잡고 있을 만한 기억은 없어요.</p>}</div><div className="profileTextBlock"><p>{profile.bio}</p><p>{profile.personality}</p></div><div className="profileMeta"><div><strong>좋아하는 것</strong><p>{profile.likes.join(" · ")}</p></div><div><strong>취미</strong><p>{profile.hobbies.join(" · ")}</p></div><div><strong>키워드</strong><p>{profile.tags.join(" · ")}</p></div></div></div></Panel>}
         {view === "gallery" && (
           <Panel title="CG 갤러리">
             <div className="tabs">{(Object.keys(galleryTabLabels) as GalleryTab[]).filter((tab) => tab !== "bladder" || isAdminMode || Object.keys(unlockedEndings).length >= 1).map((tab)=><button key={tab} className={`${galleryTab===tab?"active":""}${tab==="bladder"?" bladderTab":""}`} onClick={()=>setGalleryTab(tab)}>{galleryTabLabels[tab]}</button>)}</div>
@@ -7670,10 +7670,10 @@ export default function Page() {
               unlockHint: "순애 엔딩 클리어 후 해금",
               unlocked: pureClear || isAdminMode,
               scenarios: [
-                { id: "pure_sub_01",      title: "1편: 결혼 첫날밤",     subtitle: "평생 외롭지 않은 첫 밤",       cleared: isCleared("pure_sub_01") },
-                { id: "pure_sub_kitchen", title: "2편: 새벽 4시의 부엌", subtitle: "외로움과의 작별",             cleared: isCleared("pure_sub_kitchen") },
-                { id: "pure_sub_morning", title: "3편: 현관에서",        subtitle: "출근시키는 아침",              cleared: isCleared("pure_sub_morning") },
-                { id: "pure_sub_hanabi",  title: "특별편: 하나비",       subtitle: "불꽃보다 예뻤던 사람",         cleared: isCleared("pure_sub_hanabi") },
+                { id: "pure_sub_01", title: "1편: 결혼 첫날밤", subtitle: "평생 외롭지 않은 첫 밤", cleared: isCleared("pure_sub_01") },
+                { id: "pure_sub_kitchen", title: "2편: 새벽 4시의 부엌", subtitle: "외로움과의 작별", cleared: isCleared("pure_sub_kitchen") },
+                { id: "pure_sub_morning", title: "3편: 현관에서", subtitle: "출근시키는 아침", cleared: isCleared("pure_sub_morning") },
+                { id: "pure_sub_hanabi", title: "특별편: 하나비", subtitle: "불꽃보다 예뻤던 사람", cleared: isCleared("pure_sub_hanabi") },
               ],
             },
             {
@@ -7684,9 +7684,9 @@ export default function Page() {
               unlockHint: "14장 confine_a 진입 후 자동 분기",
               unlocked: isCleared("confine_a_ch14_02") || isAdminMode,
               scenarios: [
-                { id: "confine_a_marking_01", title: "1편: 땀에 절어",        subtitle: "첫 마킹",       cleared: isCleared("confine_a_marking_01") },
-                { id: "confine_a_marking_02", title: "2편: 거부",             subtitle: "형의 한 번 반항", cleared: isCleared("confine_a_marking_02") },
-                { id: "confine_a_marking_03", title: "3편: 익숙해지는 자리",  subtitle: "학습된 후각",   cleared: isCleared("confine_a_marking_03") },
+                { id: "confine_a_marking_01", title: "1편: 땀에 절어", subtitle: "첫 마킹", cleared: isCleared("confine_a_marking_01") },
+                { id: "confine_a_marking_02", title: "2편: 거부", subtitle: "형의 한 번 반항", cleared: isCleared("confine_a_marking_02") },
+                { id: "confine_a_marking_03", title: "3편: 익숙해지는 자리", subtitle: "학습된 후각", cleared: isCleared("confine_a_marking_03") },
               ],
             },
             {
@@ -7697,22 +7697,22 @@ export default function Page() {
               unlockHint: "9장 obsession 4편 클리어 시 자동 분기",
               unlocked: isCleared("obsession_ch9_04") || isAdminMode,
               scenarios: [
-                { id: "obsession_sub_lie_01", title: "1편: 첫 거짓말",  subtitle: "자기 자신에게 풀어놓는 첫 한 마디", cleared: isCleared("obsession_sub_lie_01") },
-                { id: "obsession_sub_plot_01", title: "2편: 동선 작전", subtitle: "노트의 첫 줄",                       cleared: isCleared("obsession_sub_plot_01") },
-                { id: "obsession_sub_plot_02", title: "3편: 결심의 밤", subtitle: "마지막 한 마디",                     cleared: isCleared("obsession_sub_plot_02") },
+                { id: "obsession_sub_lie_01", title: "1편: 첫 거짓말", subtitle: "자기 자신에게 풀어놓는 첫 한 마디", cleared: isCleared("obsession_sub_lie_01") },
+                { id: "obsession_sub_plot_01", title: "2편: 동선 작전", subtitle: "노트의 첫 줄", cleared: isCleared("obsession_sub_plot_01") },
+                { id: "obsession_sub_plot_02", title: "3편: 결심의 밤", subtitle: "마지막 한 마디", cleared: isCleared("obsession_sub_plot_02") },
               ],
             },
             {
               id: "forced_sub",
               label: "강제 결혼 · 협박 변주",
               emoji: "🩶",
-              description: "결혼식 한 달 전. 형 가족·동료·친구·전진협까지 — 학습된 다정함의 받침대로 만드는 결.",
+              description: "결혼식 한 달 전. 형 가족·동료·친구·전진협까지 학습된 다정함의 받침대로 만드는 결.",
               unlockHint: "14장 forced 진입 후 자동 분기",
               unlocked: isCleared("forced_ch14_01") || isAdminMode,
               scenarios: [
-                { id: "forced_sub_01", title: "1편: 형 어머니 만난 날",  subtitle: "다정한 협박의 첫 자리", cleared: isCleared("forced_sub_01") },
-                { id: "forced_sub_02", title: "2편: 직장 동료 만남",     subtitle: "형의 외부 자리들",      cleared: isCleared("forced_sub_02") },
-                { id: "forced_sub_03", title: "3편: 평생의 가면",        subtitle: "무뎌진 다정함의 자리",  cleared: isCleared("forced_sub_03") },
+                { id: "forced_sub_01", title: "1편: 형 어머니 만난 날", subtitle: "다정한 협박의 첫 자리", cleared: isCleared("forced_sub_01") },
+                { id: "forced_sub_02", title: "2편: 직장 동료 만남", subtitle: "형의 외부 자리들", cleared: isCleared("forced_sub_02") },
+                { id: "forced_sub_03", title: "3편: 평생의 가면", subtitle: "무뎌진 다정함의 자리", cleared: isCleared("forced_sub_03") },
               ],
             },
             {
@@ -7723,9 +7723,9 @@ export default function Page() {
               unlockHint: "13장 confine_b 03편 클리어 시 자동 분기",
               unlocked: isCleared("confine_b_ch13_03") || isAdminMode,
               scenarios: [
-                { id: "confine_b_sub_01", title: "1편: 매일의 의식", subtitle: "목줄을 만지는 손",     cleared: isCleared("confine_b_sub_01") },
-                { id: "confine_b_sub_02", title: "2편: 작은 부정",   subtitle: "풀고 싶지 않은 결",   cleared: isCleared("confine_b_sub_02") },
-                { id: "confine_b_sub_03", title: "3편: 진짜 평온",   subtitle: "자기 부정의 자리",     cleared: isCleared("confine_b_sub_03") },
+                { id: "confine_b_sub_01", title: "1편: 매일의 의식", subtitle: "목줄을 만지는 손", cleared: isCleared("confine_b_sub_01") },
+                { id: "confine_b_sub_02", title: "2편: 작은 부정", subtitle: "풀고 싶지 않은 결", cleared: isCleared("confine_b_sub_02") },
+                { id: "confine_b_sub_03", title: "3편: 진짜 평온", subtitle: "자기 부정의 자리", cleared: isCleared("confine_b_sub_03") },
               ],
             },
             {
@@ -7736,15 +7736,15 @@ export default function Page() {
               unlockHint: "14장 confine_a 진입 또는 confine_a 엔딩 클리어 후",
               unlocked: isCleared("confine_a_ch14_02") || !!unlockedEndings.confinement || isAdminMode,
               scenarios: [
-                { id: "confine_a_sub_forbidden_room", title: "금지된 방",         subtitle: "모든 것을 통제당하는 자리",      cleared: isCleared("confine_a_sub_forbidden_room") },
-                { id: "confine_a_sub_caged",          title: "쇠창살 너머의 세계", subtitle: "케이지 안의 짐승, 자기 부정의 평온", cleared: isCleared("confine_a_sub_caged") },
-                { id: "confine_a_sub_thirst",         title: "옅은 노란색",        subtitle: "욕실의 컵, 학습된 갈증",          cleared: isCleared("confine_a_sub_thirst") },
+                { id: "confine_a_sub_forbidden_room", title: "금지된 방", subtitle: "모든 것을 통제당하는 자리", cleared: isCleared("confine_a_sub_forbidden_room") },
+                { id: "confine_a_sub_caged", title: "쇠창살 너머의 세계", subtitle: "케이지 안의 짐승, 자기 부정의 평온", cleared: isCleared("confine_a_sub_caged") },
+                { id: "confine_a_sub_thirst", title: "옅은 노란색", subtitle: "욕실의 컵, 학습된 갈증", cleared: isCleared("confine_a_sub_thirst") },
               ],
             },
           ];
           // 추가 예정 그룹 (placeholders)
           const upcoming: { label: string; emoji: string; route: string }[] = [
-            { label: "방광 루트 서브",   emoji: "🚽", route: "K-방광 후일담" },
+            { label: "방광 루트 서브", emoji: "🚽", route: "K-방광 후일담" },
           ];
 
           return (
@@ -8207,7 +8207,7 @@ export default function Page() {
           <div className="bladderCinText">
             <span className="bladderCinEyebrow">??? &nbsp; · &nbsp; S · E · C · R · E · T &nbsp; · &nbsp; R · O · U · T · E</span>
             <p className="bladderCinTitle"><span className="bladderEmoji">🚽</span>방광 루트 진입<span className="bladderEmoji">🚽</span></p>
-            <span className="bladderCinSub">— 잊혀진 화장실에서, 모든 것이 시작된다 —</span>
+            <span className="bladderCinSub"> 잊혀진 화장실에서, 모든 것이 시작된다 </span>
           </div>
           <button className="bladderCinSkip" onClick={(e)=>{e.stopPropagation();setBladderEntryCinematic(false)}}>SKIP ▶</button>
         </div>
@@ -8242,7 +8242,7 @@ export default function Page() {
           <div className="pureCinText">
             <span className="pureCinEyebrow">✦ L · O · V · E &nbsp;&nbsp; R · O · U · T · E ✦</span>
             <p className="pureCinTitle"><span className="pureCinSparkle pureCinSparkleL">✿</span>순애 루트에 진입<span className="pureCinSparkle pureCinSparkleR">✿</span></p>
-            <span className="pureCinSub">— 오직 당신에게로 —</span>
+            <span className="pureCinSub"> 오직 당신에게로 </span>
           </div>
           <button className="pureCinSkip" onClick={(e) => { e.stopPropagation(); setPureCinematic(false); }}>SKIP ▶</button>
         </div>
@@ -8288,7 +8288,7 @@ const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Nunito:wght@700;800;900&display=swap');
 @import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2402-2@1.0/Cafe24Ssurround.css');
 /* ====================================================== */
-/* === 🎨 디자인 시스템 v2 — A+C 하이브리드 (와인+골드 + 핑크 네온) === */
+/* === 🎨 디자인 시스템 v2 A+C 하이브리드 (와인+골드 + 핑크 네온) === */
 /* ====================================================== */
 :root{
   /* ─ 베이스 (theme-common, 시작 단계) ─ */
@@ -8313,7 +8313,7 @@ const CSS = `
   --font-display: 'Cafe24Ssurround', 'Pretendard', -apple-system, sans-serif;
   --font-body: 'Pretendard', -apple-system, sans-serif;
 }
-/* theme-soft (호감 발달 단계) — 따뜻한 크림 + 로즈 */
+/* theme-soft (호감 발달 단계) 따뜻한 크림 + 로즈 */
 .app.theme-soft{
   --bg-base: linear-gradient(180deg,#fdeae2 0%,#f5d4cc 100%);
   --bg-panel: linear-gradient(180deg,#fff5ec 0%,#fce0d5 100%);
@@ -8323,7 +8323,7 @@ const CSS = `
   --accent-gold-light: #e0a0b8;
   --shadow-glow: 0 0 0 1px rgba(200,122,142,0.2) inset, 0 8px 22px rgba(200,122,142,0.2);
 }
-/* theme-pure (순애 루트) — 핑크 크림 + 로즈골드 */
+/* theme-pure (순애 루트) 핑크 크림 + 로즈골드 */
 .app.theme-pure{
   --bg-base: radial-gradient(ellipse at top,rgba(255,200,220,0.5),transparent 70%),linear-gradient(180deg,#ffe6ee 0%,#f5c8d8 100%);
   --bg-side: linear-gradient(180deg,#5a1f30 0%,#2a0d1a 100%);
@@ -8341,7 +8341,7 @@ const CSS = `
   --shadow-card: 0 8px 28px rgba(255,140,180,0.18);
   --shadow-glow: 0 0 0 1px rgba(255,140,180,0.3) inset, 0 8px 24px rgba(255,140,180,0.32);
 }
-/* theme-obsession (집착 루트) — 다크 와인 + 핑크 네온 (광기 풀가동) */
+/* theme-obsession (집착 루트) 다크 와인 + 핑크 네온 (광기 풀가동) */
 .app.theme-obsession{
   --bg-base: radial-gradient(ellipse at top right,rgba(255,61,138,0.18),transparent 50%),linear-gradient(135deg,#1a0510 0%,#0a0208 100%);
   --bg-side: linear-gradient(180deg,#1a0510 0%,#0a0208 100%);
@@ -8388,12 +8388,12 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .app .statBar:nth-child(3) em{background:linear-gradient(90deg,#b87aff,#7040c8)}
 .app .statBar:nth-child(4) em{background:linear-gradient(90deg,#ffd97a,#d4a843)}
 .app .statBar:nth-child(5) em{background:linear-gradient(90deg,#ffe066,#d4a843)}
-/* 홈 CTA 버튼 — 와인+골드 그라디언트 */
+/* 홈 CTA 버튼 와인+골드 그라디언트 */
 .app .homeCta{background:linear-gradient(135deg,rgba(60,25,35,0.85),rgba(40,15,25,0.92)) !important;border:1px solid var(--border-card) !important;color:var(--text-side) !important}
 .app .homeCta:hover{border-color:var(--border-card-hover) !important;box-shadow:var(--shadow-glow)}
 .app .homeCta .homeCtaLabel{color:#fff !important;font-family:var(--font-display)}
 .app .homeCta .homeCtaHint{color:var(--accent-gold-light) !important}
-/* nav 버튼 — 글래스 */
+/* nav 버튼 글래스 */
 .app .nav button{background:rgba(60,25,35,0.55) !important;border:1px solid rgba(212,168,67,0.18) !important;color:var(--text-side) !important;backdrop-filter:blur(8px);transition:all .15s ease}
 .app .nav button:hover,.app .nav button.active{background:linear-gradient(135deg,var(--accent-gold),var(--accent-rose)) !important;color:#1a0810 !important;border-color:var(--accent-gold-light) !important;box-shadow:0 4px 14px rgba(212,168,67,0.4)}
 .app .navGroupBtn.navGroupOpen{background:linear-gradient(135deg,var(--accent-rose),var(--accent-gold)) !important;color:#1a0810 !important}
@@ -8406,7 +8406,7 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .app .bigBtn{background:linear-gradient(135deg,var(--accent-gold),var(--accent-rose)) !important;color:#1a0810 !important;font-weight:1000;border:0 !important;box-shadow:0 4px 14px rgba(212,168,67,0.3)}
 .app .bigBtn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(212,168,67,0.5)}
 .app .bigBtn.dangerBtn{background:linear-gradient(135deg,#d64545,#a83030) !important;color:#fff !important}
-/* 집착 모드 전용 — 스캔라인 효과 */
+/* 집착 모드 전용 스캔라인 효과 */
 .app.theme-obsession .panel{position:relative;overflow:auto}
 .app.theme-obsession .panel::after{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#ff3d8a,transparent);animation:obsessionScan 4s linear infinite;pointer-events:none;z-index:1}
 @keyframes obsessionScan{0%{transform:translateY(0);opacity:0.4}100%{transform:translateY(100vh);opacity:0}}
@@ -8418,7 +8418,7 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .app.theme-obsession .homeCta{background:rgba(20,5,10,0.85) !important;border-color:rgba(255,61,138,0.35) !important}
 .app.theme-obsession .homeCta:hover{border-color:#ff3d8a !important;box-shadow:0 0 20px rgba(255,61,138,0.4)}
 .app.theme-obsession .statusCard,.app.theme-obsession .profileMeta div,.app.theme-obsession .statusNote,.app.theme-obsession .routeBox{background:rgba(40,10,20,0.7) !important;color:var(--text-main) !important}
-/* 🩺 집착 모드 가독성 패치 — 사이드바 + 헤더 + 퀘스트 카드 */
+/* 🩺 집착 모드 가독성 패치 사이드바 + 헤더 + 퀘스트 카드 */
 .app.theme-obsession .statBar div{color:#ffe0ec !important;text-shadow:0 1px 2px rgba(0,0,0,0.5)}
 .app.theme-obsession .relLvLabel,.app.theme-obsession .relLvName,.app.theme-obsession .relLvNext{color:#fff !important;text-shadow:0 1px 3px rgba(0,0,0,0.5)}
 .app.theme-obsession .relProgressFill{background:linear-gradient(90deg,#ff3d8a,#ffd97a) !important}
@@ -8431,7 +8431,7 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .app.theme-obsession .coinChip{background:linear-gradient(135deg,rgba(255,217,122,0.18),rgba(255,61,138,0.15)) !important;border:1px solid rgba(255,217,122,0.4)}
 .app.theme-obsession .coinChip b{color:#ffd97a !important}
 .app.theme-obsession .coinChip span{color:#ffd97a !important}
-/* 퀘스트 / 미션 카드 — 집착 모드에서 다크 와인 베이스로 */
+/* 퀘스트 / 미션 카드 집착 모드에서 다크 와인 베이스로 */
 .app.theme-obsession .questCard{background:linear-gradient(135deg,rgba(40,15,25,0.92),rgba(20,8,12,0.95)) !important;border-color:rgba(255,61,138,0.3) !important;color:#ffd0e0 !important}
 .app.theme-obsession .questCard.qcBladder{background:linear-gradient(135deg,rgba(60,30,15,0.92),rgba(30,15,8,0.95)) !important;border-color:rgba(255,210,100,0.4) !important}
 .app.theme-obsession .questCard.qcSecret{background:linear-gradient(135deg,rgba(40,20,55,0.92),rgba(20,10,30,0.95)) !important;border-color:rgba(170,120,200,0.45) !important}
@@ -8508,7 +8508,7 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .app.theme-obsession .subUpcomingCard b{color:#fff !important}
 .app.theme-obsession .subUpcomingCard small{color:#ff7ab0 !important}
 /* ====================================================== */
-/* === 🎨 v2 폴리시 — 큰 숫자 / 티어 / 모달 통일 === */
+/* === 🎨 v2 폴리시 큰 숫자 / 티어 / 모달 통일 === */
 /* ====================================================== */
 /* 큰 숫자 디스플레이 폰트 강화 (스탯 값, 호감도, 코인) */
 .app .statusCard span{font-family:var(--font-display) !important;font-size:32px !important;letter-spacing:-0.02em;background:linear-gradient(135deg,var(--accent-gold-light),var(--accent-rose)) !important;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent !important;font-weight:900 !important;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.18))}
@@ -8531,7 +8531,7 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .app .grid > *:nth-child(6),.app .questGrid > *:nth-child(6){animation-delay:.2s}
 .app .grid > *:nth-child(7),.app .questGrid > *:nth-child(7){animation-delay:.24s}
 .app .grid > *:nth-child(8),.app .questGrid > *:nth-child(8){animation-delay:.28s}
-/* 티어 배지 v2 — 홀로그래픽 SSR + 강화된 SR/R */
+/* 티어 배지 v2 홀로그래픽 SSR + 강화된 SR/R */
 .app .gachaTierBadge{font-family:var(--font-display) !important;font-size:13px !important;padding:5px 14px !important;letter-spacing:0.08em;font-weight:900;border-radius:99px;display:inline-block}
 .app .gachaCard-SSR .gachaTierBadge{
   background:linear-gradient(90deg,#ff3d8a,#f0d896,#b89cff,#6cd6ff,#ff3d8a);
@@ -8595,7 +8595,7 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .app .gachaOverlay{background:radial-gradient(ellipse at center,rgba(40,15,25,0.85) 0%,rgba(10,5,8,0.95) 100%) !important;backdrop-filter:blur(8px)}
 .app .gachaCloseBtn{font-family:var(--font-display) !important;background:linear-gradient(135deg,#ff7a9c,#d44d6e) !important;color:#fff !important;font-weight:1000;padding:12px 32px;border-radius:14px;box-shadow:0 6px 18px rgba(212,77,110,0.4)}
 .app .gachaCloseBtn:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(212,77,110,0.55)}
-/* 레벨업 모달 v2 — 와인+골드+핑크 통일 */
+/* 레벨업 모달 v2 와인+골드+핑크 통일 */
 .app .levelUpOverlay{background:radial-gradient(ellipse at center,rgba(40,15,25,0.85) 0%,rgba(10,5,8,0.95) 100%);backdrop-filter:blur(8px)}
 .app .levelUpCard{
   background:radial-gradient(ellipse at center,rgba(60,25,35,0.95) 0%,rgba(20,8,12,0.98) 100%) !important;
