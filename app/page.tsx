@@ -3721,6 +3721,14 @@ export default function Page() {
   const safeVNLineIndex = Math.min(vnLineIndex, Math.max(0, vnLines.length - 1));
   const currentVNLine = vnLines[safeVNLineIndex] ?? { speaker: "나레이션" as VNLine["speaker"], text: "" };
   const isVNLastLine = safeVNLineIndex >= vnLines.length - 1;
+  // imagePool에 여러 컷이 있으면 vnLineIndex 진행도에 따라 순차 노출
+  const vnSceneImage = useMemo(() => {
+    const pool = currentScenario?.imagePool;
+    if (!pool || pool.length <= 1) return currentPortrait;
+    const segmentSize = Math.max(1, Math.ceil(vnLines.length / pool.length));
+    const segmentIdx = Math.min(pool.length - 1, Math.floor(safeVNLineIndex / segmentSize));
+    return pool[segmentIdx] ?? currentPortrait;
+  }, [currentScenario?.id, currentScenario?.imagePool, vnLines.length, safeVNLineIndex, currentPortrait]);
   const routeLabel = storyRoute === "pure" ? "순애 루트" : storyRoute === "obsession" ? "집착 루트" : "공통 루트";
   const currentChapter = getMainChapterNumber(currentScenarioId) || Math.max(1, ...Object.keys(seenEvents).map(getMainChapterNumber));
   const emotionState = getEmotionState(stats, storyRoute, currentChapter, silenceLevel);
@@ -4241,7 +4249,8 @@ export default function Page() {
     if (!scenario) return;
     const image = pick(scenario.imagePool) ?? scenario.image ?? fallbackImage(scenario.kind);
     unlockEvent(id);
-    unlockCGs([image]);
+    // imagePool에 여러 컷 있으면 전부 갤러리 해금 (시나리오 진행하면서 다 보임)
+    unlockCGs(scenario.imagePool && scenario.imagePool.length > 0 ? scenario.imagePool : [image]);
     setCurrentScenarioId(id);
     setCurrentPortrait(image);
     setView("chat");
@@ -5907,7 +5916,7 @@ export default function Page() {
         {currentScenario && <div className={`scenarioOverlay${vnDramatic ? " vnDramatic" : ""}`} style={{ "--bg-url": `url(${currentScenario.background ?? "/bg_room_night.png"})` } as React.CSSProperties}>
           {vnDramatic && <div className="vnVignette" />}
           <section className="vnImageStage">
-            <img src={currentPortrait} alt={currentScenario.title} onError={(e)=>{e.currentTarget.src="/oppa1.png"}}/>
+            <img key={vnSceneImage} src={vnSceneImage} alt={currentScenario.title} className="vnSceneImg" onError={(e)=>{e.currentTarget.src="/oppa1.png"}}/>
             {isVNLastLine && vnTextRevealed && currentScenario.mission && currentScenario.mission.targets.map((target, idx) => (
               <button key={idx} className="missionTarget" style={{ left: `${target.x}%`, top: `${target.y}%`, width: `${(target.radius ?? 12) * 2}%`, height: `${(target.radius ?? 12) * 2}%` }} onClick={() => handleMissionTap(target)} title={target.label}>
                 {target.hint ?? "✋"}
@@ -9726,6 +9735,8 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 @keyframes statFloat{0%{opacity:0;transform:translateY(0) scale(.88)}12%{opacity:1;transform:translateY(-6px) scale(1)}65%{opacity:1;transform:translateY(-36px) scale(1)}100%{opacity:0;transform:translateY(-56px) scale(.95)}}
 /* ─ 초상화 crossfade ─ */
 .portraitCrossfade{animation:portraitFadeIn .45s ease both}
+.vnSceneImg{animation:vnSceneFade .55s ease both}
+@keyframes vnSceneFade{0%{opacity:0;transform:scale(1.02);filter:blur(4px)}100%{opacity:1;transform:scale(1);filter:blur(0)}}
 @keyframes portraitFadeIn{0%{opacity:0;filter:blur(6px);transform:scale(.97)}100%{opacity:1;filter:blur(0);transform:scale(1)}}
 /* ─ 레벨업 파티클 ─ */
 .lvupParticle{position:absolute;top:50%;left:50%;width:8px;height:8px;border-radius:50%;pointer-events:none}
