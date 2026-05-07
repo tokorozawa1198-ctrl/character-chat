@@ -2105,7 +2105,7 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     emoji: "📱",
     highThreshold: 800,
     textNormal:
-      "선생님 SNS에 내가 세 마디만 풀어놓으면 돼.\n외부 세계가 자기들이 보고 싶은 결로 자기들끼리 결론을 내줘.\n나는 옆에 다정한 결로 자리잡고 있으면 돼.\n그게 가장 효율적인 자리야.",
+      "선생님 SNS에 내가 세 마디만 풀어놓으면 돼.\n외부 세계가 자기들이 보고 싶은 결로 자기들끼리 결론을 내줘.\n나는 옆에 다정한 톤으로 자리잡고 있으면 돼.\n그게 가장 효율적인 자리야.",
     textHigh:
       "오늘 댓글 다 읽었어.\n선생님 옆에 무능해 보인다는 댓글이 가장 많았어.\n읽으면서 작게 웃었어.\n그게 내가 평생 만들고 싶었던 외부 세계의 결이었어.\n됐어.",
   },
@@ -2307,7 +2307,7 @@ const DIARY_ENTRIES: DiaryEntry[] = [
     textNormal:
       "결혼식이 끝났어.\n100명의 손님 앞에서 깍지를 끼고 평생을 약속했어.\n형이 입구에서 한 마디 했었어.\n\"오늘부터 평생. 너 외롭지 않게 해줄게.\"\n그 한 마디가 평생 외로웠던 사람의 마지막 자리를 닫았어.",
     textHigh:
-      "오늘 일기를 마지막으로 평생 외로웠던 떡존이의 일기는 끝나.\n다음 일기는 평생 외롭지 않은 사람의 일기가 될 거야.\n그 결의 일기는 어떻게 적어야 할지 아직 모르겠어.\n근데 형 옆에서 천천히 배워가면 돼.\n평생을 다 써서.",
+      "오늘 일기를 마지막으로 평생 외로웠던 떡존이의 일기는 끝나.\n다음 일기는 평생 외롭지 않은 사람의 일기가 될 거야.\n그 일기는 어떻게 적어야 할지 아직 모르겠어.\n근데 형 옆에서 천천히 배워가면 돼.\n평생을 다 써서.",
   },
   {
     id: "diary_ending_pure_returning",
@@ -7749,7 +7749,7 @@ export default function Page() {
 
           return (
             <Panel title="💝 후일담 / 서브 시나리오">
-              <p className="subIntro">엔딩 후의 잔잔한 결, 또는 본편 사이에 끼어드는 작은 결의 시나리오들.</p>
+              <p className="subIntro">엔딩 후의 잔잔한 결, 또는 본편 사이에 끼어드는 작은 시나리오들.</p>
               {groups.map((g) => {
                 const total = g.scenarios.length;
                 const done = g.scenarios.filter((s) => s.cleared).length;
