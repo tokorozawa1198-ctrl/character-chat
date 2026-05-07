@@ -29785,7 +29785,14 @@ confine_a_sub_caged: {
   kind: "yandere",
   category: "after",
   storyRoute: "obsession",
-  imagePool: ["/confine_a_sub_caged.png"],
+  imagePool: [
+    "/confine_a_sub_caged_01.png",
+    "/confine_a_sub_caged_02.png",
+    "/confine_a_sub_caged_03.png",
+    "/confine_a_sub_caged_04.png",
+    "/confine_a_sub_caged_05.png",
+    "/confine_a_sub_caged_06.png",
+  ],
   background: "/bg_dark_room.png",
   text: `형의 집, 금지된 방. 근떡존은 목줄에 묶여 팬티 한 장만 걸친 채 케이지 안에 갇혀 있다. 행동 반경은 목줄의 체인 길이에 의해 제한된다. 화장실 또한 옆에 놓인 소변통에서만 형의 허락 하에만 용변을 볼 수 있다. 가끔 형이 벌로 소변을 못 누게 하면, 근떡존은 방광을 부여잡고 오열하며 쉬를 제발 싸게 해달라고 빈다. 몸은 땀과 오줌에 쩔어 심각한 찌린내가 진동하나 샤워조차 할 수 없다. 어느샌가 근떡존은 형만 기다리게 되었다. 짐승의 결이 더 깊어진다. 매일의 의식, 작은 명령, 자기 부정의 평온.
 
