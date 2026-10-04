@@ -229,5 +229,80 @@ html,body{background:#151719;letter-spacing:0}
 .novelApp .vnImageStage img{min-height:0;max-height:100%;max-width:100%;object-fit:contain}
 .novelApp .vnTextbox{position:absolute;top:auto;bottom:max(16px,env(safe-area-inset-bottom));margin:0;max-height:65dvh;overflow-y:auto;overscroll-behavior:contain}
 @media(max-width:760px){.novelApp .vnTextbox{bottom:max(10px,env(safe-area-inset-bottom));max-height:60dvh}}
+/* Archive and admin screens use one legible palette regardless of story route. */
+.novelApp.novelApp:is([data-view="subScenarios"],[data-view="extraScenarios"],[data-view="admin"]){
+ --surface:#15191d;--raised:#20262c;--ink:#f5f3ee;--muted:#bdc4c8;--accent:#e4b96d;--accent-ink:#231a0c;--line:#ffffff29;--bg-side:#111519;
+ background:var(--surface);color:var(--ink);color-scheme:dark
+}
+.novelApp:is([data-view="subScenarios"],[data-view="extraScenarios"],[data-view="admin"]) .panel{width:100%;max-width:1100px;margin-inline:auto;box-sizing:border-box}
+.novelApp:is([data-view="subScenarios"],[data-view="extraScenarios"],[data-view="admin"]) .panel h2{padding-bottom:18px;border-bottom:1px solid var(--line)}
+.novelApp:is([data-view="subScenarios"],[data-view="extraScenarios"]) .scenarioHubTabs button.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.novelApp[data-view="subScenarios"] .subIntro,.novelApp[data-view="extraScenarios"] .hubDesc{background:none;border:0;padding:0 0 18px;margin:0 0 20px;border-bottom:1px solid var(--line);color:var(--muted);font-size:13px;font-weight:450;line-height:1.7}
+.novelApp.novelApp[data-view="subScenarios"] .subGroup{background:#20262c!important;border:1px solid #ffffff2b!important;border-radius:14px;box-shadow:none;padding:22px;opacity:1;backdrop-filter:none}
+.novelApp.novelApp[data-view="subScenarios"] .subGroupLocked{background:#1b2025!important;border-style:dashed!important}
+.novelApp[data-view="subScenarios"] .subGroupEmoji{background:#e4b96d1c;border-color:#e4b96d40;border-radius:12px}
+.novelApp[data-view="subScenarios"] .subGroupLabel{background:none;-webkit-text-fill-color:var(--ink);color:var(--ink);font-size:19px;font-weight:700;line-height:1.4}
+.novelApp[data-view="subScenarios"] .subGroupDesc{display:block;min-width:0;white-space:normal;overflow-wrap:anywhere;color:var(--muted)!important;font-weight:450;font-size:13px;line-height:1.6}
+.novelApp[data-view="subScenarios"] .subGroupCount{color:var(--accent);font-size:22px}
+.novelApp[data-view="subScenarios"] .subGroupProgress small{color:var(--muted);font-size:11px}
+.novelApp[data-view="subScenarios"] .subGroupBar{background:#ffffff20;height:4px;margin:18px 0}
+.novelApp[data-view="subScenarios"] .subGroupBarFill{background:var(--accent);box-shadow:none}
+.novelApp.novelApp[data-view="subScenarios"] .subEpisode,.novelApp.novelApp.theme-obsession[data-view="subScenarios"] .subEpisode{background:#181d22!important;border:1px solid #ffffff30!important;border-radius:10px;box-shadow:none;padding:16px;gap:7px;opacity:1;color:var(--ink)!important}
+.novelApp.novelApp[data-view="subScenarios"] .subEpisode:hover{background:#252c33!important;border-color:#e4b96d88!important}
+.novelApp.novelApp[data-view="subScenarios"] .subEpisode.subDone{border-color:#83b8a47a!important}
+.novelApp.novelApp[data-view="subScenarios"] .subEpisodeLocked{border-style:dashed!important}
+.novelApp[data-view="subScenarios"] .subEpisodeIcon{background:#e4b96d29;color:var(--accent)}
+.novelApp[data-view="subScenarios"] .subEpisodeLocked .subEpisodeIcon{background:#ffffff1a;color:var(--muted)}
+.novelApp.novelApp[data-view="subScenarios"] .subEpisode b{color:var(--ink)!important;font-size:14px;line-height:1.5}
+.novelApp.novelApp[data-view="subScenarios"] .subEpisode small{color:var(--muted)!important;font-size:12px;font-weight:450;line-height:1.5}
+.novelApp[data-view="subScenarios"] .subEpisodePlayBtn{min-height:42px;margin-top:8px;background:var(--accent);border:1px solid var(--accent);border-radius:7px;color:var(--accent-ink);font-size:13px;font-weight:700}
+.novelApp[data-view="subScenarios"] .subEpisodePlayBtn:hover{background:#f3cc89;border-color:#f3cc89}
+.novelApp[data-view="subScenarios"] .subEpisodeLocked .subEpisodePlayBtn{background:transparent;color:var(--accent);border-color:#e4b96d80}
+.novelApp[data-view="subScenarios"] .subEpisodeLocked .subEpisodePlayBtn:hover{background:#e4b96d22}
+.novelApp[data-view="subScenarios"] .subEpCostBadge{color:var(--accent);background:#e4b96d1c;border-color:#e4b96d55}
+.novelApp[data-view="subScenarios"] .subUnlockConfirm{background:#e4b96d16;border-color:#e4b96d77;color:var(--ink)}
+.novelApp[data-view="subScenarios"] .subUnlockYes{background:var(--accent);color:var(--accent-ink)}
+.novelApp[data-view="subScenarios"] .subUnlockNo{background:var(--raised);color:var(--ink)}
+.novelApp[data-view="extraScenarios"] .sectionStack{display:grid;gap:16px}
+.novelApp[data-view="extraScenarios"] .sectionStack h3{margin:8px 0 0;font-size:17px;color:var(--ink)}
+.novelApp[data-view="extraScenarios"] .sectionStack h3 small{color:var(--muted)!important}
+.novelApp[data-view="extraScenarios"] .grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:12px}
+.novelApp.novelApp[data-view="extraScenarios"] .cardBtn{min-height:112px;border:1px solid var(--line)!important;border-radius:10px;text-align:left;padding:18px!important}
+.novelApp[data-view="extraScenarios"] .cardBtn b{display:block;font-size:15px;line-height:1.5;color:var(--ink)!important}
+.novelApp[data-view="extraScenarios"] .cardBtn small{display:block;margin-top:8px;font-size:12px;line-height:1.55;color:var(--muted)!important}
+.novelApp.novelApp[data-view="extraScenarios"] .scenarioLocked{opacity:1;background:#1b2025!important;border-style:dashed!important}
+.novelApp.novelApp[data-view="extraScenarios"] .scenarioLocked b{color:#d1d5d7!important}
+.novelApp[data-view="extraScenarios"] .scenarioLockChip{font-size:11px;color:var(--muted);background:#ffffff12}
+.novelApp.novelApp[data-view="extraScenarios"] .secretRouteCard{background:#26231e!important;border-color:#e4b96d66!important;box-shadow:none;color:var(--ink)}
+.novelApp[data-view="admin"] .adminPanel{gap:18px;max-width:900px}
+.novelApp[data-view="admin"] .adminSection{min-width:0;gap:16px;padding:22px;background:var(--raised);border:1px solid var(--line);border-radius:12px}
+.novelApp[data-view="admin"] .adminSectionTitle{color:var(--ink);font-size:17px;font-weight:700;letter-spacing:0;text-transform:none}
+.novelApp[data-view="admin"] .memoryAdmin{color:var(--ink);gap:16px}
+.novelApp[data-view="admin"] .memoryAdminHint,.novelApp[data-view="admin"] .memoryAdminCount,.novelApp[data-view="admin"] .memoryDate{color:var(--muted)}
+.novelApp[data-view="admin"] .memoryAdminHint code{background:#ffffff17;color:var(--ink)}
+.novelApp[data-view="admin"] .memoryAdminToolbar{flex-wrap:wrap}
+.novelApp[data-view="admin"] .memoryAdminAddForm{background:#15191d;border:1px solid var(--line);padding:16px}
+.novelApp[data-view="admin"] .memoryAdminInput,.novelApp[data-view="admin"] .memoryAdminTextarea{min-width:0;background:#15191d;border:1px solid #ffffff40;color:var(--ink);font-size:14px}
+.novelApp[data-view="admin"] .memoryAdminInput::placeholder,.novelApp[data-view="admin"] .memoryAdminTextarea::placeholder{color:#aeb6ba;opacity:1}
+.novelApp[data-view="admin"] .memoryAdminInput option{background:#20262c;color:var(--ink)}
+.novelApp[data-view="admin"] .memoryAdminBtn{min-height:40px;background:#2d353d;border-color:#ffffff40;color:var(--ink);font-size:13px}
+.novelApp[data-view="admin"] .memoryAdminBtn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.novelApp[data-view="admin"] .memoryAdminBtn.ghost{background:transparent}
+.novelApp[data-view="admin"] .memoryAdminBtn.danger{background:#8d303033;border-color:#d98282;color:#ffd0d0}
+.novelApp[data-view="admin"] .memoryAdminBtn:disabled{opacity:.55}
+.novelApp[data-view="admin"] .memoryEmpty,.novelApp[data-view="admin"] .memoryItem{background:#181d22;border:1px solid var(--line);color:var(--ink)}
+.novelApp[data-view="admin"] .memoryEmpty,.novelApp[data-view="admin"] .memoryItemText{color:var(--ink)}
+.novelApp[data-view="admin"] .memoryBadge.auto{background:#80b5d729;color:#a6d8f5;border-color:#80b5d760}
+.novelApp[data-view="admin"] .memoryBadge.manual{background:#e4b96d26;color:#f1d19d;border-color:#e4b96d60}
+.novelApp[data-view="admin"] .memoryBadge.kind{background:#ffffff17;color:var(--muted);border-color:var(--line)}
+.novelApp[data-view="admin"] .adminStatLabel,.novelApp[data-view="admin"] .adminStatVal{color:var(--ink)}
+.novelApp[data-view="admin"] .adminStatBtns button,.novelApp[data-view="admin"] .adminRouteBtn{background:#2d353d;border-color:var(--line);color:var(--ink)}
+.novelApp[data-view="admin"] .adminRouteBtn.active{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.novelApp[data-view="admin"] .adminLogoutBtn{color:#ffd0d0;border-color:#b65d5d80;background:#b65d5d22}
+@media(max-width:760px){
+ .novelApp[data-view="subScenarios"] .subGroup{padding:16px!important}.novelApp[data-view="subScenarios"] .subGroupHead{grid-template-columns:42px minmax(0,1fr) auto;gap:10px}.novelApp[data-view="subScenarios"] .subGroupEmoji{width:42px;height:42px;font-size:25px}.novelApp[data-view="subScenarios"] .subGroupLabel{font-size:16px}.novelApp[data-view="subScenarios"] .subGroupCount{font-size:18px}.novelApp[data-view="subScenarios"] .subEpisodes{grid-template-columns:1fr}
+ .novelApp[data-view="extraScenarios"] .grid{grid-template-columns:1fr}.novelApp[data-view="extraScenarios"] .cardBtn{min-height:0}
+ .novelApp[data-view="admin"] .adminSection{padding:16px}.novelApp[data-view="admin"] .memoryAdminAddRow{flex-wrap:wrap}.novelApp[data-view="admin"] .memoryAdminAddRow .memoryAdminInput{flex:1 1 100%}.novelApp[data-view="admin"] .adminStatRow{grid-template-columns:54px minmax(0,1fr) 42px}.novelApp[data-view="admin"] .adminStatBtns{grid-column:1/-1;justify-content:flex-end}
+}
 @media(prefers-reduced-motion:reduce){.novelApp *,.novelTitle *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 `;
