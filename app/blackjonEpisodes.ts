@@ -1,9 +1,11 @@
 import type { Scenario } from "./gameTypes";
 import { blackjonEpisode4 } from "./blackjonEpisode4";
+import { blackjonEpisode5 } from "./blackjonEpisode5";
 
 // 흑존 프롤로그 이후의 연애 이야기. 장면마다 이미지를 고정해 순서대로 보여준다.
 export const blackjonEpisodes: Record<string, Scenario> = {
   ...blackjonEpisode4,
+  ...blackjonEpisode5,
   blackjon_ep2_01: {
     id: "blackjon_ep2_01",
     title: "흑존 2화: 숨기지 않는 냄새",
