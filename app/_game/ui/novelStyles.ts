@@ -216,13 +216,13 @@ html,body{background:#151719;letter-spacing:0}
 .novelApp .homeBubble{top:4px;right:8%;bottom:auto;left:auto;width:min(210px,62%);max-height:76px;overflow:auto;box-sizing:border-box;padding:10px 14px;font-size:12px!important;line-height:1.6!important}
 .novelApp .homeBubble:after{right:auto;left:24px}
 .novelApp .homeBubble{scrollbar-width:none}.novelApp .homeBubble::-webkit-scrollbar{display:none}
-.novelApp .homeWardrobe{position:absolute;right:0;bottom:24px;display:flex;align-items:center;gap:8px;background:#25242ddd;color:#f5e8ec;border:1px solid #c2a6ba66;border-radius:6px;padding:12px;cursor:pointer;z-index:3;font:inherit;font-size:12px}
+.novelApp .homeWardrobe{position:static;display:flex;align-items:center;gap:8px;background:#25242ddd;color:#f5e8ec;border:1px solid #c2a6ba66;border-radius:6px;padding:12px;cursor:pointer;font:inherit;font-size:12px}
 .novelApp .homeCtaGrid{flex:none;width:min(680px,100%);grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 .novelApp.novelApp .homeCta,.novelApp.novelApp .homeCta:first-child,.novelApp .homeCtaGrid .homeCta:nth-child(4){grid-column:auto;min-height:62px;padding:14px 12px;grid-template-columns:22px minmax(0,1fr);gap:8px}
 .novelApp .homeCta .novelCtaArrow{display:none}
 .novelApp .homeWidgets{flex:none;width:min(680px,100%);margin-top:0;padding-bottom:8px}
 @keyframes homeCompanionFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-11px) scale(1.012)}}
-@media(max-width:760px){.novelApp .homeView{padding:20px 18px 26px;gap:14px}.novelApp .homeLogo>span:not(.adminBadge){font-size:28px}.novelApp .homeStage{width:100%;height:clamp(340px,48dvh,470px);min-height:340px;padding-top:86px}.novelApp .homeCharacterCard{width:90%}.novelApp .homeCharacterCard img{max-height:370px}.novelApp .homeBubble{right:0;width:190px;max-height:78px}.novelApp .homeWardrobe{bottom:8px;padding:10px}.novelApp .homeCtaGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.novelApp.novelApp .homeCta{min-height:54px}.novelApp .novelHomeMood>span{max-width:100%}.novelApp .homeWidgets{gap:12px}}
+@media(max-width:760px){.novelApp .homeView{padding:20px 18px 26px;gap:14px}.novelApp .homeLogo>span:not(.adminBadge){font-size:28px}.novelApp .homeStage{width:100%;height:clamp(340px,48dvh,470px);min-height:340px;padding-top:86px}.novelApp .homeCharacterCard{width:90%}.novelApp .homeCharacterCard img{max-height:370px}.novelApp .homeBubble{right:0;width:190px;max-height:78px}.novelApp .homeWardrobe{padding:10px}.novelApp .homeCtaGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.novelApp.novelApp .homeCta{min-height:54px}.novelApp .novelHomeMood>span{max-width:100%}.novelApp .homeWidgets{gap:12px}}
 /* Keep the dialogue anchored; oversized artwork must not scroll the whole scene. */
 .novelApp .scenarioOverlay{height:100dvh;overflow:hidden;overscroll-behavior:none}
 .novelApp .vnImageStage{height:100%;min-height:0;overflow:hidden;box-sizing:border-box}
