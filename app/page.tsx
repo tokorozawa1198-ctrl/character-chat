@@ -8813,7 +8813,7 @@ export default function Page() {
                     try { localStorage.setItem(CHARACTER_KEY, "hidden"); } catch {}
                     setSelectedCharacter("hidden");
                   }}>
-                    <div className="charSelectImgWrap"><img src="/char_hidden.png" alt="히든" className="charSelectImg" onError={(e)=>{e.currentTarget.style.display="none"}}/>{!characterUnlocks.hidden && <span className="charSelectLock" aria-hidden="true">🔒</span>}</div>
+                    <div className="charSelectImgWrap"><img src="/char_hidden.png" alt="히든" className="charSelectImg" onError={(e)=>{e.currentTarget.style.display="none"}}/>{!characterUnlocks.hidden && <span className="charSelectLock" aria-hidden="true"><img src="/ui_lock_emblem.png" alt=""/></span>}</div>
                     <b>히든 (염소인간)</b>
                     <small>전직 교사<br/>세상을 런하기로 결심함</small>
                     <span className="charSelectTag charSelectTagGoat">{characterUnlocks.hidden ? "병맛 개그 루트" : "근떡존 Lv.30 필요"}</span>
@@ -8825,7 +8825,7 @@ export default function Page() {
                     try { localStorage.setItem(CHARACTER_KEY, "blackjon"); } catch {}
                     setSelectedCharacter("blackjon");
                   }}>
-                    <div className="charSelectImgWrap"><img src="/blackjon_profile_transparent.png" alt="흑존" className="charSelectImg" onError={(e)=>{e.currentTarget.style.display="none"}}/>{!characterUnlocks.blackjon && <span className="charSelectLock" aria-hidden="true">🔒</span>}</div>
+                    <div className="charSelectImgWrap"><img src="/blackjon_profile_transparent.png" alt="흑존" className="charSelectImg" onError={(e)=>{e.currentTarget.style.display="none"}}/>{!characterUnlocks.blackjon && <span className="charSelectLock" aria-hidden="true"><img src="/ui_lock_emblem.png" alt=""/></span>}</div>
                     <b>흑존</b>
                     <small>검은 머리의 근떡존<br/>짓궂고 능글맞은 어나더</small>
                     <span className="charSelectTag charSelectTagBlackjon">{characterUnlocks.blackjon ? "어나더 캐릭터" : "근떡존 6장 완주 필요"}</span>
