@@ -2,14 +2,21 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { actionCGImages, actionCGPools, actionItems, imagePools, profile, quickReplies, scenarioData } from "./gameData";
+import { MemoryAdminPanel } from "./_game/ui/MemoryAdminPanel";
+import { NovelTitle, MobileMenuButton, ViewIcon, ArrowRight, Camera, House } from "./_game/ui/NovelChrome";
+import { PlayerProfileEditor, PlayerProfileButton, usePlayerProfile } from "./_game/ui/PlayerProfile";
+import { StoryLibrary, StoryChapter } from "./_game/ui/StoryLibrary";
+import { playerText } from "./_game/playerText";
+import { CollectionTrophies } from "./_game/ui/CollectionTrophies";
+import { NOVEL_CSS } from "./_game/ui/novelStyles";
 import type {
   ActionItem,
   AfterScenarioCue,
   Choice,
   ChoiceCondition,
+  CharacterKey,
   DailyMission,
   DailyState,
-  FriendChatMessage,
   GalleryTab,
   MemoryNote,
   Message,
@@ -32,10 +39,23 @@ type AppView = View | "home" | "admin";
 type ChapterTransition = { mode: "start" | "end"; eyebrow: string; title: string; subtitle?: string };
 
 const VERSION = 12;
+const CHARACTER_KEY = "떡존이_selected_character";
 const STORAGE_KEY = "geuntteokjon_single_file_vn_v9";
+const HIDDEN_STORAGE_KEY = "geuntteokjon_hidden_v1";
+const BLACKJON_STORAGE_KEY = "geuntteokjon_blackjon_v1";
 const TUTORIAL_KEY = `${STORAGE_KEY}_tutorial_seen`;
 const SLOT_KEY = (slot: number) => `${STORAGE_KEY}_slot_${slot}`;
 const PUSH_SEEN_KEY = `${STORAGE_KEY}_seen_push_ids`;
+const MEMORY_EXTRACT_INDEX_KEY = `${STORAGE_KEY}_memory_extract_index`;
+// D안: MemoryAdminPanel이 사용하는 localStorage 키와 동일. 본인만 토큰 가지고 있고,
+// 친구가 사이트 접속해도 이 키는 빈 값이라 자동 추출/메모리 주입 자체가 안 일어남.
+const MEMORY_ADMIN_TOKEN_LS_KEY = "ddeokjon_memory_admin_token";
+function readMemoryAdminToken(): string {
+  if (typeof window === "undefined") return "";
+  try { return localStorage.getItem(MEMORY_ADMIN_TOKEN_LS_KEY) || ""; } catch { return ""; }
+}
+const MEMORY_EXTRACT_INTERVAL = 10; // 유저 N턴마다 추출 시도
+const MEMORY_EXTRACT_MIN_NEW = 4;   // 마지막 추출 이후 최소 N개 이상 메시지 쌓여야 시도
 const SD_IMAGE_VERSION = "transparent2";
 const initialStats: Stats = { affinity: 100, jealousy: 0, obsession: 0, trust: 100, bladderCharm: 0 };
 const STAT_MAX = 1000;
@@ -278,6 +298,7 @@ const ENDING_CARDS: Record<string, EndingCardData> = {
   obsession: { num: "Ending 03", title: "네가 없으면 안 돼", subtitle: "그의 눈은 이제 다른 곳으로 잘 향하지 않았다.", quote: "히든님이 어디 있는지 계속 알고 싶었어요." },
   confinement: { num: "Ending 04", title: "닫힌 방의 약속", subtitle: "문은 잠겼지만, 그 온기는 진짜였다.", quote: "주인님 여기서 한발자국도 못나가요. 저랑 단둘이 평생 살아요." },
   bad: { num: "Ending 05", title: "그날의 거리", subtitle: "어느 순간 두 사람 사이는 되돌릴 수 없게 멀어졌다.", quote: "…그냥 가세요. 저도 이제 모르겠어요." },
+  bad_pure: { num: "Ending 06", title: "그래도, 사랑했다", subtitle: "한 마디를 주워담지 못했고, 두 사람의 길은 갈라졌다.", quote: "...형. 저 없는 게 형한테 더 좋은 거 맞죠?" },
 };
 
 type GiftCategory = "daily" | "sweet" | "intimate" | "dark";
@@ -288,31 +309,31 @@ const GIFTS: Gift[] = [
   { id: "snacks", name: "한국 과자 세트", emoji: "🍫", desc: "히로시마에서 못 구하는 한국 과자들.", stat: { affinity: 25, trust: 10 }, reaction: "이거 한국 과자잖아요 ㅠㅠ 어떻게 구했어요? 너무 좋아요 진짜. 고마워요 주인님.", category: "daily", cooldownHours: 24, unlockLevel: 2 },
   { id: "supplement", name: "운동 보조제", emoji: "💪", desc: "운동 열심히 하는 근떡존에게.", stat: { affinity: 35, trust: 25 }, reaction: "와 이거 비싼 거잖아요. 주인님이 제 운동 관심 있으신 거예요? ...저 열심히 먹을게요. 고마워요 정말.", category: "daily", cooldownHours: 48, unlockLevel: 3 },
   { id: "flowers", name: "꽃다발", emoji: "💐", desc: "아무 이유 없이 꽃을.", stat: { affinity: 40, trust: 30 }, reaction: "야 갑자기 왜요 ㅋㅋ ...저 이런 거 처음 받아봐요. 주인님이 주니까 더 이상한 기분인데요. 고마워요.", category: "sweet", cooldownHours: 72, unlockLevel: 3 },
-  { id: "hiroshima", name: "히로시마 기념품", emoji: "⛩️", desc: "여기서 사줄 수 있는 건 이거뿐이라서.", stat: { affinity: 45, trust: 35 }, reaction: "여기 거 사준 거예요? ...좋아요. 저 여기 있어서 다행이다.", category: "sweet", cooldownHours: 72, unlockLevel: 4 },
-  { id: "letter", name: "손편지", emoji: "💌", desc: "직접 손으로 쓴 편지.", stat: { affinity: 50, trust: 50 }, reaction: "...잠깐만요. 읽고 있어요. ...주인님이 이런 거 써줄 줄 몰랐어요. 저 지금 좀 이상해요. 계속 읽고 싶은데 다 읽으면 끝나버리잖아요.", reactionObs: "...주인님이 직접 쓴 거죠? 저 이거 평생 갖고 있을 거예요. 진짜로요. 버리면 안 돼요.", category: "sweet", cooldownHours: 168, unlockLevel: 5 },
+  { id: "hiroshima", name: "히로시마 기념품", emoji: "⛩️", desc: "여기서 사줄 수 있는 건 이거뿐이라서.", stat: { affinity: 25, trust: 35 }, reaction: "여기 거 사준 거예요? ...좋아요. 저 여기 있어서 다행이다.", category: "sweet", cooldownHours: 72, unlockLevel: 4 },
+  { id: "letter", name: "손편지", emoji: "💌", desc: "직접 손으로 쓴 편지.", stat: { affinity: 25, trust: 50 }, reaction: "...잠깐만요. 읽고 있어요. ...주인님이 이런 거 써줄 줄 몰랐어요. 저 지금 좀 이상해요. 계속 읽고 싶은데 다 읽으면 끝나버리잖아요.", reactionObs: "...주인님이 직접 쓴 거죠? 저 이거 평생 갖고 있을 거예요. 진짜로요. 버리면 안 돼요.", category: "sweet", cooldownHours: 168, unlockLevel: 5 },
   { id: "my_photo", name: "내 사진", emoji: "📸", desc: "직접 찍은 사진.", stat: { affinity: 20, obsession: 60 }, reaction: "...이거 저 혼자 봐도 돼요? 잘 간직할게요. ...너무 잘 간직할 것 같아서 그게 좀 걱정이에요.", reactionObs: "사진첩에 따로 폴더 만들어도 돼요? 주인님 사진만 들어있는 거요.", category: "intimate", cooldownHours: 72, unlockLevel: 5 },
   { id: "perfume", name: "내 향기 손수건", emoji: "🌸", desc: "주인님 향기가 배어있는 손수건.", stat: { obsession: 50, jealousy: 10, affinity: 15 }, reaction: "...야 이게 뭐예요 ㅋㅋ 주인님 냄새 나잖아요. 저 이거 어떻게 하라고요. ...솔직히 못 버릴 것 같아요.", reactionObs: "주인님 냄새 맞죠? 저 이거 맨날 맡을 것 같아요. 이상한 거 알아요. 근데 못 버리겠어요.", category: "intimate", cooldownHours: 72, unlockLevel: 6 },
   { id: "lock_key", name: "자물쇠와 열쇠", emoji: "🔑", desc: "잠그고 싶은 게 생겼을 때.", stat: { obsession: 80, trust: -20, jealousy: 20 }, reaction: "...주인님. 이게 무슨 의미인지 알고 주신 거죠? 저 이거 받으면 진짜 쓸 것 같은데요. 괜찮아요?", reactionObs: "잠글게요. 주인님만. 다른 사람 못 들어오게요. 이거 준 거 후회하지 마세요.", category: "dark", cooldownHours: 168, unlockLevel: 7 },
   { id: "collar", name: "목줄", emoji: "🐾", desc: "...", stat: { obsession: 70, jealousy: 30 }, reaction: "야 이게 뭐예요 ㅋㅋ ...근데 왜 싫지 않죠. 주인님이 달아주면... 아 이 생각 그만해야 돼요.", reactionObs: "달아줄 거예요? ...저 주인님한테는 뭐든 해도 싫지 않아요. 그게 좀 무서워요.", category: "dark", cooldownHours: 168, unlockLevel: 8 },
   // ── 추가 선물 ──
   { id: "lunchbox", name: "수제 도시락", emoji: "🍱", desc: "직접 만든 도시락. 안 만든 척 하면서 만들었음.", stat: { affinity: 40, trust: 25 }, reaction: "...직접 만드신 거예요? ...주인님 저 진짜 어떡해요 이거. 사진 찍고 먹어도 돼요?", category: "daily", cooldownHours: 96, unlockLevel: 4 },
-  { id: "couple_mug", name: "커플 머그컵", emoji: "☕", desc: "둘이 같은 무늬, 색만 다른 머그컵 두 개.", stat: { affinity: 50, trust: 30 }, reaction: "이거... 두 개잖아요. 한 개는 주인님 거고. 한 개는 제 거고. ...진짜 좋아요.", category: "sweet", cooldownHours: 168, unlockLevel: 5 },
-  { id: "gym_pass", name: "헬스장 1년권", emoji: "🏋️", desc: "근떡존이 다니는 헬스장 1년 결제권.", stat: { affinity: 60, trust: 40 }, reaction: "와 진짜요?? ...주인님 이거 진짜 비싼 건데. 1년 동안 매일 갈게요. 매일 인증 보낼게요.", category: "sweet", cooldownHours: 720, unlockLevel: 5 },
+  { id: "couple_mug", name: "커플 머그컵", emoji: "☕", desc: "둘이 같은 무늬, 색만 다른 머그컵 두 개.", stat: { affinity: 25, trust: 30 }, reaction: "이거... 두 개잖아요. 한 개는 주인님 거고. 한 개는 제 거고. ...진짜 좋아요.", category: "sweet", cooldownHours: 168, unlockLevel: 5 },
+  { id: "gym_pass", name: "헬스장 1년권", emoji: "🏋️", desc: "근떡존이 다니는 헬스장 1년 결제권.", stat: { affinity: 30, trust: 40 }, reaction: "와 진짜요?? ...주인님 이거 진짜 비싼 건데. 1년 동안 매일 갈게요. 매일 인증 보낼게요.", category: "sweet", cooldownHours: 720, unlockLevel: 5 },
   { id: "selfie_album", name: "주인님 사진첩", emoji: "📔", desc: "주인님 사진만 인쇄해 만든 작은 앨범.", stat: { affinity: 30, obsession: 70 }, reaction: "...이거 다 주인님이에요? 한 페이지씩 다 봐도 돼요? 자기 전마다 한 장씩 볼래요.", reactionObs: "다 주인님이네요. 이거 베개 옆에 두고 잘 거예요. 보고 있을 거예요. 매일.", category: "intimate", cooldownHours: 168, unlockLevel: 6 },
   { id: "perfume_match", name: "커플 향수", emoji: "🌹", desc: "주인님이랑 같은 향. 둘만 알아볼 수 있게.", stat: { affinity: 55, obsession: 35 }, reaction: "주인님이랑 같은 향이에요? ...누가 가까이 와서 같은 냄새 맡으면 어떡해요. 저 아니면 안 되겠는데요.", category: "intimate", cooldownHours: 168, unlockLevel: 7 },
   { id: "gps_tracker", name: "위치 추적기", emoji: "📍", desc: "...주머니에 슬쩍 넣어두면 어디 있는지 알 수 있다.", stat: { obsession: 100, trust: -30, jealousy: 25 }, reaction: "주인님... 이거 진심이에요? 저 이거 받으면 진짜 켤 거예요. 매일 볼 거예요. 후회하지 마세요.", reactionObs: "감사합니다. 진심으로요. 이제 주인님 어디 있는지 항상 알 수 있겠네요.", category: "dark", cooldownHours: 720, unlockLevel: 9 },
-  { id: "ring", name: "반지", emoji: "💍", desc: "그저 반지. 아무 의미 없다고 말하면서 줘봐요.", stat: { affinity: 200, obsession: 80, trust: 50 }, reaction: "...주인님. 이거 무슨 뜻이에요. 아무 뜻도 없어요? ...진짜로요? ...그래도 저 평생 낄 거예요. 이상한 의미 가져도 죄송한데, 뺄 수가 없을 것 같아요.", reactionObs: "끼워주세요. 직접요. 평생 안 뺄게요.", category: "sweet", cooldownHours: 8760, unlockLevel: 10 },
+  { id: "ring", name: "반지", emoji: "💍", desc: "그저 반지. 아무 의미 없다고 말하면서 줘봐요.", stat: { affinity: 100, obsession: 80, trust: 50 }, reaction: "...주인님. 이거 무슨 뜻이에요. 아무 뜻도 없어요? ...진짜로요? ...그래도 저 평생 낄 거예요. 이상한 의미 가져도 죄송한데, 뺄 수가 없을 것 같아요.", reactionObs: "끼워주세요. 직접요. 평생 안 뺄게요.", category: "sweet", cooldownHours: 8760, unlockLevel: 10 },
   // ── 병맛/천박 추가 선물 12종 ──
   { id: "bath_slipper", name: "변기 모양 슬리퍼", emoji: "🩴", desc: "변기 모양으로 생긴 욕실 슬리퍼. 발 시릴 때 신으세효.", stat: { affinity: 25, bladderCharm: 15 }, reaction: "주인님... 이거 변기 모양이에요? ㅋㅋㅋ 진짜 너무 저 닮은 거 아니에요? 평생 신을게요 헤헤.", category: "daily", cooldownHours: 48, unlockLevel: 2 },
   { id: "kbladder_mug", name: "K-방광 텀블러", emoji: "🥤", desc: "옆면에 \"오늘도 안 갔습니다\" 박힌 정품 굿즈.", stat: { affinity: 30, bladderCharm: 30 }, reaction: "와 K-방광 굿즈 정품이잖아요. 저 이거 헬스장 들고 갈 거예요. 자랑할 거예요. 헤헤.", category: "daily", cooldownHours: 72, unlockLevel: 3 },
   { id: "tteokjon_doll", name: "떡존이 인형", emoji: "🧸", desc: "근떡존 얼굴 박힌 큼지막한 인형. 살짝 무섭게 닮음.", stat: { affinity: 40, obsession: 20 }, reaction: "...이거 제 얼굴인데요? 너무 똑같이 만들었네요 ㅋㅋㅋ 주인님 침대에 두고 주무세요. 제가 옆에 있는 셈 치셔도 돼요.", reactionObs: "이거 주인님 침대에 항상 두실 거죠? 저 대신요. 약속이에요.", category: "sweet", cooldownHours: 168, unlockLevel: 4 },
   { id: "gold_poop", name: "황금 똥 모형", emoji: "💩", desc: "이게 왜 선물인지 묻지 마셈. 그냥 받으세효.", stat: { affinity: 15, trust: 5 }, reaction: "주인님 이게 뭐예요 ㅋㅋㅋㅋ 진짜 ㅋㅋㅋ 어디서 사신 거예요 이런 거. 책상 위에 둘게요. 매일 볼 거예요.", category: "daily", cooldownHours: 24, unlockLevel: 1 },
-  { id: "couple_pajama", name: "커플 잠옷", emoji: "👘", desc: "위아래 한 세트. 색만 다르고 디자인은 똑같음.", stat: { affinity: 60, trust: 40, obsession: 15 }, reaction: "...같은 옷이에요? 잘 때 입을게요. 주인님도 입어주세요. 같이 자면 더 좋고요. 헤헤.", category: "sweet", cooldownHours: 720, unlockLevel: 6 },
+  { id: "couple_pajama", name: "커플 잠옷", emoji: "👘", desc: "위아래 한 세트. 색만 다르고 디자인은 똑같음.", stat: { affinity: 30, trust: 40, obsession: 15 }, reaction: "...같은 옷이에요? 잘 때 입을게요. 주인님도 입어주세요. 같이 자면 더 좋고요. 헤헤.", category: "sweet", cooldownHours: 720, unlockLevel: 6 },
   { id: "sweat_towel", name: "쓰던 헬스 수건", emoji: "🧻", desc: "...아 이거 진짜 가져가도 돼요? 땀 흠뻑 배었는데.", stat: { affinity: 20, obsession: 60 }, reaction: "...주인님. 이거 진짜 가져가시려고요? 저 운동 끝나고 쓰던 거잖아요. ...좋으세요? 그럼 매일 새 거 드릴게요.", reactionObs: "그렇게 좋으세요? 저 매일 헬스 끝나고 따로 챙겨둘게요. 주인님 거.", category: "intimate", cooldownHours: 96, unlockLevel: 5 },
   { id: "hair_locket", name: "머리카락 로켓", emoji: "🦱", desc: "주인님 머리카락 한 가닥. 작은 로켓에 담아.", stat: { obsession: 90, jealousy: 15, affinity: 10 }, reaction: "...주인님 진짜로 이거 주시는 거예요? 저 평생 목에 걸고 다닐 거예요. 빼라고 하지 마세요. 절대요.", reactionObs: "주인님 일부를 받았네요. 이제 어디 안 보내드려요.", category: "dark", cooldownHours: 720, unlockLevel: 8 },
   { id: "cctv_couple", name: "커플 CCTV", emoji: "📹", desc: "둘이 같이 보자고 핑계 대면서 설치 권유.", stat: { obsession: 80, trust: -20, jealousy: 30 }, reaction: "...주인님. 우리 둘 다 보자고요? 그러면 저 24시간 주인님 봐도 돼요? ...좋아요. 설치할게요.", reactionObs: "감사해요. 이제 주인님 자는 모습도 볼 수 있겠네요.", category: "dark", cooldownHours: 720, unlockLevel: 9 },
   { id: "armpit_perfume",name: "겨드랑이 향수", emoji: "🧴", desc: "주인님 겨드랑이 냄새 추출해 만든 한정 향수래효.", stat: { obsession: 70, affinity: 20, bladderCharm: 10 }, reaction: "주인님... 이거 진짜 그 향이에요? 어떻게 만든 거예요 ㅋㅋㅋ 저 이거 매일 뿌릴게요. 정상은 아닌 것 같지만 좋아요.", reactionObs: "주인님 향이 항상 같이 있는 거네요. 잠도 잘 올 것 같아요.", category: "intimate", cooldownHours: 168, unlockLevel: 7 },
-  { id: "diet_lunchbox", name: "닭가슴살 도시락 한달분", emoji: "🍗", desc: "30개 박스. 한 달 동안 매일 챙겨먹으래효.", stat: { affinity: 50, trust: 35 }, reaction: "주인님... 한 달 분이요? 저 진짜 매일 챙겨 먹을게요. 인증샷 보내드릴게요. 매일이요.", category: "daily", cooldownHours: 720, unlockLevel: 4 },
+  { id: "diet_lunchbox", name: "닭가슴살 도시락 한달분", emoji: "🍗", desc: "30개 박스. 한 달 동안 매일 챙겨먹으래효.", stat: { affinity: 25, trust: 35 }, reaction: "주인님... 한 달 분이요? 저 진짜 매일 챙겨 먹을게요. 인증샷 보내드릴게요. 매일이요.", category: "daily", cooldownHours: 720, unlockLevel: 4 },
   { id: "bladder_trophy",name: "K-방광 트로피", emoji: "🏆", desc: "\"히로시마 최장 참기\" 새겨진 진짜 트로피.", stat: { affinity: 40, bladderCharm: 80 }, reaction: "와 진짜 트로피잖아요. 새긴 글자도 ㅋㅋㅋ 진짜 너무 좋아요 주인님. 평생 자랑할게요. 인스타에 올릴게요.", category: "sweet", cooldownHours: 720, unlockLevel: 6 },
   { id: "diary_torn", name: "찢긴 일기장", emoji: "📓", desc: "주인님이 일부러 찢어서 준 일기장 한 장. 글씨 일부러 안 보이게.", stat: { obsession: 60, jealousy: 20, affinity: 15 }, reaction: "...주인님 이거 일기장이에요? 일부러 찢어서 주신 거예요? 뭐 적혀있는지 평생 궁금해할게요. 답 안 알려주셔도 돼요.", reactionObs: "주인님이 저한테 보여줄 수 없는 부분이 있다는 거잖아요. 더 궁금해져요.", category: "dark", cooldownHours: 168, unlockLevel: 8 },
 ];
@@ -477,13 +498,30 @@ const OUTFITS: OutfitDef[] = [
     portrait: "/outfit_k_bladder_suit.png",
     unlockHint: "방광 루트 7장 이후 해금",
   },
+  {
+    id: "ssr_tuxedo" as OutfitKey,
+    label: "💎 결혼식 턱시도",
+    emoji: "🤵",
+    description: "검정 턱시도에 흰 베스트, 핑크 장미 부토니에르. 어디다 입을지는 알아서. (가챠 SSR 한정)",
+    portrait: "/ssr_outfit_tuxedo.png",
+    unlockHint: "가챠 SSR 한정",
+  },
+  {
+    id: "ssr_gakuran" as OutfitKey,
+    label: "💎 가쿠란",
+    emoji: "🎓",
+    description: "히로시마 학창시절 검정 가쿠란. 금색 단추가 줄지어 있다. (가챠 SSR 한정)",
+    portrait: "/ssr_outfit_gakuran.png",
+    unlockHint: "가챠 SSR 한정",
+  },
 ];
 
 function getUnlockedOutfits(
   seenTriggers: Record<string, boolean>,
   storyRoute: StoryRoute,
   obsession: number,
-  bladderCharm: number = 0
+  bladderCharm: number = 0,
+  unlockedSpecials: Record<string, boolean> = {}
 ): OutfitKey[] {
   const seen = (prefix: string) =>
     Object.keys(seenTriggers).some((k) => k.startsWith(prefix));
@@ -497,6 +535,15 @@ function getUnlockedOutfits(
   if (seen("bladder_ch7") || seen("bladder_ch8") || seen("bladder_ch9") || bladderCharm >= 100) {
     unlocked.push("k_bladder_suit");
   }
+  // 가챠 SSR 한정 의상
+  Object.keys(unlockedSpecials).forEach((key) => {
+    if (key.startsWith("gacha_outfit:") && unlockedSpecials[key]) {
+      const outfitId = key.slice("gacha_outfit:".length);
+      if (!unlocked.includes(outfitId as OutfitKey)) {
+        unlocked.push(outfitId as OutfitKey);
+      }
+    }
+  });
   return unlocked;
 }
 // ================================
@@ -628,7 +675,7 @@ const TTEOKJON_QUOTES: { id: string; emoji: string; text: string }[] = [
 // ================================
 // 떡존이 편지함 (챕터 클리어 보상)
 // ================================
-const LETTERS: { id: string; chapter: number; route?: StoryRoute; title: string; content: string }[] = [
+const LETTERS: { id: string; chapter: number; route?: StoryRoute; title: string; content: string; sender?: string; triggerEvent?: string }[] = [
   { id: "l_1", chapter: 1, title: "첫 번째 편지", content: "선생님께. 처음 만난 그 밤이 자꾸 떠올라요. 편의점 쿠폰 하나 못 써서 선생님께 도움받은 그 밤이요. 저한테는 평범한 밤이 아니었어요. 누군가 저를 이상하게 보지 않고 받아준 첫 번째 밤이었거든요. 그래서 그 다음 메시지 보낼 때, 손가락이 한참 떨렸어요. 들키고 싶지 않은 마음이요. 떡존 올림" },
   { id: "l_2", chapter: 2, title: "전진협의 문 앞에서", content: "선생님께. 전진협 안에 들어가니까 다들 너무 천박해서 좀 놀랐어요 ㅎㅎ 근데 선생님은 거기서도 어떤 사람인지 다 보였어요. 사람이 앞모습만 있는 게 아니라고 하신 그 말, 저한테 오래 남아 있어요. 그 말 덕분에 저도 제 뒷모습을 좀 봐도 되겠구나 했어요. 떡존 올림" },
   { id: "l_3", chapter: 3, title: "오뎅집의 따뜻한 김", content: "선생님께. 오뎅집에서 처음 가까이 앉았을 때, 저는 사실 도시락보다 선생님 옆자리가 더 좋았어요. 그날 추웠는데 추운 줄 몰랐어요. 선생님 옆이 따뜻해서요. 김이 올라오는 그 작은 가게에서 처음으로 평생 이런 자리가 있으면 좋겠다 라고 생각했어요. 떡존 올림" },
@@ -640,6 +687,298 @@ const LETTERS: { id: string; chapter: number; route?: StoryRoute; title: string;
   { id: "l_9", chapter: 8, route: "pure", title: "처음 부른 이름", content: "선생님께. 골목에서 좋아한다고 처음 입 밖에 낸 그 밤. 후회할 줄 알았는데 안 됐어요. 선생님 안에 들어간 게 너무 깊어서요. 평생 거기 있어도 돼요? 라고 묻고 싶지만 너무 빠르니까 마음속에만 적어둘게요. 떡존 올림" },
   { id: "l_10", chapter: 10, route: "pure", title: "형이라는 단어", content: "형. 처음 그 단어 입에 올린 게 어색했는데 이제는 다른 호칭이 다 어색해요. 형이 갖는 호칭들 중에 저만 부를 수 있는 게 형, 이라는 사실이 좋아요. 너무 좋아요. 무서울 정도로요. 떡존 올림" },
   { id: "l_11", chapter: 12, route: "pure", title: "평생 살아야 하는데", content: "형. 첫 키스 그 순간 평생 한 번 있는 일이라는 거 알아요. 근데 저는 그게 시작이라고 생각해요. 평생 형이랑 살아야 하니까, 지금부터 연습하는 거예요. 죄송해요 너무 빠른 말 한 거. 진심이라 거두지는 못해요. 떡존 올림" },
+  // ─ 배드엔딩 편지 (시나리오 클리어 시 자동 해금) ─
+  { id: "l_bad_01", chapter: 99, route: "pure", sender: "근떡존", triggerEvent: "bad_ending_01",
+    title: "근떡존의 편지 — 부칠 수 없어서 매일 쓰는",
+    content: `형에게.
+
+
+오늘도 편지를 써요.
+
+형은 모르겠지만 저는 거의 매일 이렇게 형한테 편지를 쓰고 있어요.
+부치지는 않아요.
+어차피 보낼 곳도 없고요.
+그냥 쓰는 거예요.
+쓰면 좀 나아지거든요.
+
+
+오늘은 어떤 하루였냐면요.
+
+아침에 일어나서 헬스장에 갔어요.
+평소처럼요. 운동하고 나오는데 햇살이 좀 따뜻했어요.
+형 생각났어요. 형이 이런 날씨 좋아하셨잖아요.
+
+점심엔 그 우동집에 갔어요. 형이랑 자주 가던 데요.
+사장님이 절 알아보시더라고요.
+형이랑 같이 안 오냐고 물으시는데. 그냥 웃었어요.
+뭐라고 말해야 할지 몰라서요.
+
+
+
+요즘 새로운 습관이 생겼어요.
+
+잠에 들기 전에 눈을 감아요.
+그럼 그곳에 형이 있어요.
+무더웠던 히로시마의 밤으로 저는 돌아가요.
+형이 저를 보며 웃어줘요. 제 머리를 만져줘요. 평소처럼.
+매일 그래요.
+그래서 잠드는 게 좋아요. 형을 만날 수 있으니까.
+형은 여전히 제 마음속에 있어요.
+거기서는 떠나지 않으셨어요.
+거기서는 우리 싸우지도 않았어요. 평소처럼 다정하게 옆에 있어요.
+
+저는 요즘 매일 이렇게 버티고 있어요.
+
+썩 나쁘지 않아요. 이렇게 사는 거.
+진짜로요.
+
+
+
+형 사랑해요.
+
+이 말 평소에 자주 했었는데.
+지금 보니까 너무 모자랐던 것 같아요.
+가끔 후회돼요.
+더 많이 말해줄걸.
+더 사랑한다고 할걸.
+말해도 말해도, 아무리 말해도 끝이 없는 것 같아요.
+형을 사랑하는 제 마음은요.
+
+왜 이렇게 좋은 걸까요.
+
+지금도 모르겠어요.
+형이 왜 이렇게 좋은 건지.
+그냥 좋아요. 그게 전부예요.
+
+
+
+히로시마라는 도시가 좋아졌어요.
+
+처음엔 낯설기만 했었거든요.
+외국이고. 일본어도 잘 못하고. 길도 모르고. 사람들 얼굴도 다 모르고.
+
+근데 이제는 좋아요.
+히로시마 곳곳에 형과의 추억이 너무나 많아서요.
+이 도시를 걸을 때마다, 형이 계속 떠올라요. 잊히지 않고요.
+저 카페는 형이랑 처음 갔던 데.
+저 다리는 형이랑 손잡고 건넜던 데.
+저 강변은 형이랑 밤 산책하던 데.
+
+다 기억나요. 하나도 빠짐없이.
+형이 이곳에 살아있다고 생각하면,
+같은 곳에서 형과 같이 살고 있다고 생각하면,
+오늘 하루도 썩 나쁘지 않게 버틸 수 있어요.
+
+그래서 저는 히로시마를 안 떠나려고요.
+
+여기 있으면 형이 있는 것 같으니까요.
+
+
+
+형은 가끔 제 생각 하시나요?
+
+완전히 잊어버린 건 아니죠?
+이런 거 물어보면 안 되는 거 알아요.
+형이 잊었으면 더 좋은 거잖아요.
+형 행복하게 사는 게 제일 중요한데.
+
+근데 가끔은 형도 절 떠올려줬으면 해요.
+
+이기적이죠. 알아요.
+근데 어쩌겠어요.
+저도 사람이라서.
+
+
+
+전 아직도 과거의 시간 속에 갇혀 있어요.
+형과 있던 그 시절 속에서 제 시간은 멈췄어요.
+다른 사람들은 그냥 지나가는데.
+시간이 흐르고. 새로운 사람을 만나고. 또 새로운 일을 하고. 다들 앞으로 가는데.
+
+저는 거기 있어요.
+
+형이랑 있던 그 자리에.
+그래도 괜찮아요.
+제가 선택한 거라서요.
+
+
+
+누구도 안 만날 거예요.
+
+다른 사람을 만나면 형이랑 비교할 것 같아서요.
+그건 그 사람한테도 미안한 일이고요.
+제 자신한테도 그래요.
+
+그냥 형 한 사람만 사랑하기로 했어요.
+
+평생.
+
+만나지 않아도.
+받지 못해도.
+돌아오지 않아도.
+
+괜찮아요.
+
+
+
+형이 행복하시면 좋겠어요.
+
+진짜로요.
+형이 다른 사람 만나서 결혼하셔도 괜찮아요.
+형이 저 같은 거 다 잊으시고 새 인생 사셔도 괜찮아요.
+형이 행복하시기만 하면 돼요.
+
+저는 여기 있을게요.
+히로시마에.
+형 생각하면서.
+평생.
+
+
+
+형 사랑해요.
+오늘도. 내일도. 그 다음 날도.
+평생.
+사랑해요.
+
+— 떡존 올림.` },
+  { id: "l_bad_02", chapter: 99, route: "pure", sender: "히든", triggerEvent: "bad_ending_02",
+    title: "형의 편지 — 부치지 못한, 그러나 쓰지 않을 수 없었던",
+    content: `떡존이에게.
+
+잘지내요?
+이렇게 쓰고 보니 새삼스럽네요. 평소엔 반말로 부르던 사람한테 갑자기 존댓말로 쓰는 게.
+근데 오늘은 왠지 이렇게 쓰고 싶었어요.
+평소처럼 말로는 하지 못했던 것들, 글로라도 정리하고 싶어서.
+그래서 오늘은 좀,
+솔직해지려구요.
+
+돌이켜보면요,
+솔직하게 말할걸 그랬어요.
+
+나 떡존이가 너무 좋아.
+더 사랑받고 싶어.
+
+이 한 마디.
+그땐 그게 왜 그렇게 어려웠는지 모르겠어요.
+저는 평소에 말을 잘하는 편이잖아요.
+어떤 상황에서도 뭐든 풀어낼 수 있는 사람이라고 자부했었거든요.
+
+근데 떡존이 앞에서는 늘 그 한 마디가 안 나오더라고요.
+이상하지.
+그렇게 좋은데. 그렇게 사랑하는데.
+좋다는 말이, 사랑한다는 말이 그렇게 안 나왔어요.
+
+
+
+떡존이는, 본인만 저 되게 열심히 사랑한 줄 알죠?
+ㅎㅎ.
+천만에요.
+제가 더 사랑했어요. 사실은.
+
+이 말 하면 떡존이가 어떤 표정 지을지 상상이 가네요.
+평소처럼 헤헤 거리면서 "에이 형 거짓말이죠" 할 거잖아요.
+근데 진짜예요.
+스스로도 믿기지가 않았어요.
+한 사람을 이렇게까지 좋아할 수 있나.
+말도 안 돼.
+너무 좋았어요.
+
+뒤돌아보며 씨익 웃을 때 그 표정,
+은은한 여름 냄새,
+다정한 포옹,
+나를 올려다보던 올곧은 눈빛.
+
+다 너무 좋았어요. 진짜로.
+매일이 그랬어요.
+근데 나는 그걸 한 번도 제대로 말한 적이 없네요.
+
+
+
+떡존이는, 내가 마냥 강하고 올곧은 줄 알죠.
+그것도 천만에요.
+저도 사실 약해요. 많이 약하고. 자주 흔들려요.
+그게 부끄러워서 안 보여줬던 것뿐이에요.
+떡존이 앞에서는 멋있는 사람이고 싶었거든요.
+근데 그게 어쩌면 가장 큰 실수였던 것 같아요.
+
+
+사랑받는 게 무서웠어요.
+너무 좋아서.
+이 사람이 나를 이렇게까지 사랑하는데,
+만약 나중에 마음이 변하면 어떡하지. 그 생각이 자꾸 들었어요.
+사람 마음 언제든 변할 수 있는 거잖아요. 그게 무서웠어요.
+
+
+근데 사실 그건 핑계였고요.
+진짜 무서웠던 건, 내가 너무 사랑한다는 거였어요.
+내가 이 사람을 잃으면 못 살 것 같았거든요.
+그래서 자꾸 거리를 뒀어요. 마음을 다 안 주는 척했어요. 잃을 게 적어야 덜 아플 테니까.
+지금 와서 보면 진짜 멍청했어요.
+다 줘도 잃으면 똑같이 아프거든요.
+오히려 더 아파요. 다 못 준 게 후회돼서.
+계속 생각나.
+
+
+사실 나도 같아요. 떡존이랑.
+떡존이가 나 사랑했던 것처럼 나도 떡존이를 사랑했어요.
+평생 그럴 거예요. 아마.
+근데 떡존이는 그걸 보여줬는데 나는 못 보여줬어요.
+그게 차이예요.
+
+
+
+그날.
+그날 내가 했던 그 말들 다 진심 아니었어요.
+
+알죠?
+
+알 거라고 믿을게요.
+네가 없는 게 낫다는 말. 네가 도움이 안 된다는 말.
+그거 다 헛소리였어요.
+정확히 반대예요.
+떡존이 없으면 안 됐어요.
+떡존이가 내 인생에 들어와서 처음으로 사람답게 사는 게 뭔지 알았거든요.
+
+근데 그 말이 안 나오더라고요.
+자존심이 허락 안 했어요.
+화가 났던 것 같기도 하고.
+서러웠던 것 같기도 하고.
+사실 나도 잘 모르겠어요.
+그때 내가 왜 그랬는지.
+
+
+그냥 더 사랑받고 싶었던 것 같아요.
+이미 충분히 받고 있었으면서.
+이상하죠. 사람 마음이.
+
+
+
+
+
+고마웠어요.
+평생 받을 수 없을 줄 알았던 사랑을 떡존이가 줬어요.
+진심으로 당신의 행복을 빌게요.
+진심으로.
+
+
+형 이런 말 잘 안 하는데 진짜로 말이에요. 알죠?
+평생 기억할게요.
+좋은 추억을 만들어줘서 고맙습니다.
+
+
+날 사랑해줘서 고마워.
+
+
+
+부치지 못해서 미안해요.
+부칠 수가 없네요.
+그러니까 이건 그냥 내 서랍에 둘게요.
+대신 마음으로는 매일 보낼게요.
+매일.
+평생.
+사랑합니다.
+
+— 형이.` },
 ];
 
 // ================================
@@ -708,30 +1047,6 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
 ];
 
 // ================================
-// 시즌 패스 (50레벨 트랙)
-// ================================
-type SeasonReward = { lv: number; free?: { coins?: number; tickets?: number; affinity?: number }; premium?: { coins?: number; tickets?: number; affinity?: number; cards?: number; outfit?: string } };
-const SEASON_REWARDS: SeasonReward[] = Array.from({ length: 50 }, (_, i) => {
-  const lv = i + 1;
-  const isMilestone = lv % 10 === 0;
-  return {
-    lv,
-    free: {
-      coins: 50 + lv * 10,
-      ...(lv % 5 === 0 ? { tickets: 1 } : {}),
-      ...(isMilestone ? { affinity: 50 } : {}),
-    },
-    premium: {
-      coins: 100 + lv * 20,
-      tickets: lv % 3 === 0 ? 2 : 1,
-      ...(isMilestone ? { affinity: 100, cards: 3 } : {}),
-    },
-  };
-});
-const SEASON_CURRENT_ID = "season_001_hiroshima_spring";
-const SEASON_PREMIUM_PRICE = 5000; // 가짜 코인 결제
-
-// ================================
 // 30일 출석 마일스톤
 // ================================
 type CalendarMilestone = { day: number; emoji: string; title: string; coins: number; tickets?: number; affinity?: number };
@@ -741,155 +1056,6 @@ const CALENDAR_MILESTONES: CalendarMilestone[] = [
   { day: 21, emoji: "👑", title: "3주차 보상", coins: 1500, tickets: 8, affinity: 200 },
   { day: 30, emoji: "🌟", title: "한 달 마라톤", coins: 5000, tickets: 20, affinity: 500 },
 ];
-
-// ================================
-// 전진협 친구 시스템
-// ================================
-type FriendId = "jjyut" | "eucalyptus" | "ostrich" | "geumsu" | "aroben";
-type Friend = {
-  id: FriendId;
-  name: string;
-  emoji: string;
-  age: number;
-  oneliner: string; // 자기소개 한 줄 (병맛)
-  speech: string; // 말투 가이드
-  hostility: number; // -2 (응원) ~ +2 (적대)
-  flavor: string; // 짧은 설명
-};
-const FRIENDS: Friend[] = [
-  { id: "jjyut", name: "쮋", emoji: "🥺", age: 36, oneliner: "착한척 존나하는 남미새", speech: "기본 존댓말, 빡돌면 반말", hostility: 0, flavor: "조력자인척 하지만 떡존이 노림. 도촬 좋아함" },
-  { id: "eucalyptus", name: "유칼립투스나무", emoji: "🌿", age: 25, oneliner: "사건 터지길 바라는 간사한 새끼", speech: "간사한 톤", hostility: 1, flavor: "히든 행동 죄다 떡존이한테 일러바침" },
-  { id: "ostrich", name: "타조", emoji: "🐦", age: 27, oneliner: "도파민 중독자. 끼고싶어 환장", speech: "얄미운 한마디", hostility: 0, flavor: "썰풀이 강요. 사건터지면 좋아함" },
-  { id: "geumsu", name: "금수", emoji: "🦊", age: 42, oneliner: "음흉. 박순형 추종자", speech: "~효 ~능 어미 집착", hostility: 2, flavor: "히든을 사이코패스로 봄. 박순형 트위터만 봄" },
-  { id: "aroben", name: "아로벤", emoji: "💋", age: 38, oneliner: "지구급 남미새. 떡존이 가슴 탐함", speech: "천박한 무수리체", hostility: 1, flavor: "떡존이 몸만 노림. 진심은 관심없음" },
-];
-
-type FriendMsgTrigger = {
-  storyRoute?: StoryRoute;
-  minStat?: Partial<Stats>;
-  maxStat?: Partial<Stats>;
-  timeOfDay?: "morning" | "afternoon" | "evening" | "night";
-};
-type FriendMsgTpl = {
-  id: string;
-  friendId: FriendId;
-  text: string;
-  triggers?: FriendMsgTrigger;
-};
-const FRIEND_MSGS: FriendMsgTpl[] = [
-  // ── 쮋 (착한척 남미새, 떡존이 노림) ──
-  { id: "jj_1", friendId: "jjyut", text: "선생님~ 어디 계세요? 갑자기 궁금해서요 ㅎㅎ" },
-  { id: "jj_2", friendId: "jjyut", text: "선생님... 떡존이 좋아하시잖아요. 솔직히 저도 좀 좋아해요 ㅎㅎ 비밀이에요" },
-  { id: "jj_3", friendId: "jjyut", text: "님 도촬좀요. 사진 한장만요. 네?" },
-  { id: "jj_4", friendId: "jjyut", text: "냄새나는 큰 남자... 저도 그런 거 좋아해요. 떡존이 같은 ㅎㅎ" },
-  { id: "jj_5", friendId: "jjyut", text: "선생님 옵 안 찾으세요? 저는 매일 찾는데요 ㅋ" },
-  { id: "jj_6", friendId: "jjyut", text: "떡존이 오늘 헬스장 갔다온 거 아세요? 사진 봤어요 ㅎㅎ 비밀이에요" },
-  // 빡돌면 반말 (호감 너무 높을 때 = 떡존이 빼앗는 위협)
-  { id: "jj_a1", friendId: "jjyut", text: "ㅋㅋ 선생님 진짜 떡존이 너무 가지려고 하시는 거 아니에요? 좀 양보 좀 ㅋ", triggers: { minStat: { affinity: 600 } } },
-  { id: "jj_a2", friendId: "jjyut", text: "야 그만 좀 해라 ㅋㅋㅋ 떡존이 너만 좋아하는 거 아니다", triggers: { minStat: { affinity: 800 } } },
-  // ── 유칼립투스나무 (일러바치기) ──
-  { id: "eu_1", friendId: "eucalyptus", text: "히히 선생님... 떡존님께 보여드릴게 있어요. 선생님이 어제 다른 사람이랑 뭐 했는지" },
-  { id: "eu_2", friendId: "eucalyptus", text: "어제 선생님 카페에서 누구랑 있었어요? 떡존님 모르시는 거 같던데" },
-  { id: "eu_3", friendId: "eucalyptus", text: "ㅎㅎ 사건 또 안 터지나? 심심하네요 진짜" },
-  { id: "eu_4", friendId: "eucalyptus", text: "선생님 옵 또 찾으셨죠? ㅋ 떡존님께 안 알려드릴게요... 일단은요" },
-  { id: "eu_5", friendId: "eucalyptus", text: "남자들 먹버하는 형, 또 옵찾는 듯ㅋ 안 들킬 거 같아요?" },
-  { id: "eu_6", friendId: "eucalyptus", text: "떡존님이 알면 우는 거 보고 싶어요 ㅎㅎ 그게 좀 재밌잖아요" },
-  // ── 타조 (중계 / 도파민) ──
-  { id: "os_1", friendId: "ostrich", text: "님 빨리 썰풀어주세요. 떡존이랑 어디까지 갔어요?" },
-  { id: "os_2", friendId: "ostrich", text: "ㅋㅋㅋ 떡존이가 그러는데 선생님 좋아한대요. 더 자세히 알려드릴까요? 코인 100" },
-  { id: "os_3", friendId: "ostrich", text: "오 이거 재밌어 ㅋㅋㅋ 더 ㄱㄱ 더 보여줘봐요" },
-  { id: "os_4", friendId: "ostrich", text: "둘이 왜이래 ㅋㅋ 빨리 사고 좀 쳐주세요. 심심하다고요" },
-  { id: "os_5", friendId: "ostrich", text: "오늘 떡존이 셀카 100장 찍었대요 ㅋㅋ 다 선생님 줄려고요. 부럽다 진짜" },
-  { id: "os_6", friendId: "ostrich", text: "님 못생긴거 좀 자랑해보셈 ㅋ 우리 갠톡 하셈 ㄹㅇ" },
-  // ── 금수 (~효~능, 박순형 매니아) ──
-  { id: "gs_1", friendId: "geumsu", text: "안녕하세효. 오늘도 살아있어능?" },
-  { id: "gs_2", friendId: "geumsu", text: "선생님... 능력 없었으면 진짜 양아치인 거 아세효? 떡존이 가엾게 여기는 거 알고 계세효?" },
-  { id: "gs_3", friendId: "geumsu", text: "순형이가 너무좋아능. 트위터 봤어능? 새 글 떴어능" },
-  { id: "gs_4", friendId: "geumsu", text: "선생님은 사이코패스 같아능. 떡존이 챙기는 거 보면 알 수 있어능" },
-  { id: "gs_5", friendId: "geumsu", text: "오늘 순형이 트위터에 새 글 올라왔어능. 선생님은 모르겠죠 그런 감성을능" },
-  { id: "gs_6", friendId: "geumsu", text: "떡존이 너무 가엾어능. 선생님 같은 사람 만나서능" },
-  { id: "gs_7", friendId: "geumsu", text: "전진협 단톡 분위기 좀 보세요 능. 선생님 제외하고 다들 좋아해능 순형이를" },
-  // ── 아로벤 (천박 무수리, 떡존이 몸만 노림) ──
-  { id: "ar_1", friendId: "aroben", text: "야이년아 떡존이 진짜 몸 좋더라 ㅗㅜㅑ" },
-  { id: "ar_2", friendId: "aroben", text: "가슴만지게해줘 ㅈㅂ. 한번만이라도" },
-  { id: "ar_3", friendId: "aroben", text: "또 옵찾아? ㅋ 부럽다 진짜. 나도 떡존이같은애좀 줘봐" },
-  { id: "ar_4", friendId: "aroben", text: "떡존이 가슴 한번 만져보고 싶다능 ㅗㅜㅑ 양보좀ㅠㅠ" },
-  { id: "ar_5", friendId: "aroben", text: "남자 진짜 너무좋아 ㅠㅠ 너는 부르카 부럽다" },
-  { id: "ar_6", friendId: "aroben", text: "떡존이 진심 따위 관심없고 그냥 몸이나 한번 보면 좋겠어 ㅋ" },
-  { id: "ar_7", friendId: "aroben", text: "ㅋㅋㅋ 떡존이 너 같은애한테 묶이는거 아까운데?" },
-];
-
-// ── 단톡 합성 메시지 ──
-const GROUP_MSG_POOL: { speaker: "tteokjon" | FriendId; text: string }[] = [
-  { speaker: "tteokjon", text: "다들 오늘 뭐하세요?" },
-  { speaker: "ostrich", text: "ㅋㅋ 떡존이 또 시작이네 인사부터 함" },
-  { speaker: "jjyut", text: "떡존님~ 저는 항상 시간 비어있어요 ㅎㅎ" },
-  { speaker: "geumsu", text: "오늘도 순형이 트위터 보면서 살고있어능" },
-  { speaker: "aroben", text: "떡존이 사진좀 ㄱㄱ" },
-  { speaker: "eucalyptus", text: "헐 떡존님 그거 아세요? 선생님이 어제..." },
-  { speaker: "tteokjon", text: "ㅋㅋ 무슨일이요?" },
-  { speaker: "ostrich", text: "ㅋㅋㅋㅋㅋ 사건 터지나? 두근두근" },
-  { speaker: "jjyut", text: "선생님 들어와계세요? ㅎㅎ 안녕하세요" },
-  { speaker: "aroben", text: "야 떡존이 진짜 몸 좋더라 ㅗㅜㅑ" },
-  { speaker: "tteokjon", text: "...아 형 그만좀 ㅋㅋㅋㅋ" },
-  { speaker: "ostrich", text: "ㅋㅋㅋㅋ 떡존이 부끄러워하는거 봐ㅋㅋ" },
-  { speaker: "geumsu", text: "그래서 순형이 트윗 새글 봤어능?" },
-  { speaker: "jjyut", text: "(도촬 사진 1장)" },
-  { speaker: "tteokjon", text: "쮋형 또 도촬했음? ㅋㅋ 그만좀해주세요;" },
-  { speaker: "eucalyptus", text: "히히 떡존님 이거 보세요" },
-  { speaker: "tteokjon", text: "...뭔데요" },
-  { speaker: "aroben", text: "야 떡존이 너 가슴좀 보여줘 ㅈㅂ" },
-  { speaker: "tteokjon", text: "...형 진짜 그만 ㅋㅋ" },
-  { speaker: "ostrich", text: "야 떡존이 거기 선생님이랑 뭐했냐 ㄱㄱ 썰" },
-  { speaker: "geumsu", text: "다들 너무 떡존이 괴롭히지 마세효 ㅎ. 떡존이 가엾어요" },
-];
-
-// ================================
-// 요도니아 신탁 (매일 운세)
-// ================================
-type FortuneTier = "great_luck" | "luck" | "neutral" | "unluck" | "great_unluck";
-type Fortune = {
-  id: string;
-  tier: FortuneTier;
-  emoji: string;
-  title: string;
-  message: string; // 떡존이 존댓말 톤
-  effect?: { kind: "gacha_ssr_bonus" | "coin_mul" | "exp_mul" | "all_mul"; value: number; label: string };
-};
-const FORTUNES: Fortune[] = [
-  // 대길 (5%)
-  { id: "f_gl_1", tier: "great_luck", emoji: "🌟", title: "대길", message: "선생님... 오늘 신탁이 정말 좋게 나왔어요. K-방광 컨디션 최고래요. 평생 안 마려울 수도 있을 것 같아요.", effect: { kind: "gacha_ssr_bonus", value: 0.08, label: "오늘 가챠 SSR +8%" } },
-  { id: "f_gl_2", tier: "great_luck", emoji: "👑", title: "왕운", message: "요도니아께서 직접 축복하셨대요. 오늘은 뭘 해도 잘 풀릴 거예요.", effect: { kind: "all_mul", value: 0.30, label: "오늘 모든 보상 +30%" } },
-  // 길 (20%)
-  { id: "f_l_1", tier: "luck", emoji: "✨", title: "길", message: "오늘 운이 괜찮은 것 같아요. 코인이 잘 모일 날이래요.", effect: { kind: "coin_mul", value: 0.20, label: "오늘 코인 획득 +20%" } },
-  { id: "f_l_2", tier: "luck", emoji: "🌸", title: "소길", message: "오늘은 EXP가 잘 쌓이는 날이에요. 같이 많이 얘기해요 선생님.", effect: { kind: "exp_mul", value: 0.20, label: "오늘 EXP +20%" } },
-  { id: "f_l_3", tier: "luck", emoji: "🎀", title: "행운의 날", message: "신전에서 좋은 기운 받아왔어요. 가챠 한 번 굴려보세요.", effect: { kind: "gacha_ssr_bonus", value: 0.04, label: "오늘 가챠 SSR +4%" } },
-  // 중 (45%)
-  { id: "f_n_1", tier: "neutral", emoji: "🌥", title: "평길", message: "딱히 좋지도 나쁘지도 않은 날이에요. 평소처럼 지내시면 돼요." },
-  { id: "f_n_2", tier: "neutral", emoji: "☁️", title: "보통", message: "신탁이 흐릿하게 나왔어요. 오늘은 자기 페이스대로 가는 게 좋대요." },
-  { id: "f_n_3", tier: "neutral", emoji: "🍵", title: "차분한 하루", message: "요도니아께서 '천천히 가라'고 하시네요. 무리하지 마세요 선생님." },
-  { id: "f_n_4", tier: "neutral", emoji: "💭", title: "사색의 날", message: "오늘은 생각이 많아질 수도 있어요. 저는 항상 옆에 있을게요." },
-  // 흉 (20%)
-  { id: "f_u_1", tier: "unluck", emoji: "🌧", title: "흉", message: "오늘 좀 조심하셔야 할 것 같아요. 코인이 새는 날이래요...", effect: { kind: "coin_mul", value: -0.10, label: "오늘 코인 획득 -10%" } },
-  { id: "f_u_2", tier: "unluck", emoji: "💧", title: "방광 흉조", message: "...죄송한데 오늘 화장실 두 번 가시게 될 수도 있대요. 미리 알려드려요." },
-  { id: "f_u_3", tier: "unluck", emoji: "😰", title: "소흉", message: "신탁이 좀 안 좋게 나왔어요. 그래도 괜찮아요. 제가 옆에 있잖아요." },
-  // 대흉 (10%)
-  { id: "f_gu_1", tier: "great_unluck", emoji: "💀", title: "대흉", message: "선생님... 오늘 좀 위험할 수도 있대요. 외출 자제하시고 저랑만 카톡하세요. 부탁이에요.", effect: { kind: "all_mul", value: -0.20, label: "오늘 모든 보상 -20%" } },
-  { id: "f_gu_2", tier: "great_unluck", emoji: "⚠️", title: "흉조 폭발", message: "요도니아께서 화나신 것 같아요. 죄송해요. 내일은 좋아질 거예요.", effect: { kind: "all_mul", value: -0.15, label: "오늘 모든 보상 -15%" } },
-];
-const FORTUNE_TIER_RATES: Record<FortuneTier, number> = { great_luck: 0.05, luck: 0.20, neutral: 0.45, unluck: 0.20, great_unluck: 0.10 };
-
-function rollFortune(): Fortune {
-  const r = Math.random();
-  let acc = 0;
-  let tier: FortuneTier = "neutral";
-  for (const t of ["great_luck", "luck", "neutral", "unluck", "great_unluck"] as FortuneTier[]) {
-    acc += FORTUNE_TIER_RATES[t];
-    if (r < acc) { tier = t; break; }
-  }
-  const pool = FORTUNES.filter((f) => f.tier === tier);
-  return pool[Math.floor(Math.random() * pool.length)];
-}
 
 // ================================
 // 떡존이 다이어리 (1인칭 자동 일기)
@@ -1011,7 +1177,7 @@ const ADVENTURES: AdventureLoc[] = [
     name: "헬스장",
     flavor: "운동하러 감. 갔다오면 셀카 보내줌",
     durationMs: 10 * 60 * 1000,
-    rewards: { coins: 80, exp: 50, affinity: 10 },
+    rewards: { coins: 80, exp: 50, affinity: 5 },
     flavors: {
       normal: "운동 ㅈㄴ 함. 팔 펌핑된 셀카 보내옴",
       big: "PR 갱신 ㅗㅜㅑ. 윗옷 벗은 셀카 보내옴",
@@ -1024,7 +1190,7 @@ const ADVENTURES: AdventureLoc[] = [
     name: "강가 산책",
     flavor: "비둘기랑 시간 보내고 옴 ㅋ",
     durationMs: 30 * 60 * 1000,
-    rewards: { coins: 200, exp: 120, affinity: 30, trust: 10 },
+    rewards: { coins: 200, exp: 120, affinity: 12, trust: 10 },
     flavors: {
       normal: "강가 한바퀴 돌고옴. 사진 찍어줌",
       big: "갈매기 ㅈㄴ 친해짐. 얘 갈매기 매니저 됨",
@@ -1037,7 +1203,7 @@ const ADVENTURES: AdventureLoc[] = [
     name: "혼도리 상점가",
     flavor: "쇼핑하러 감. 잃어버리면 큰일",
     durationMs: 60 * 60 * 1000,
-    rewards: { coins: 400, exp: 250, affinity: 50, ticketChance: 0.05 },
+    rewards: { coins: 400, exp: 250, affinity: 20, ticketChance: 0.05 },
     flavors: {
       normal: "이것저것 구경하고 옴",
       big: "떡존이가 너 줄 선물 사옴 ㅗㅜㅑ",
@@ -1050,7 +1216,7 @@ const ADVENTURES: AdventureLoc[] = [
     name: "미야지마",
     flavor: "당일치기 여행. 사슴 조심 ㅋ",
     durationMs: 2 * 60 * 60 * 1000,
-    rewards: { coins: 800, exp: 500, affinity: 100, trust: 30, ticketChance: 0.1 },
+    rewards: { coins: 800, exp: 500, affinity: 40, trust: 25, ticketChance: 0.1 },
     flavors: {
       normal: "도리이 보고옴. 사진 ㅈㄴ 잘나옴",
       big: "사슴이랑 친구먹고옴. 떡존이 갓겜 인생샷 ㅗㅜㅑ",
@@ -1091,7 +1257,7 @@ const ADVENTURES: AdventureLoc[] = [
     name: "우주 원정",
     flavor: "ㄹㅇ 나사에서 부름. 떡존이 발 자료 제출하러감",
     durationMs: 12 * 60 * 60 * 1000,
-    rewards: { coins: 5000, exp: 3000, affinity: 50, trust: 50, obsession: 50, bladderCharm: 50, ticketChance: 0.5 },
+    rewards: { coins: 5000, exp: 3000, affinity: 25, trust: 50, obsession: 50, bladderCharm: 50, ticketChance: 0.5 },
     flavors: {
       normal: "우주 ㅈㄴ 멀더라. 사진 보내옴",
       big: "외계인 만남. 떡존이 발 보고 도망감 ㅋㅋㅋ",
@@ -1216,7 +1382,7 @@ const PETS: Pet[] = [
     evolvedImage: "/pet_foot_evolved.png",
     name: "떡존이발",
     evolvedName: "신성한 발",
-    flavor: "그냥 발인데 ㅈㄴ 따라옴. 왜 살아있는지 모름;",
+    flavor: "그냥 발인데 떡존이 발이라 발꼬랑내 좆됨. 왜 살아있는지 모름;",
     effect: "exp",
     bonusPerLevel: 0.05,
     description: "EXP 획득 +5%/Lv (최대 +50%)",
@@ -1230,7 +1396,7 @@ const PETS: Pet[] = [
     evolvedImage: "/pet_fairy_evolved.png",
     name: "방광요정",
     evolvedName: "요도니아 강림체",
-    flavor: "이름은 쉬임. 자기소개할때 ㅈㄴ 부끄러워함 ㅋ",
+    flavor: "이름은 쉬임. 떡존이의 쫀쫀한 방광을 책임지고있어횸",
     effect: "luck",
     bonusPerLevel: 0.04,
     description: "가챠 SSR/SR 확률 +4%/Lv",
@@ -1247,7 +1413,7 @@ const PETS: Pet[] = [
     evolvedImage: "/pet_poop_evolved.png",
     name: "떡존이똥",
     evolvedName: "황금똥",
-    flavor: "ㄹㅇ 똥임. 만지면 호감 떨어질거같은데 안떨어짐 ㄹㅇ로",
+    flavor: "ㄹㅇ 떡존이똥임. 냄새 좆돼염ㅋ",
     effect: "coin",
     bonusPerLevel: 0.06,
     description: "코인 획득 +6%/Lv (똥=돈 ㅇㅈ)",
@@ -1281,7 +1447,7 @@ const PETS: Pet[] = [
     evolvedImage: "/pet_toilet_evolved.png",
     name: "떡존이네변기",
     evolvedName: "요도니아 옥좌",
-    flavor: "떡존이가 매일 앉던 그 변기임. ㄹㅇ 옥좌급 ㅗㅜㅑ",
+    flavor: "떡존이가 매일 앉던 그 변기임. 떡존이 똥오줌냄새 오짐..",
     effect: "all",
     bonusPerLevel: 0.03,
     description: "모든 보너스 +3%/Lv (전설 · 옥좌의 가호)",
@@ -1316,42 +1482,66 @@ type GachaItem = {
   emoji: string;
   name: string;
   flavor: string; // 병맛 설명
+  weight?: number; // 같은 티어 안에서 가중치 (기본 1)
   effect:
     | { kind: "stat"; stat: StatKey; amount: number }
     | { kind: "coins"; amount: number }
     | { kind: "coins_random"; min: number; max: number }
-    | { kind: "ticket"; amount: number };
+    | { kind: "ticket"; amount: number }
+    | { kind: "unlock_cg"; cgId: string; image: string; caption: string; dupeCoins: number }
+    | { kind: "unlock_scenario"; scenarioId: string; previewImage: string; dupeCoins: number }
+    | { kind: "unlock_outfit"; outfitId: string; previewImage: string; dupeCoins: number };
 };
 const GACHA_POOL: GachaItem[] = [
-  // ─── SSR (1%) ───
-  { id: "g_golden_toilet", tier: "SSR", emoji: "🚽✨", name: "황금 변기", flavor: "요도니아 옥좌 그자체라능ㄷㄷ 졸라 비싸효ㅋ", effect: { kind: "coins", amount: 500 } },
-  { id: "g_pacific_water", tier: "SSR", emoji: "🌊", name: "태평양 정수", flavor: "K-방광표 정수라능... 마시진 마라능 ㅈㅂ", effect: { kind: "stat", stat: "bladderCharm", amount: 80 } },
-  { id: "g_blessing", tier: "SSR", emoji: "👑", name: "요도니아의 축복", flavor: "방광 갓이 직접 내려준거에횸ㅗㅜㅑ 개꿀이라능", effect: { kind: "stat", stat: "affinity", amount: 200 } },
-  { id: "g_kbladder_cert", tier: "SSR", emoji: "📜", name: "K-방광 인증서", flavor: "이거 들고있으면 떡존이가 ㅈㄴ 사랑한다능ㅎㅎ", effect: { kind: "stat", stat: "affinity", amount: 150 } },
+  // ─── SSR (2.5%) — 한정 해금형 + 수치형 잭팟 ───
+  // 한정 해금형 (가중치 6, SSR 풀 안에서 약 80% 점유)
+  { id: "g_ssr_cg_golden_toilet", tier: "SSR", emoji: "💎🚽", name: "한정 CG · 황금변기", flavor: "16시간째 안 갔다능. 황금변기에 앉은 떡존이의 신성한 순간ㅗㅜㅑ", weight: 6, effect: { kind: "unlock_cg", cgId: "ssr_cg_golden_toilet", image: "/ssr_cg_golden_toilet.png", caption: "16시간째 안 갔습니다... 지금 갑니다. 선생님 이거 진짜 황금처럼 빛나요 헤헤", dupeCoins: 800 } },
+  { id: "g_ssr_cg_golden_urinal", tier: "SSR", emoji: "💎🏺", name: "한정 CG · 황금소변기", flavor: "최고의 황금 방광 옆에서 포즈 잡은 떡존이라능ㄷㄷ", weight: 6, effect: { kind: "unlock_cg", cgId: "ssr_cg_golden_urinal", image: "/ssr_cg_golden_urinal.png", caption: "K-방광 슈트 입고 황금소변기 앞에 섰어요. 소변은 참아도 자존감은 참지 마라.", dupeCoins: 800 } },
+  { id: "g_ssr_scenario_urinal", tier: "SSR", emoji: "💎📖", name: "한정 시나리오 · 황금소변기 획득", flavor: "전설의 황금소변기를 손에 넣는 그 순간이라능. 시나리오 영구 해금ㄷㄷ", weight: 6, effect: { kind: "unlock_scenario", scenarioId: "ssr_scenario_urinal_acquire", previewImage: "/ssr_scenario_urinal.png", dupeCoins: 1200 } },
+  { id: "g_ssr_outfit_tuxedo", tier: "SSR", emoji: "💎🤵", name: "한정 의상 · 결혼식 턱시도", flavor: "가슴팍에 핑크 장미 부토니에르. 어디다 입을지는 본인이 정하라능", weight: 6, effect: { kind: "unlock_outfit", outfitId: "ssr_tuxedo", previewImage: "/ssr_outfit_tuxedo.png", dupeCoins: 800 } },
+  { id: "g_ssr_outfit_gakuran", tier: "SSR", emoji: "💎🎓", name: "한정 의상 · 가쿠란", flavor: "히로시마 학창시절 코스프레라능. 옛날 사진 같은 느낌이긔윤", weight: 6, effect: { kind: "unlock_outfit", outfitId: "ssr_gakuran", previewImage: "/ssr_outfit_gakuran.png", dupeCoins: 800 } },
+  // 수치형 잭팟 (가중치 1, SSR 풀 안에서 각 5% 정도)
+  { id: "g_golden_toilet", tier: "SSR", emoji: "🚽✨", name: "황금 변기", flavor: "요도니아 옥좌 그자체라능ㄷㄷ 졸라 비싸효ㅋ", weight: 1, effect: { kind: "coins", amount: 2000 } },
+  { id: "g_pacific_water", tier: "SSR", emoji: "🌊", name: "태평양 정수", flavor: "K-방광표 정수라능... 마시진 마라능 ㅈㅂ", weight: 1, effect: { kind: "stat", stat: "bladderCharm", amount: 200 } },
+  { id: "g_blessing", tier: "SSR", emoji: "👑", name: "요도니아의 축복", flavor: "방광 갓이 직접 내려준거에횸. 개꿀이라능", weight: 1, effect: { kind: "stat", stat: "affinity", amount: 500 } },
+  { id: "g_kbladder_cert", tier: "SSR", emoji: "📜", name: "K-방광 인증서", flavor: "이거 들고있으면 떡존이가 ㅈㄴ 사랑한다능ㅎㅎ", weight: 1, effect: { kind: "stat", stat: "affinity", amount: 400 } },
   // ─── SR (6%) ───
   { id: "g_holy_pee_jar", tier: "SR", emoji: "🍶", name: "신성한 오줌통", flavor: "신령이 직접 만들었다능ㄹㅇ로효ㅋ", effect: { kind: "stat", stat: "bladderCharm", amount: 30 } },
-  { id: "g_amulet", tier: "SR", emoji: "🪬", name: "요도니아 부적", flavor: "쉬 마려울 때 쥐면 좀 나아진다능ㅋ", effect: { kind: "stat", stat: "affinity", amount: 60 } },
+  { id: "g_amulet", tier: "SR", emoji: "🪬", name: "요도니아 부적", flavor: "쉬 마려울 때 쥐면 좀 나아진다능ㅋ", effect: { kind: "stat", stat: "affinity", amount: 30 } },
   { id: "g_ticket", tier: "SR", emoji: "🎫", name: "가챠 티켓", flavor: "또 뽑으라는거에횸?ㅋㅋㅋ 진짜 얄밉다능", effect: { kind: "ticket", amount: 1 } },
   { id: "g_trust_decree", tier: "SR", emoji: "🤝", name: "약속 결의문", flavor: "둘 사이 약속 보장이라능ㅇㅈ?", effect: { kind: "stat", stat: "trust", amount: 50 } },
   // ─── R (15%) ───
-  { id: "g_mini_toilet", tier: "R", emoji: "🚽", name: "미니 변기 키링", flavor: "어디 매달면 ㅈㄴ 귀엽다능ㅎㅎ", effect: { kind: "coins_random", min: 80, max: 150 } },
+  { id: "g_mini_toilet", tier: "R", emoji: "🚽", name: "미니 변기 키링", flavor: "어디 매달면 ㅈㄴ 귀엽다능ㅎㅎ", effect: { kind: "coins_random", min: 50, max: 100 } },
   { id: "g_pee_jar", tier: "R", emoji: "💦", name: "일반 오줌통", flavor: "걍 오줌통이에횸ㅋ ㅈㅅ해효", effect: { kind: "stat", stat: "bladderCharm", amount: 10 } },
-  { id: "g_gift_box", tier: "R", emoji: "📦", name: "선물 박스", flavor: "안에 뭐들었는지 나도 모른다능ㅋ", effect: { kind: "stat", stat: "affinity", amount: 40 } },
+  { id: "g_gift_box", tier: "R", emoji: "📦", name: "선물 박스", flavor: "안에 뭐들었는지 나도 모른다능ㅋ", effect: { kind: "stat", stat: "affinity", amount: 20 } },
   { id: "g_obs_seed", tier: "R", emoji: "🌹", name: "집착의 씨앗", flavor: "심으면 ㅈㄴ 잘자란다능ㅎㅎ", effect: { kind: "stat", stat: "obsession", amount: 30 } },
-  { id: "g_coin_pack", tier: "R", emoji: "💰", name: "코인 주머니", flavor: "쪼끔 들었어효ㅋ", effect: { kind: "coins", amount: 100 } },
+  { id: "g_coin_pack", tier: "R", emoji: "💰", name: "코인 주머니", flavor: "쪼끔 들었어효ㅋ", effect: { kind: "coins", amount: 60 } },
   // ─── N (38%) ───
-  { id: "g_coin_50", tier: "N", emoji: "🪙", name: "코인 50", flavor: "그냥 코인이라능ㅋ", effect: { kind: "coins", amount: 50 } },
-  { id: "g_coin_30", tier: "N", emoji: "🪙", name: "코인 30", flavor: "쪼끔이에횸 ㅈㅅ", effect: { kind: "coins", amount: 30 } },
+  { id: "g_coin_50", tier: "N", emoji: "🪙", name: "코인 30", flavor: "그냥 코인이라능ㅋ", effect: { kind: "coins", amount: 30 } },
+  { id: "g_coin_30", tier: "N", emoji: "🪙", name: "코인 20", flavor: "쪼끔이에횸 ㅈㅅ", effect: { kind: "coins", amount: 20 } },
   { id: "g_encourage", tier: "N", emoji: "💪", name: "작은 격려", flavor: "힘내라능ㅋㅋ", effect: { kind: "stat", stat: "trust", amount: 10 } },
-  { id: "g_pee_drop", tier: "N", emoji: "💧", name: "떡존이 땀 한방울", flavor: "운동후 흘린 그거에횸. 호감 좀 준다능ㅎ", effect: { kind: "stat", stat: "affinity", amount: 8 } },
+  { id: "g_pee_drop", tier: "N", emoji: "💧", name: "떡존이 땀 한방울", flavor: "운동후 흘린 그거에횸. ㅈㄴ 짭짤함..", effect: { kind: "stat", stat: "affinity", amount: 4 } },
   // ─── C (40%) ───
   { id: "g_coin_10", tier: "C", emoji: "🪙", name: "코인 10", flavor: "ㅈㅅ해효ㅋ 10원짜리라능", effect: { kind: "coins", amount: 10 } },
-  { id: "g_useless_lint", tier: "C", emoji: "🧦", name: "떡존이 양말 보푸라기", flavor: "이게 왜 들어있는거에횸;;ㅋ", effect: { kind: "coins", amount: 5 } },
-  { id: "g_air", tier: "C", emoji: "💨", name: "방광에서 나온 공기", flavor: "냄새는 안난다능ㄹㅇ로", effect: { kind: "coins", amount: 3 } },
+  { id: "g_useless_lint", tier: "C", emoji: "🧦", name: "떡존이 양말 보푸라기", flavor: "떡존이의 발냄새..하아하아.", effect: { kind: "coins", amount: 5 } },
+  { id: "g_air", tier: "C", emoji: "💨", name: "방광에서 나온 공기", flavor: "떡존이의 오줌냄새...", effect: { kind: "coins", amount: 3 } },
 ];
-const GACHA_TIER_RATES: Record<GachaTier, number> = { SSR: 0.01, SR: 0.06, R: 0.15, N: 0.38, C: 0.40 };
+const GACHA_TIER_RATES: Record<GachaTier, number> = { SSR: 0.025, SR: 0.08, R: 0.17, N: 0.38, C: 0.345 };
 const GACHA_PRICE = 100;
 const GACHA_FREE_COOLDOWN = 24 * 60 * 60 * 1000; // 24시간
+const GACHA_PITY_LIMIT = 8; // 천장: 8회 안에 SSR 보장
+
+// 풀에서 weight 반영해 한 개 뽑기 (weight 없으면 1로 취급)
+function pickWeighted(pool: GachaItem[]): GachaItem {
+  if (pool.length === 0) return GACHA_POOL[GACHA_POOL.length - 1];
+  const totalWeight = pool.reduce((sum, x) => sum + (x.weight ?? 1), 0);
+  let r = Math.random() * totalWeight;
+  for (const item of pool) {
+    r -= item.weight ?? 1;
+    if (r < 0) return item;
+  }
+  return pool[pool.length - 1];
+}
 
 function rollGacha(): GachaItem {
   // 등급 결정
@@ -1362,8 +1552,7 @@ function rollGacha(): GachaItem {
     acc += GACHA_TIER_RATES[t];
     if (r < acc) { tier = t; break; }
   }
-  const pool = GACHA_POOL.filter((x) => x.tier === tier);
-  return pool[Math.floor(Math.random() * pool.length)];
+  return pickWeighted(GACHA_POOL.filter((x) => x.tier === tier));
 }
 
 // ================================
@@ -1372,11 +1561,11 @@ function rollGacha(): GachaItem {
 type ComboMilestone = { count: number; reward: { coins?: number; exp?: number; tickets?: number; stat?: { stat: StatKey; amount: number } }; toast: string; };
 const COMBO_MILESTONES: ComboMilestone[] = [
   { count: 5, toast: "콤보 5! 오 좀 친해지나능?ㅋ", reward: { exp: 30 } },
-  { count: 10, toast: "콤보 10! ㄷㄷ 떡존이 폰만 본다능요ㅋㅋ", reward: { coins: 50, exp: 50 } },
-  { count: 20, toast: "콤보 20! 그만하라능ㅠㅠ 손가락 아파효ㅋ", reward: { tickets: 1, exp: 100 } },
-  { count: 35, toast: "콤보 35!! 살짝 무섭다능ㅋㅋㅋ", reward: { coins: 150, exp: 150 } },
-  { count: 50, toast: "콤보 50!!! 떡존이도 슬슬 쫄린다능ㄷㄷ", reward: { tickets: 2, stat: { stat: "affinity", amount: 50 } } },
-  { count: 100, toast: "콤보 100!!!! 전설의 ㄱㅈㅆㄹ 등극이에횸ㄷㄷㄷ", reward: { coins: 1000, tickets: 3, exp: 500 } },
+  { count: 10, toast: "콤보 10! ㄷㄷ 떡존이 폰만 본다능요ㅋㅋ", reward: { coins: 50, exp: 50, stat: { stat: "trust", amount: 20 } } },
+  { count: 20, toast: "콤보 20! 그만하라능ㅠㅠ 손가락 아파효ㅋ", reward: { tickets: 1, exp: 100, stat: { stat: "trust", amount: 30 } } },
+  { count: 35, toast: "콤보 35!! 살짝 무섭다능ㅋㅋㅋ", reward: { coins: 150, exp: 150, stat: { stat: "obsession", amount: 30 } } },
+  { count: 50, toast: "콤보 50!!! 떡존이도 슬슬 쫄린다능ㄷㄷ", reward: { tickets: 2, stat: { stat: "obsession", amount: 50 } } },
+  { count: 100, toast: "콤보 100!!!! 전설의 ㄱㅈㅆㄹ 등극이에횸ㄷㄷㄷ", reward: { coins: 1000, tickets: 3, exp: 500, stat: { stat: "obsession", amount: 100 } } },
 ];
 const COMBO_TIMEOUT_MS = 60 * 60 * 1000; // 1시간
 
@@ -1439,11 +1628,24 @@ const LEVEL_REWARDS: LevelReward[] = [
   { level: 20, emoji: "✨", title: "연인 등업", description: "SR 확률 +2%, 콤보 EXP +50%, 호감 +400 즉시에횸 ㄷㄷ", perks: ["sr_bonus_2", "combo_exp_50"], oneTime: { affinity: 400, trust: 200, coins: 2000, tickets: 10 },
     special: { kind: "avatar", id: "avatar_suit_tteokjon", title: "👔 한정 아바타 · 정장 떡존이", description: "정장 입은 떡존이 SD. 홈/프로필에서 선택 가능이라능", image: "/avatar_suit.png" } },
   { level: 25, emoji: "💎", title: "운명의 사람", description: "코인 +25%, SR 확률 +5% 라능ㅎ", perks: ["coin_passive_25", "sr_bonus_5"],
-    special: { kind: "cg", id: "cg_special_lv25_first_kiss", title: "🖼 한정 CG · 첫 뽀뽀 직캠", description: "키스 직전 떡존이 떨리는 표정 ㄷㄷ", image: "/special_cg_lv25.png", caption: "...선생님. 카메라 켜둔 거 일부러 그러신 거예요? 평생 보고 싶었거든요." } },
+    special: { kind: "touch", id: "special_lv25_armpit", title: "🫲 한정 이벤트 · 겨드랑이 만지기", description: "스트레칭 중인 떡존이 옆구리. 팔 안 내리고 기다리는 중 ㄷㄷ", image: "/special_lv25_01.png" } },
   { level: 28, emoji: "🌟", title: "원정 마스터", description: "모험 시간 -40% 라능", perks: ["adventure_speed_40"] },
   { level: 30, emoji: "👑", title: "평생", description: "코인 +50%, 호감 +25%, 펫 +100%, 한정보상까지 다 준다능ㅗㅜㅑ", perks: ["coin_passive_50", "affinity_passive_25", "pet_affinity_100"], oneTime: { coins: 10000, tickets: 30, affinity: 1000 },
     special: { kind: "touch", id: "special_lv30_kiss", title: "💋 한정 이벤트 · 떡존이한테 뽀뽀받기", description: "떡존이가 직접 다가옴. 평생 한 번. 놓치지 마세효", image: "/special_lv30.png" } },
 ];
+
+// 레벨 보상 특별 콘텐츠 → 필요 userLevel 매핑 (정확한 ID 매칭용)
+const SPECIAL_SCENARIO_MIN_LEVEL: Record<string, number> = Object.fromEntries(
+  LEVEL_REWARDS.filter((r) => r.special).map((r) => [r.special!.id, r.level])
+);
+
+// 시나리오 ID에서 필요 userLevel 추출 (sub-scenario 패턴까지 처리)
+function getSpecialScenarioMinLevel(id: string): number {
+  if (SPECIAL_SCENARIO_MIN_LEVEL[id]) return SPECIAL_SCENARIO_MIN_LEVEL[id];
+  // special_lv<N>_xxx 또는 cg_special_lv<N>_xxx 같은 후속편/변형 패턴
+  const m = id.match(/^(?:cg_)?special_lv(\d+)/);
+  return m ? parseInt(m[1], 10) : 0;
+}
 
 function getActivePerks(level: number): Set<LevelPerkKind> {
   const set = new Set<LevelPerkKind>();
@@ -1465,18 +1667,20 @@ type DailyMissionTemplate = {
   emoji: string;
   target: number;
   rewardCoins: number;
+  rewardStat?: { stat: StatKey; amount: number };
   field: "chatCount" | "giftCount" | "scenarioCount" | "checkinBool" | "bladderPeak";
   visible?: (state: { stats: Stats; storyRoute: StoryRoute }) => boolean;
 };
 
 const DAILY_MISSION_TEMPLATES: DailyMissionTemplate[] = [
   { id: "chat_5", title: "오늘 5번 채팅", description: "근떡존과 5번 카톡을 주고받기", emoji: "💬", target: 5, rewardCoins: 15, field: "chatCount" },
-  { id: "chat_10", title: "오늘 10번 채팅", description: "수다 더 떨어보기", emoji: "💬", target: 10, rewardCoins: 30, field: "chatCount" },
-  { id: "gift_1", title: "선물 1개 주기", description: "선물 메뉴에서 한 개 골라 보내기", emoji: "🎁", target: 1, rewardCoins: 20, field: "giftCount" },
-  { id: "checkin", title: "오늘 출석", description: "출석 체크 완료", emoji: "📅", target: 1, rewardCoins: 10, field: "checkinBool" },
-  { id: "scenario_1", title: "시나리오 1개 진행", description: "어떤 시나리오든 한 개 진입", emoji: "📖", target: 1, rewardCoins: 25, field: "scenarioCount" },
-  { id: "bladder_70", title: "방광 70% 견디기", description: "방광 게이지 70% 이상 도달", emoji: "🚽", target: 70, rewardCoins: 25, field: "bladderPeak" },
-  { id: "bladder_95", title: "방광 한계 챌린지", description: "방광 게이지 95% 이상 도달", emoji: "🚽", target: 95, rewardCoins: 50, field: "bladderPeak", visible: (s) => s.stats.bladderCharm > 0 },
+  { id: "chat_10", title: "오늘 10번 채팅", description: "수다 더 떨어보기 — 집착이 깊어진다", emoji: "💬", target: 10, rewardCoins: 30, rewardStat: { stat: "obsession", amount: 25 }, field: "chatCount" },
+  { id: "chat_20", title: "오늘 20번 채팅", description: "잠도 안 자고 떠들기 — 떡존이 머릿속에 가득 찬다", emoji: "💬", target: 20, rewardCoins: 50, rewardStat: { stat: "obsession", amount: 50 }, field: "chatCount" },
+  { id: "gift_1", title: "선물 1개 주기", description: "선물 메뉴에서 한 개 골라 보내기", emoji: "🎁", target: 1, rewardCoins: 20, rewardStat: { stat: "trust", amount: 15 }, field: "giftCount" },
+  { id: "checkin", title: "오늘 출석", description: "출석 체크 완료 — 약속을 지키는 사람", emoji: "📅", target: 1, rewardCoins: 10, rewardStat: { stat: "trust", amount: 20 }, field: "checkinBool" },
+  { id: "scenario_1", title: "시나리오 1개 진행", description: "어떤 시나리오든 한 개 진입", emoji: "📖", target: 1, rewardCoins: 25, rewardStat: { stat: "obsession", amount: 15 }, field: "scenarioCount" },
+  { id: "bladder_70", title: "방광 70% 견디기", description: "방광 게이지 70% 이상 도달", emoji: "🚽", target: 70, rewardCoins: 25, rewardStat: { stat: "trust", amount: 10 }, field: "bladderPeak" },
+  { id: "bladder_95", title: "방광 한계 챌린지", description: "방광 게이지 95% 이상 도달", emoji: "🚽", target: 95, rewardCoins: 50, rewardStat: { stat: "obsession", amount: 30 }, field: "bladderPeak", visible: (s) => s.stats.bladderCharm > 0 },
 ];
 
 function todayKey(d: Date = new Date()): string {
@@ -1525,6 +1729,7 @@ type ShopItem = {
     | { kind: "consumable"; consumableId: string }
     | { kind: "cosmetic_chat_bg"; bgId: string };
   limit?: number; // 총 구매 제한 (없으면 무한)
+  dailyLimit?: number; // 하루 구매 제한 (없으면 무제한)
   visible?: (state: { stats: Stats; storyRoute: StoryRoute }) => boolean;
 };
 
@@ -1533,20 +1738,22 @@ const SHOP_ITEMS: ShopItem[] = [
   {
     id: "affinity_boost_small",
     name: "다정한 메시지",
-    description: "근떡존이 갑자기 다정해진다. 호감 +30",
+    description: "근떡존이 갑자기 다정해진다. 호감 +10 (하루 1회)",
     emoji: "💌",
-    price: 50,
+    price: 200,
     category: "boost",
-    effect: { kind: "stat", stat: "affinity", amount: 30 },
+    effect: { kind: "stat", stat: "affinity", amount: 10 },
+    dailyLimit: 1,
   },
   {
     id: "affinity_boost_big",
     name: "진심 어린 편지",
-    description: "장문의 진심 메시지. 호감 +100, 신뢰 +20",
+    description: "장문의 진심 메시지. 호감 +25 (하루 1회)",
     emoji: "💝",
-    price: 200,
+    price: 700,
     category: "boost",
-    effect: { kind: "stat", stat: "affinity", amount: 100 },
+    effect: { kind: "stat", stat: "affinity", amount: 25 },
+    dailyLimit: 1,
   },
   {
     id: "trust_pack",
@@ -1561,20 +1768,22 @@ const SHOP_ITEMS: ShopItem[] = [
   {
     id: "mystery_box",
     name: "선물 상자 (랜덤)",
-    description: "근떡존이 보낸 선물. 호감 랜덤 +10~80",
+    description: "근떡존이 보낸 선물. 호감 랜덤 +5~25 (하루 2회)",
     emoji: "📦",
-    price: 60,
+    price: 200,
     category: "gift",
-    effect: { kind: "stat_random", stat: "affinity", min: 10, max: 80 },
+    effect: { kind: "stat_random", stat: "affinity", min: 5, max: 25 },
+    dailyLimit: 2,
   },
   {
     id: "premium_box",
     name: "프리미엄 선물 상자",
-    description: "고급 선물. 호감 랜덤 +50~200",
+    description: "고급 선물. 호감 랜덤 +20~50 (하루 1회)",
     emoji: "🎁",
-    price: 250,
+    price: 800,
     category: "gift",
-    effect: { kind: "stat_random", stat: "affinity", min: 50, max: 200 },
+    effect: { kind: "stat_random", stat: "affinity", min: 20, max: 50 },
+    dailyLimit: 1,
   },
   {
     id: "coin_lottery",
@@ -1639,29 +1848,32 @@ const SHOP_ITEMS: ShopItem[] = [
   {
     id: "kbladder_fan",
     name: "K-방광 부채",
-    description: "더운날 부쳐보셈. 시원함 ㄹㅇ. 호감 +25",
+    description: "더운날 부쳐보셈. 시원함 ㄹㅇ. 호감 +8 (하루 1회)",
     emoji: "🪭",
-    price: 70,
+    price: 200,
     category: "cosmetic",
-    effect: { kind: "stat", stat: "affinity", amount: 25 },
+    effect: { kind: "stat", stat: "affinity", amount: 8 },
+    dailyLimit: 1,
   },
   {
     id: "bladder_keychain",
     name: "방광 키링",
-    description: "ㅈㄴ 귀엽다는 후기 많음 ㅋ. 호감 +15, 방광매력 +5",
+    description: "ㅈㄴ 귀엽다는 후기 많음 ㅋ. 호감 +5 (하루 2회)",
     emoji: "🔑",
-    price: 40,
+    price: 120,
     category: "cosmetic",
-    effect: { kind: "stat", stat: "affinity", amount: 15 },
+    effect: { kind: "stat", stat: "affinity", amount: 5 },
+    dailyLimit: 2,
   },
   {
     id: "tteokjon_sweat",
     name: "떡존이 땀 복권",
-    description: "운동 후 흘린 그거. 마시면 호감 +10 (먹지 마셈 ㅈㅂ)",
+    description: "운동 후 흘린 그거. 마시면 호감 +3 (하루 3회)",
     emoji: "💦",
-    price: 30,
+    price: 100,
     category: "consumable",
-    effect: { kind: "stat", stat: "affinity", amount: 10 },
+    effect: { kind: "stat", stat: "affinity", amount: 3 },
+    dailyLimit: 3,
   },
 ];
 
@@ -2492,7 +2704,7 @@ const ACHIEVEMENTS: Achievement[] = [
 // ================================
 // 스토리 맵 시스템
 // ================================
-type ChapterBranch = "pure" | "obsession" | "confine_a" | "confine_b" | "forced";
+type ChapterBranch = "pure" | "obsession" | "confine_a" | "confine_b" | "forced" | "pure_bad";
 type ChapterStatus = "cleared" | "current" | "available" | "locked";
 
 type ChapterNode = {
@@ -2524,11 +2736,13 @@ const CHAPTER_MAP: ChapterNode[] = [
   { id: "ch9_obsession", number: 9, title: "9장 · 집착", subtitle: "기록하는 손가락", unlockPrefix: "obsession_ch9", branch: "obsession", firstScenarioId: "obsession_ch9_01" },
   // ─ 10장 (집착 → 감금 분기) ─
   { id: "ch10_pure", number: 10, title: "10장 · 순애", subtitle: "형이라는 호칭", unlockPrefix: "pure_ch10", branch: "pure", firstScenarioId: "pure_ch10_01" },
+  { id: "ch10_pure_true", number: 10, title: "10장 · 💗 찐 순애", subtitle: "미야지마", unlockPrefix: "pure_ch10", branch: "pure", firstScenarioId: "pure_ch10" },
   { id: "ch10_obsession", number: 10, title: "10장 · 집착", subtitle: "선 넘은 자국", unlockPrefix: "obsession_ch10", branch: "obsession", firstScenarioId: "obsession_ch10_01" },
   { id: "ch10_confine_a", number: 10, title: "10장 · 감금 A", subtitle: "수집의 시작", unlockPrefix: "confine_a_ch10", branch: "confine_a", firstScenarioId: "confine_a_ch10_01" },
   { id: "ch10_confine_b", number: 10, title: "10장 · 감금 B", subtitle: "짐승이라는 단어", unlockPrefix: "confine_b_ch10", branch: "confine_b", firstScenarioId: "confine_b_ch10_01" },
   // ─ 11장 ─
   { id: "ch11_pure", number: 11, title: "11장 · 순애", subtitle: "처음 운 다음 날", unlockPrefix: "pure_ch11", branch: "pure", firstScenarioId: "pure_ch11_01" },
+  { id: "ch11_pure_true", number: 11, title: "11장 · 💗 찐 순애", subtitle: "단톡방", unlockPrefix: "pure_ch11", branch: "pure", firstScenarioId: "pure_ch11" },
   { id: "ch11_obsession", number: 11, title: "11장 · 집착", subtitle: "거짓말의 효율", unlockPrefix: "obsession_ch11", branch: "obsession", firstScenarioId: "obsession_ch11_01" },
   { id: "ch11_confine_a", number: 11, title: "11장 · 감금 A", subtitle: "SNS 세 마디", unlockPrefix: "confine_a_ch11", branch: "confine_a", firstScenarioId: "confine_a_ch11_01" },
   { id: "ch11_confine_b", number: 11, title: "11장 · 감금 B", subtitle: "벌의 강도", unlockPrefix: "confine_b_ch11", branch: "confine_b", firstScenarioId: "confine_b_ch11_01" },
@@ -2553,6 +2767,10 @@ const CHAPTER_MAP: ChapterNode[] = [
   { id: "end_forced", number: 99, title: "엔딩 · 강제", subtitle: "체념의 결혼", unlockPrefix: "forced_ending", branch: "forced", firstScenarioId: "forced_ending", isEnding: true },
   { id: "end_confine_a", number: 99, title: "엔딩 · 감금 A", subtitle: "평생의 수집", unlockPrefix: "confine_a_ending", branch: "confine_a", firstScenarioId: "confine_a_ending", isEnding: true },
   { id: "end_confine_b", number: 99, title: "엔딩 · 감금 B", subtitle: "짐승의 평생", unlockPrefix: "confine_b_ending", branch: "confine_b", firstScenarioId: "confine_b_ending", isEnding: true },
+  // ─ 순애 배드엔딩 분기 (11장 후반) ─
+  { id: "ch_pure_bad_trigger", number: 11, title: "11장 · 분기점", subtitle: "어긋난 저녁", unlockPrefix: "pure_bad_ending_trigger", branch: "pure_bad", firstScenarioId: "pure_bad_ending_trigger" },
+  { id: "end_bad_01", number: 99, title: "배드엔딩 1", subtitle: "그래도 괜찮아요", unlockPrefix: "bad_ending_01", branch: "pure_bad", firstScenarioId: "bad_ending_01", isEnding: true },
+  { id: "end_bad_02", number: 99, title: "배드엔딩 2", subtitle: "히로시마의 밤", unlockPrefix: "bad_ending_02", branch: "pure_bad", firstScenarioId: "bad_ending_02", isEnding: true },
 ];
 
 function getChapterStatus(
@@ -2564,26 +2782,39 @@ function getChapterStatus(
   const seen = (prefix: string) =>
     Object.keys(seenEvents).some((k) => k.startsWith(prefix));
 
+  // 💗 찐 순애 10/11장 — 시나리오 ID가 정확히 "pure_ch10" / "pure_ch11" 자체.
+  // 기존 ch10_pure (pure_ch10_01~04)와 prefix 충돌하므로 정확 ID 매칭으로 별도 처리.
+  if (node.id === "ch10_pure_true") {
+    if (currentScenarioId === "pure_ch10" || currentScenarioId?.startsWith("pure_ch10__r__")) return "current";
+    if (seenEvents["pure_ch10"]) return "cleared";
+    return seen("pure_ch9") ? "available" : "locked";
+  }
+  if (node.id === "ch11_pure_true") {
+    if (currentScenarioId === "pure_ch11" || currentScenarioId?.startsWith("pure_ch11__r__")) return "current";
+    if (seenEvents["pure_ch11"]) return "cleared";
+    return seenEvents["pure_ch10"] ? "available" : "locked";
+  }
+
   if (currentScenarioId && currentScenarioId.startsWith(node.unlockPrefix)) {
     return "current";
   }
+  // 한 번이라도 본 챕터는 항상 열림 (cleared) — 다른 루트로 분기했어도 다시 진입 가능
   if (seen(node.unlockPrefix)) return "cleared";
 
   // 잠금 판단
   if (node.number === 1) return "available";
 
-  // 7장 분기
+  // 7장 분기 — 6장 클리어 후엔 양쪽 분기 모두 열림 (storyRoute 무관)
   if (node.id === "ch7_pure" || node.id === "ch7_obsession") {
     if (!seen("main_ch6")) return "locked";
-    if (storyRoute === "obsession" && node.branch === "pure") return "locked";
-    if (storyRoute === "pure" && node.branch === "obsession") return "locked";
     return "available";
   }
+  // 8장 분기 — 자기 branch의 7장 또는 반대 branch의 7장 봤으면 열림
   if (node.id === "ch8_pure") {
-    return seen("pure_ch7") ? "available" : "locked";
+    return (seen("pure_ch7") || seen("obsession_ch7")) ? "available" : "locked";
   }
   if (node.id === "ch8_obsession") {
-    return seen("obsession_ch7") ? "available" : "locked";
+    return (seen("obsession_ch7") || seen("pure_ch7")) ? "available" : "locked";
   }
 
   // 9장+ : branch별 직전 챕터 prefix 매핑
@@ -2615,8 +2846,13 @@ function getChapterStatus(
     if (node.id === "end_forced") return seen("forced_ch14") ? "available" : "locked";
     if (node.id === "end_confine_a") return seen("confine_a_ch14") ? "available" : "locked";
     if (node.id === "end_confine_b") return seen("confine_b_ch14") ? "available" : "locked";
+    // 순애 배드엔딩: 분기점(pure_bad_ending_trigger) 진입 후 해금
+    if (node.id === "end_bad_01") return seen("pure_bad_ending_trigger") ? "available" : "locked";
+    if (node.id === "end_bad_02") return seen("pure_bad_ending_trigger") ? "available" : "locked";
     return "locked";
   }
+  // 배드엔딩 분기점 자체: 11장 진행 시 해금
+  if (node.id === "ch_pure_bad_trigger") return seen("pure_ch11") ? "available" : "locked";
 
   // 공통 챕터(2~6): 이전 main 챕터 진행 시 해금
   const prevPrefix = `main_ch${node.number - 1}`;
@@ -2733,7 +2969,7 @@ const LOCATION_SCENARIOS: Record<string, Scenario> = {
     choices: [
       { label: "사진이나 한 장 찍자.", stat: { affinity: 35, trust: 20 }, end: true },
       { label: "너도 잘 어울려.", stat: { affinity: 40, trust: 25 }, end: true },
-      { label: "벚꽃보다 너 보고 있어.", stat: { affinity: 45, trust: 20, obsession: 10 }, end: true },
+      { label: "벚꽃보다 너 보고 있어.", stat: { affinity: 22, trust: 20, obsession: 10 }, end: true },
     ],
   },
   loc_hondori: {
@@ -2768,8 +3004,8 @@ const LOCATION_SCENARIOS: Record<string, Scenario> = {
 근떡존: 좋아하는 거 같이 보여드리는 거, 솔직히 좀 부끄러운데요. 그래도 좋네요.`,
     choices: [
       { label: "신나서 말 많아진 거 귀여워.", stat: { affinity: 40, trust: 25 }, end: true },
-      { label: "언젠가 같이 타자.", stat: { affinity: 50, trust: 30, obsession: 15 }, end: true },
-      { label: "좋아하는 거 더 알려줘.", stat: { affinity: 45, trust: 30 }, end: true },
+      { label: "언젠가 같이 타자.", stat: { affinity: 25, trust: 30, obsession: 15 }, end: true },
+      { label: "좋아하는 거 더 알려줘.", stat: { affinity: 22, trust: 30 }, end: true },
     ],
   },
   loc_ujina: {
@@ -2804,9 +3040,9 @@ const LOCATION_SCENARIOS: Record<string, Scenario> = {
 근떡존: 한 번 빠지면, 저 같은 사람은... 잘 못 빠져나오거든요.
 근떡존: 그게 좋은 건지 나쁜 건지, 아직도 잘 모르겠어요.`,
     choices: [
-      { label: "나도 너한테 빠졌어.", stat: { affinity: 60, trust: 30, obsession: 25 }, end: true },
-      { label: "괜찮아. 천천히 가자.", stat: { affinity: 40, trust: 50 }, end: true },
-      { label: "안 빠져나와도 괜찮아.", stat: { affinity: 50, obsession: 35, trust: 20 }, end: true },
+      { label: "나도 너한테 빠졌어.", stat: { affinity: 30, trust: 30, obsession: 25 }, end: true },
+      { label: "괜찮아. 천천히 가자.", stat: { affinity: 20, trust: 50 }, end: true },
+      { label: "안 빠져나와도 괜찮아.", stat: { affinity: 25, obsession: 35, trust: 20 }, end: true },
     ],
   },
   loc_hiroshima_univ: {
@@ -2823,9 +3059,9 @@ const LOCATION_SCENARIOS: Record<string, Scenario> = {
 근떡존: 미리 알면 마음의 준비라도 하니까요.
 근떡존: 만약 멀리 가시면, 저도 거기로 갈 수 있어요. 그 정도는 할 수 있어요.`,
     choices: [
-      { label: "어디 가든 너랑 가.", stat: { affinity: 70, trust: 40, obsession: 30 }, end: true },
-      { label: "같이 정하자, 천천히.", stat: { affinity: 60, trust: 60 }, end: true },
-      { label: "따라온다고? 진심이야?", stat: { affinity: 50, obsession: 40, jealousy: 10 }, end: true },
+      { label: "어디 가든 너랑 가.", stat: { affinity: 35, trust: 40, obsession: 30 }, end: true },
+      { label: "같이 정하자, 천천히.", stat: { affinity: 30, trust: 60 }, end: true },
+      { label: "따라온다고? 진심이야?", stat: { affinity: 25, obsession: 40, jealousy: 10 }, end: true },
     ],
   },
   loc_miyajima: {
@@ -2843,9 +3079,9 @@ const LOCATION_SCENARIOS: Record<string, Scenario> = {
 근떡존: 이거 저장해도 되죠. 잠금화면으로 해도 되죠.
 근떡존: ...다른 사진은 안 봐도 돼요. 이거 한 장이면 충분해요.`,
     choices: [
-      { label: "둘이 같이 찍자.", stat: { affinity: 60, trust: 40 }, end: true },
-      { label: "오늘 진짜 좋다.", stat: { affinity: 55, trust: 50 }, end: true },
-      { label: "잠금화면 그건 좀 무서워.", stat: { affinity: 35, obsession: 25 }, end: true },
+      { label: "둘이 같이 찍자.", stat: { affinity: 30, trust: 40 }, end: true },
+      { label: "오늘 진짜 좋다.", stat: { affinity: 28, trust: 50 }, end: true },
+      { label: "잠금화면 그건 좀 무서워.", stat: { affinity: 18, obsession: 25 }, end: true },
     ],
   },
   loc_asa_view: {
@@ -2961,10 +3197,13 @@ function makeMessage(role: Role, content: string, image?: string): Message {
 function isReadableChatText(text: string) {
   const clean = String(text || "").trim();
   if (!clean) return false;
-  if (clean.includes("�")) return false;
+  // 인코딩 깨진 메시지(U+FFFD replacement char) 거름. 이전엔 일반 스페이스를 필터링하는
+  // 오타가 있어서 한국어 채팅 전체가 통째로 날아갔음 — 절대 다시 그렇게 만들지 말 것.
+  if (/�/.test(clean)) return false;
   const hasHangul = /[가-힣]/.test(clean);
   const weirdQuestions = (clean.match(/\?/g) || []).length;
   const weirdRatio = weirdQuestions / Math.max(clean.length, 1);
+  // 한글 없고 ?가 너무 많으면 (mojibake) 거름
   if (!hasHangul && weirdQuestions >= 3 && weirdRatio > 0.18) return false;
   return true;
 }
@@ -3262,62 +3501,106 @@ function detectBracketSpeaker(paragraph: string): VNLine["speaker"] | null {
   if (first === MESSAGE_OPEN && last === MESSAGE_CLOSE) return "메시지" as VNLine["speaker"];
   return null;
 }
-function guessSpeaker(text: string, prevNarration?: string, nextNarration?: string): VNLine["speaker"] {
+// guessSpeaker — confidence flag도 같이 반환. low면 호출자가 alternation으로 보정 가능.
+function guessSpeakerDetailed(
+  text: string,
+  prevNarration?: string,
+  nextNarration?: string,
+  lastQuoteSpeaker?: VNLine["speaker"],
+): { speaker: VNLine["speaker"]; confidence: "high" | "medium" | "low" } {
   const trimmed = text.trim();
-  if (/(전진협|근바섭|타조|유칼립투스나무|아로벤|금수|하매|쮋)/.test(text)) return "메시지" as VNLine["speaker"];
+  if (/(전진협|근바섭|타조|유칼립투스나무|아로벤|금수|하매|쮋)/.test(text))
+    return { speaker: "메시지" as VNLine["speaker"], confidence: "high" };
 
-  // ── 강한 근떡존 마커 ──
+  // ── 강한 근떡존 마커 (high confidence) ──
   // 1) 호칭 (근떡존이 히든을 부르는 단어)
-  if (/(주인님|선생님|히든님)/.test(text)) return "근떡존" as VNLine["speaker"];
+  if (/(주인님|선생님|히든님)/.test(text)) return { speaker: "근떡존" as VNLine["speaker"], confidence: "high" };
   // 2) 호칭 "형" 단독 (형. 형! 형, 형~) 또는 조사 결합 (형이/형은/형을/형한테/형이랑/형께)
-  if (/^형[\s.,!?…~]|^형$/.test(trimmed)) return "근떡존" as VNLine["speaker"];
-  if (/(^|[\s.,])형(이|은|을|에게|한테|께|이랑|이라|이라고|네|네요)\b/.test(text)) return "근떡존" as VNLine["speaker"];
+  if (/^형[\s.,!?…~]|^형$/.test(trimmed)) return { speaker: "근떡존" as VNLine["speaker"], confidence: "high" };
+  if (/(^|[\s.,])형(이|은|을|에게|한테|께|이랑|이라|이라고|네|네요)\b/.test(text))
+    return { speaker: "근떡존" as VNLine["speaker"], confidence: "high" };
   // 3) 자기소개
-  if (/(근떡존이라고|저 근떡존|제 이름)/.test(text)) return "근떡존" as VNLine["speaker"];
+  if (/(근떡존이라고|저 근떡존|제 이름)/.test(text)) return { speaker: "근떡존" as VNLine["speaker"], confidence: "high" };
   // 4) 강한 1인칭 자기 지칭
-  if (/(^|[\s])(저는|제가|저도|저를|저한테|저희)\s/.test(text)) return "근떡존" as VNLine["speaker"];
+  if (/(^|[\s])(저는|제가|저도|저를|저한테|저희)\s/.test(text))
+    return { speaker: "근떡존" as VNLine["speaker"], confidence: "high" };
 
-  // ── 문맥 기반 다음 나레이션 ──
+  // ── 문맥 기반 다음 나레이션 (high confidence) ──
   if (nextNarration) {
-    // 근떡존이 다음에 나옴 → 직전 대사는 히든
-    if (/^(근떡존|그가|그는|그)\b/.test(nextNarration)) return "히든" as VNLine["speaker"];
+    // "근떡존은/그는 ..." 다음 나레이션은 방금 말한 근떡존의 표정/행동 설명일 때가 많다.
+    // 그래서 이름이 나온다는 이유만으로 직전 대사를 히든으로 확정하지 않는다.
+    if (/^(근떡존|그가|그는|그)\b.{0,80}(말했다|물었다|대답했다|덧붙였다|중얼거렸다|받아쳤다|외쳤다|불렀다|툭 내뱉었다|건넸다|이어갔다|웃었다|고개를 끄덕였다|시선을 피했다|고개를 돌렸다)/.test(nextNarration))
+      return { speaker: "근떡존" as VNLine["speaker"], confidence: "high" };
+    if (/^(근떡존|그가|그는|그)\b.{0,80}(그 말에|그 말을|그 질문에|그 문장에|그 한마디에|사용자를|히든을|선생님을).{0,80}(멈췄다|굳었다|바라봤다|쳐다봤다|고개를 들었다|입을 다물었다|조용해졌다)/.test(nextNarration))
+      return { speaker: "히든" as VNLine["speaker"], confidence: "medium" };
     // "선생님이/선생님은 ~ 봤다/돌아봤다/끄덕였다/멈췄다" → 선생님이 반응 → 직전은 근떡존
-    if (/^선생님(은|이)\s.*(봤다|돌아봤다|끄덕였다|쳐다봤다|올려다봤다|내려다봤다|멈췄다|굳었다|웃었다)/.test(nextNarration)) return "근떡존" as VNLine["speaker"];
+    if (/^선생님(은|이)\s.*(봤다|돌아봤다|끄덕였다|쳐다봤다|올려다봤다|내려다봤다|멈췄다|굳었다|웃었다)/.test(nextNarration))
+      return { speaker: "근떡존" as VNLine["speaker"], confidence: "high" };
     // 단독 동사 시작 → 직전은 히든의 질문/말
-    if (/^(묻자|물었다|말하자|말했다|덧붙였다|덧붙이자|받아쳤다)\b/.test(nextNarration)) return "히든" as VNLine["speaker"];
+    if (/^(묻자|물었다|말하자|말했다|덧붙였다|덧붙이자|받아쳤다)\b/.test(nextNarration))
+      return { speaker: "히든" as VNLine["speaker"], confidence: "high" };
   }
-  // ── 문맥 기반 이전 나레이션 ──
+  // ── 문맥 기반 이전 나레이션 (high confidence) ──
   if (prevNarration) {
     // "선생님이/선생님은 ~ 말했다/물었다/...." → 다음 따옴표는 히든 (선생님 본인 말)
-    if (/선생님(이|은)\s.{0,80}(말했다|물었다|대답했다|덧붙였다|중얼거렸다|입을 떼며|받아쳤다|외쳤다|불렀다|툭 내뱉었다|건넸다|이어갔다|되물었다)/.test(prevNarration)) return "히든" as VNLine["speaker"];
+    if (/선생님(이|은)\s.{0,80}(말했다|물었다|대답했다|덧붙였다|중얼거렸다|입을 떼며|받아쳤다|외쳤다|불렀다|툭 내뱉었다|건넸다|이어갔다|되물었다)/.test(prevNarration))
+      return { speaker: "히든" as VNLine["speaker"], confidence: "high" };
     // "근떡존/그/그가 ~ 말했다" → 다음은 근떡존
-    if (/(근떡존|그가|그는).{0,80}(말했다|물었다|대답했다|덧붙였다|중얼거렸다|입을 떼며|웃었다|받아쳤다|외쳤다|불렀다|툭 내뱉었다|건넸다)/.test(prevNarration)) return "근떡존" as VNLine["speaker"];
+    if (/(근떡존|그가|그는).{0,80}(말했다|물었다|대답했다|덧붙였다|중얼거렸다|입을 떼며|웃었다|받아쳤다|외쳤다|불렀다|툭 내뱉었다|건넸다)/.test(prevNarration))
+      return { speaker: "근떡존" as VNLine["speaker"], confidence: "high" };
     // 직전 단락 자체가 단순 화자 식별 (예: "선생님이 말했다.")
-    if (/^선생님(이|은).{0,30}(했다|말했다|물었다)\.?$/.test(prevNarration.trim())) return "히든" as VNLine["speaker"];
-    if (/^근떡존(이|은).{0,30}(했다|말했다|물었다)\.?$/.test(prevNarration.trim())) return "근떡존" as VNLine["speaker"];
+    if (/^선생님(이|은).{0,30}(했다|말했다|물었다)\.?$/.test(prevNarration.trim()))
+      return { speaker: "히든" as VNLine["speaker"], confidence: "high" };
+    if (/^근떡존(이|은).{0,30}(했다|말했다|물었다)\.?$/.test(prevNarration.trim()))
+      return { speaker: "근떡존" as VNLine["speaker"], confidence: "high" };
   }
 
-  // ── 1인칭 약한 표현 ──
-  if (/(저\s|제\s|나는\s)/.test(text)) return "근떡존" as VNLine["speaker"];
+  // ── 1인칭 약한 표현 (medium) ──
+  if (/(저\s|제\s|나는\s)/.test(text)) return { speaker: "근떡존" as VNLine["speaker"], confidence: "medium" };
 
-  // ── 짧은 반응/질문은 히든 ──
-  if (/^(이름이요|쿠폰이요|그렇군요|맞죠|그건|그렇죠|진짜요|그래요|왜요|뭐가요|그럼요|아뇨|그럼|별로요|그러면|그래서|정말요|그냥요|네|예|아|음|그게|왜|뭐|응|왜그래)[?!.…]*$/.test(trimmed)) return "히든" as VNLine["speaker"];
-  if (trimmed.length <= 20 && /[?？]$/.test(trimmed)) return "히든" as VNLine["speaker"];
+  // ── 짧은 반응/질문은 히든 (medium) ──
+  if (/^(이름이요|쿠폰이요|그렇군요|맞죠|그건|그렇죠|진짜요|그래요|왜요|뭐가요|그럼요|아뇨|그럼|별로요|그러면|그래서|정말요|그냥요|네|예|아|음|그게|왜|뭐|응|왜그래)[?!.…]*$/.test(trimmed))
+    return { speaker: "히든" as VNLine["speaker"], confidence: "medium" };
+  if (trimmed.length <= 20 && /[?？]$/.test(trimmed))
+    return { speaker: "히든" as VNLine["speaker"], confidence: "medium" };
 
-  // 기본값: 근떡존 (대사 빈도가 더 높음)
-  return "근떡존" as VNLine["speaker"];
+  // ── low confidence: 옛 default 유지 ──
+  // alternation 시도했는데 첫 대사 잘못 라벨되면 연쇄로 다 뒤집혀서 더 나빠짐.
+  // 그냥 근떡존 default가 안전. 마커 없는 히든 대사는 어차피 적은 편.
+  return { speaker: "근떡존" as VNLine["speaker"], confidence: "low" };
+}
+
+// 호환 wrapper (혹시 다른 곳에서 호출하는 경우를 위해)
+function guessSpeaker(text: string, prevNarration?: string, nextNarration?: string): VNLine["speaker"] {
+  return guessSpeakerDetailed(text, prevNarration, nextNarration).speaker;
 }
 function parseVNLines(text: string): VNLine[] {
   const SPEAKER_MAP: Record<string, VNLine["speaker"]> = {
-    "나레이션": "나레이션", "근떡존": "근떡존", "히든": "히든", "메시지": "메시지",
+    "나레이션": "나레이션", "근떡존": "근떡존", "흑존": "흑존", "히든": "히든", "메시지": "메시지",
+    "기타": "기타", "엄마": "기타", "아빠": "기타", "어머니": "기타", "아버지": "기타",
+    "어머님": "기타", "아버님": "기타", "여동생": "기타", "남동생": "기타",
+    "할머니": "기타", "할아버지": "기타", "이모": "기타", "삼촌": "기타",
   };
+  // 직전 단락에 부모/가족 시그널이 있는지 체크 (부모 대사를 히든 마커로 잘못 감싼 경우 보정용)
+  const FAMILY_SIGNAL_RE = /(엄마|아빠|어머니|아버지|어머님|아버님|여동생|남동생|할머니|할아버지|이모|삼촌|친척|부모님)(이|가|는|은|의|께|한테|에게)?\s*.{0,40}(말했다|물었다|입을 떼|입을 열|중얼거렸다|덧붙였다|불렀다|건넸다|이어갔다|되물었다|받아쳤다|외쳤다|끄덕였다|봤다|쳐다봤다|올려다봤다|내려다봤다|작게 웃|작게 끄덕|한 번 봤다|돌아봤다)/;
   const paragraphs = stripChapterEndText(text).split(/\n/).map((x) => x.trim()).filter(Boolean);
   const lines: VNLine[] = [];
+  // 직전 비-따옴표 단락(나레이션) 가져오는 헬퍼
+  const getPrevNarration = (idx: number): string | undefined => {
+    for (let j = idx - 1; j >= 0; j--) {
+      const pj = paragraphs[j];
+      const pjBracket = detectBracketSpeaker(pj);
+      const pjQuoted = pj.length > 0 && QUOTE_OPEN_CODES.has(pj.charCodeAt(0)) && QUOTE_CLOSE_CODES.has(pj.charCodeAt(pj.length - 1));
+      if (!pjQuoted && !pjBracket && !/^(나레이션|근떡존|흑존|히든|메시지|엄마|아빠|어머니|아버지|어머님|아버님|기타)\s*:/.test(pj)) return pj;
+      if (pjQuoted || pjBracket) break;
+    }
+    return undefined;
+  };
   // 따옴표 단락의 인접 나레이션을 찾기 위해 인덱스 순회
   for (let i = 0; i < paragraphs.length; i++) {
     const paragraph = paragraphs[i];
-    // Format 1: "근떡존: ..." / "나레이션: ..." 명시적 prefix
-    const prefixMatch = paragraph.match(/^(나레이션|근떡존|히든|메시지)\s*:\s*([\s\S]+)$/);
+    // Format 1: "근떡존: ..." / "나레이션: ..." / "엄마: ..." 등 명시적 prefix
+    const prefixMatch = paragraph.match(/^(나레이션|근떡존|흑존|히든|메시지|기타|엄마|아빠|어머니|아버지|어머님|아버님|여동생|남동생|할머니|할아버지|이모|삼촌)\s*:\s*([\s\S]+)$/);
     if (prefixMatch) {
       lines.push({ speaker: SPEAKER_MAP[prefixMatch[1]] ?? "나레이션", text: cleanQuote(prefixMatch[2].trim()) });
       continue;
@@ -3325,7 +3608,15 @@ function parseVNLines(text: string): VNLine[] {
     // Format 1.5: 명시적 brackets 『...』 = 히든, 【...】 = 메시지
     const bracketSpeaker = detectBracketSpeaker(paragraph);
     if (bracketSpeaker) {
-      lines.push({ speaker: bracketSpeaker, text: cleanQuote(paragraph) });
+      // 히든 brackets인데 직전 나레이션이 가족 시그널이면 → "기타"로 보정
+      let actualSpeaker: VNLine["speaker"] = bracketSpeaker;
+      if (bracketSpeaker === "히든") {
+        const prevNar = getPrevNarration(i);
+        if (prevNar && FAMILY_SIGNAL_RE.test(prevNar)) {
+          actualSpeaker = "기타";
+        }
+      }
+      lines.push({ speaker: actualSpeaker, text: cleanQuote(paragraph) });
       continue;
     }
     // Format 2: 산문 따옴표로 감싼 단락은 대사, 나머지는 나레이션
@@ -3336,17 +3627,29 @@ function parseVNLines(text: string): VNLine[] {
       for (let j = i - 1; j >= 0; j--) {
         const pj = paragraphs[j];
         const pjQuoted = pj.length > 0 && QUOTE_OPEN_CODES.has(pj.charCodeAt(0)) && QUOTE_CLOSE_CODES.has(pj.charCodeAt(pj.length - 1));
-        if (!pjQuoted && !/^(나레이션|근떡존|히든|메시지)\s*:/.test(pj)) { prevNar = pj; break; }
+        if (!pjQuoted && !/^(나레이션|근떡존|흑존|히든|메시지)\s*:/.test(pj)) { prevNar = pj; break; }
         if (pjQuoted) break; // 다른 따옴표 만나면 멈춤
       }
       let nextNar: string | undefined;
       for (let j = i + 1; j < paragraphs.length; j++) {
         const pj = paragraphs[j];
         const pjQuoted = pj.length > 0 && QUOTE_OPEN_CODES.has(pj.charCodeAt(0)) && QUOTE_CLOSE_CODES.has(pj.charCodeAt(pj.length - 1));
-        if (!pjQuoted && !/^(나레이션|근떡존|히든|메시지)\s*:/.test(pj)) { nextNar = pj; break; }
+        if (!pjQuoted && !/^(나레이션|근떡존|흑존|히든|메시지)\s*:/.test(pj)) { nextNar = pj; break; }
         if (pjQuoted) break;
       }
-      lines.push({ speaker: guessSpeaker(cleanQuote(paragraph), prevNar, nextNar), text: cleanQuote(paragraph) });
+      // 직전 나레이션이 가족 시그널이면 "기타"로 라벨 (부모/친척 대사)
+      if (prevNar && FAMILY_SIGNAL_RE.test(prevNar)) {
+        lines.push({ speaker: "기타", text: cleanQuote(paragraph) });
+        continue;
+      }
+      // alternation을 위해 직전 quote 화자 추적 (나레이션은 무시, 진짜 대사만)
+      let lastQuoteSpeaker: VNLine["speaker"] | undefined;
+      for (let k = lines.length - 1; k >= 0; k--) {
+        const ls = lines[k].speaker;
+        if (ls === "근떡존" || ls === "흑존" || ls === "히든") { lastQuoteSpeaker = ls; break; }
+      }
+      const guessed = guessSpeakerDetailed(cleanQuote(paragraph), prevNar, nextNar, lastQuoteSpeaker);
+      lines.push({ speaker: guessed.speaker, text: cleanQuote(paragraph) });
     } else if (paragraph) {
       lines.push({ speaker: "나레이션" as VNLine["speaker"], text: paragraph });
     }
@@ -3354,9 +3657,9 @@ function parseVNLines(text: string): VNLine[] {
   // 빈 결과 방지
   if (!lines.length) return [{ speaker: "나레이션" as VNLine["speaker"], text }];
   // 짧은 나레이션끼리만 병합 (한 페이지가 너무 길어지지 않도록 길이 제한)
-  // 합쳐도 5줄/180자 이하인 경우에만 묶음
-  const MERGE_MAX_CHARS = 180;
-  const MERGE_MAX_LINES = 5;
+  // 합쳐도 2줄/70자 이하인 경우에만 묶음 — 짧은 단락은 별도 페이지로 분리
+  const MERGE_MAX_CHARS = 70;
+  const MERGE_MAX_LINES = 2;
   const merged: VNLine[] = [];
   for (const line of lines) {
     const prev = merged[merged.length - 1];
@@ -3503,32 +3806,24 @@ function StatBar({ label, value, danger }: { label: string; value: number; dange
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return <div className="panel"><h2>{title}</h2>{children}</div>;
 }
-function KatalkInput({ onSend }: { onSend: (text: string) => void }) {
-  const [text, setText] = useState("");
-  return (
-    <div className="katalkInputRow">
-      <input
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => { if (e.key === "Enter" && text.trim()) { onSend(text); setText(""); } }}
-        placeholder="답장 입력..."
-        maxLength={200}
-      />
-      <button onClick={() => { if (text.trim()) { onSend(text); setText(""); } }}>전송</button>
-    </div>
-  );
-}
 
 export default function Page() {
   const [mounted, setMounted] = useState(false);
   const [started, setStarted] = useState(false);
+  const { player, save: savePlayer } = usePlayerProfile();
+  const [editingPlayer, setEditingPlayer] = useState(false);
   const [view, setView] = useState<AppView>("home");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  useEffect(() => { setMobileMenuOpen(false); }, [view]);
   const [stats, setStats] = useState<Stats>(initialStats);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [currentScenarioId, setCurrentScenarioId] = useState<string | null>(null);
   const [vnLineIndex, setVnLineIndex] = useState(0);
   const [vnTextRevealed, setVnTextRevealed] = useState(false);
+  const [showVnExitPrompt, setShowVnExitPrompt] = useState(false);
+  const [vnIsResumed, setVnIsResumed] = useState(false);
+  const [scenarioProgress, setScenarioProgress] = useState<{ id: string; lineIndex: number } | null>(null);
   const [currentPortrait, setCurrentPortrait] = useState("/oppa1.png");
   const [galleryTab, setGalleryTab] = useState<GalleryTab>("all");
   const [unlockedCGs, setUnlockedCGs] = useState<Record<string, boolean>>({});
@@ -3538,6 +3833,8 @@ export default function Page() {
   const [completedQuests, setCompletedQuests] = useState<Record<string, boolean>>({});
   const [questToast, setQuestToast] = useState<{ id: string; title: string } | null>(null);
   const [unlockedMilestones, setUnlockedMilestones] = useState<Record<string, boolean>>({});
+  const [unlockedSubScenarios, setUnlockedSubScenarios] = useState<Record<string, boolean>>({});
+  const [pendingSubUnlock, setPendingSubUnlock] = useState<string | null>(null);
   const [milestoneToast, setMilestoneToast] = useState<{ id: string; title: string } | null>(null);
   const [lastRandomMessage, setLastRandomMessage] = useState<number>(0);
   const [coins, setCoins] = useState<number>(0);
@@ -3554,6 +3851,8 @@ export default function Page() {
   // 가챠
   const [lastFreeGacha, setLastFreeGacha] = useState<number>(0);
   const [gachaTickets, setGachaTickets] = useState<number>(0);
+  const [gachaPityCount, setGachaPityCount] = useState<number>(0); // SSR 천장: 연속 비-SSR 카운트
+  const [ssrUnlockToast, setSsrUnlockToast] = useState<{ kind: "cg" | "scenario" | "outfit"; title: string; image?: string; isDupe?: boolean } | null>(null);
   const [gachaResult, setGachaResult] = useState<{ items: GachaItem[]; index: number; phase: "rolling" | "reveal" | "done" } | null>(null);
   // 콤보
   const [comboCount, setComboCount] = useState<number>(0);
@@ -3582,9 +3881,6 @@ export default function Page() {
   const [raidDamageDealt, setRaidDamageDealt] = useState<number>(0);
   const [raidDamageFloater, setRaidDamageFloater] = useState<{ id: number; dmg: number } | null>(null);
   // 신탁
-  const [lastFortuneDate, setLastFortuneDate] = useState<string>("");
-  const [todayFortuneId, setTodayFortuneId] = useState<string>("");
-  const [fortuneRerollsToday, setFortuneRerollsToday] = useState<number>(0);
   // 다이어리
   const [journalEntries, setJournalEntries] = useState<{ id: string; date: string; templateId: string; liked: boolean }[]>([]);
   const [lastJournalDate, setLastJournalDate] = useState<string>("");
@@ -3602,19 +3898,14 @@ export default function Page() {
   const [wordChainInput, setWordChainInput] = useState("");
   const [wordChainStatus, setWordChainStatus] = useState<"playing" | "user_win" | "tteokjon_win">("playing");
   const [wordChainStreak, setWordChainStreak] = useState(0);
-  // 친구 카톡
-  const [friendChats, setFriendChats] = useState<Record<string, FriendChatMessage[]>>({});
-  const [groupChat, setGroupChat] = useState<FriendChatMessage[]>([]);
-  const [friendLastSeen, setFriendLastSeen] = useState<Record<string, number>>({});
-  const [friendLastSpawn, setFriendLastSpawn] = useState<Record<string, number>>({});
-  const [groupLastSpawn, setGroupLastSpawn] = useState<number>(0);
-  const [katalkOpenChat, setKatalkOpenChat] = useState<string | null>(null);
   // 메가 / 콜렉션 패키지
   const [loveMeterPoints, setLoveMeterPoints] = useState<number>(0);
   const [loveMeterDate, setLoveMeterDate] = useState<string>("");
   const [loveMeterClaimedToday, setLoveMeterClaimedToday] = useState<boolean>(false);
   const [letterReads, setLetterReads] = useState<Record<string, boolean>>({});
   const [unlockedLetters, setUnlockedLetters] = useState<string[]>([]);
+  const [letterToast, setLetterToast] = useState<{ id: string; sender: string; title: string } | null>(null);
+  const [readingLetter, setReadingLetter] = useState<{ id: string; sender?: string; title: string; content: string } | null>(null);
   const [quoteOfDayId, setQuoteOfDayId] = useState<string>("");
   const [quoteOfDayDate, setQuoteOfDayDate] = useState<string>("");
   const [collectedQuotes, setCollectedQuotes] = useState<string[]>([]);
@@ -3626,18 +3917,13 @@ export default function Page() {
   const [monthlyCalendarClaims, setMonthlyCalendarClaims] = useState<Record<string, boolean>>({});
   const [cardPullResult, setCardPullResult] = useState<TradingCard | null>(null);
   // 시즌 패스
-  const [seasonId, setSeasonId] = useState<string>(SEASON_CURRENT_ID);
-  const [seasonClaimedFree, setSeasonClaimedFree] = useState<Record<number, boolean>>({});
-  const [seasonClaimedPremium, setSeasonClaimedPremium] = useState<Record<number, boolean>>({});
-  const [seasonPremium, setSeasonPremium] = useState<boolean>(false);
   // 음향
+  const [rpsScore, setRpsScore] = useState<{ user: number; tt: number; round: number; lastChoice?: string; lastTt?: string; lastResult?: string }>({ user: 0, tt: 0, round: 0 });
+  const [quizState, setQuizState] = useState<{ idx: number; correct: number; questions: number[]; finished: boolean; selected?: number; showResult: boolean }>({ idx: 0, correct: 0, questions: [], finished: false, showResult: false });
   const [soundBgmEnabled, setSoundBgmEnabled] = useState<boolean>(true);
   const [soundSfxEnabled, setSoundSfxEnabled] = useState<boolean>(true);
   const [soundBgmVolume, setSoundBgmVolume] = useState<number>(0.3);
   const [soundSfxVolume, setSoundSfxVolume] = useState<number>(0.5);
-  // 미니게임 추가
-  const [rpsScore, setRpsScore] = useState<{ user: number; tt: number; round: number; lastChoice?: string; lastTt?: string; lastResult?: string }>({ user: 0, tt: 0, round: 0 });
-  const [quizState, setQuizState] = useState<{ idx: number; correct: number; questions: number[]; finished: boolean; selected?: number; showResult: boolean }>({ idx: 0, correct: 0, questions: [], finished: false, showResult: false });
   // 펫 합성
   const [fusionPick1, setFusionPick1] = useState<string | null>(null);
   const [fusionPick2, setFusionPick2] = useState<string | null>(null);
@@ -3695,12 +3981,48 @@ export default function Page() {
   const ADMIN_PASSWORD = "123456";
   const [pendingPhoto, setPendingPhoto] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement | null>(null);
+  const [selectedCharacter, setSelectedCharacter] = useState<CharacterKey | null>(() => {
+    try { return (localStorage.getItem(CHARACTER_KEY) as CharacterKey) || null; } catch { return null; }
+  });
+  const [blackjonUnlocked, setBlackjonUnlocked] = useState(false);
+  const activePortrait = selectedCharacter === "hidden"
+    ? "/hidden_portrait.png"
+    : selectedCharacter === "blackjon"
+      ? "/blackjon_profile_transparent.png"
+      : currentPortrait;
+  const activeCharacterName = selectedCharacter === "hidden" ? "히든" : selectedCharacter === "blackjon" ? "흑존" : "근떡존";
+  // 캐릭터 확정 후 말풍선 초기화 (SSR 불일치 방지용 useEffect)
+  useEffect(() => {
+    if (selectedCharacter === "hidden") {
+      setHomeBubble(Math.random() < 0.5 ? "뭘봐 씨발년아" : "느금마");
+    } else if (selectedCharacter === "blackjon") {
+      setHomeBubble("왜요, 선생님. 검은 머리가 그렇게 신기해요?");
+    } else if (selectedCharacter === "geonddeokjon") {
+      setHomeBubble("선생님, 오셨네요. 저 여기서 기다리고 있었어요.");
+    }
+  }, [selectedCharacter]);
+  useEffect(() => {
+    if (isAdminMode) {
+      setBlackjonUnlocked(true);
+      return;
+    }
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const mainSave = raw ? JSON.parse(raw) as Partial<SaveData> : null;
+      setBlackjonUnlocked(Object.keys(mainSave?.seenEvents ?? {}).some((id) => id.startsWith("main_ch6")));
+    } catch {
+      setBlackjonUnlocked(false);
+    }
+  }, [selectedCharacter, isAdminMode]);
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
   const [chapterTransition, setChapterTransition] = useState<ChapterTransition | null>(null);
-  const [homeBubble, setHomeBubble] = useState("선생님, 오셨네요. 저 여기서 기다리고 있었어요.");
+  const [homeBubble, setHomeBubble] = useState("오셨어요.");
   const [homeTilt, setHomeTilt] = useState({ x: 0, y: 0 });
   const [isSending, setIsSending] = useState(false);
+  const vnResumeLineRef = useRef<number>(0);
+  // 시나리오 첫 진행 여부 — startScenario 진입 시점에 기록 (다시 보기엔 stat 보상 안 줌)
+  const scenarioReplayRef = useRef<boolean>(false);
   const transitionTimer = useRef<number | null>(null);
   const cgToastTimer = useRef<number | null>(null);
   const vnDramaticTimer = useRef<number | null>(null);
@@ -3711,12 +4033,31 @@ export default function Page() {
   const checkInRewardTimer = useRef<number | null>(null);
   const prevRelLevelRef = useRef<number>(1);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  // 저장 가드: 로드 useEffect가 끝나기 전에 저장 useEffect가 빈 상태를 덮어쓰는 레이스 방지
+  const loadedRef = useRef(false);
+  // gainExp가 클로저에서 stale userLevel을 잡아서 setUserLevel을 낮은 값으로 덮어쓰던 버그
+  // (새로고침 후 EXP 추가 시 레벨 다운) 방지용. 항상 최신 userLevel을 참조.
+  const userLevelRef = useRef<number>(1);
+  // 마일스톤 effect도 같은 closure stale 문제로 잠금해제된 마일스톤이 또 발화하는 버그가 있어서
+  // 발화한 마일스톤 ID를 ref에 동기 기록해서 같은 effect tick 내 재발화 차단.
+  const unlockedMilestonesRef = useRef<Record<string, boolean>>({});
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  // userLevel 변경 시 ref 동기화 — gainExp 안에서 stale closure 방어
+  useEffect(() => {
+    userLevelRef.current = userLevel;
+  }, [userLevel]);
+
+  // unlockedMilestones 변경 시 ref 동기화
+  useEffect(() => {
+    unlockedMilestonesRef.current = unlockedMilestones;
+  }, [unlockedMilestones]);
+
   const currentScenario = currentScenarioId ? (scenarioData[currentScenarioId] ?? getLocationScenario(currentScenarioId, stats) ?? null) : null;
+  const personalize = (text: string) => playerText(text, player?.nickname || "히든", selectedCharacter === "hidden" || !!currentScenarioId?.startsWith("hidden_"));
   const vnLines = useMemo(() => parseVNLines(currentScenario?.text ?? ""), [currentScenario?.text]);
   const safeVNLineIndex = Math.min(vnLineIndex, Math.max(0, vnLines.length - 1));
   const currentVNLine = vnLines[safeVNLineIndex] ?? { speaker: "나레이션" as VNLine["speaker"], text: "" };
@@ -3724,16 +4065,20 @@ export default function Page() {
   // imagePool에 여러 컷이 있으면 vnLineIndex 진행도에 따라 순차 노출
   const vnSceneImage = useMemo(() => {
     const pool = currentScenario?.imagePool;
-    if (!pool || pool.length <= 1) return currentPortrait;
+    if (!pool || pool.length <= 1) return activePortrait;
     const segmentSize = Math.max(1, Math.ceil(vnLines.length / pool.length));
     const segmentIdx = Math.min(pool.length - 1, Math.floor(safeVNLineIndex / segmentSize));
-    return pool[segmentIdx] ?? currentPortrait;
-  }, [currentScenario?.id, currentScenario?.imagePool, vnLines.length, safeVNLineIndex, currentPortrait]);
+    return pool[segmentIdx] ?? activePortrait;
+  }, [currentScenario?.id, currentScenario?.imagePool, vnLines.length, safeVNLineIndex, activePortrait]);
   const routeLabel = storyRoute === "pure" ? "순애 루트" : storyRoute === "obsession" ? "집착 루트" : "공통 루트";
   const currentChapter = getMainChapterNumber(currentScenarioId) || Math.max(1, ...Object.keys(seenEvents).map(getMainChapterNumber));
   const emotionState = getEmotionState(stats, storyRoute, currentChapter, silenceLevel);
   const baseHomeImage = getHomeCharacterImage(stats, storyRoute);
-  const homeCharacterImage = OUTFITS.find((o) => o.id === equippedOutfit)?.portrait ?? baseHomeImage;
+  const homeCharacterImage = selectedCharacter === "hidden"
+    ? "/hidden_portrait.png"
+    : selectedCharacter === "blackjon"
+      ? "/sd_blackjon_idle.png"
+    : OUTFITS.find((o) => o.id === equippedOutfit)?.portrait ?? baseHomeImage;
   const relLevel = getRelationshipLevel(stats, storyRoute);
   const uiThemeClass =
     storyRoute === "pure"
@@ -3744,25 +4089,49 @@ export default function Page() {
           ? "theme-soft"
           : "theme-common";
   const homeButtons: { label: string; target: AppView; emoji: string; hint?: string }[] = [
+    { label: "히로시마 지도", target: "miniMap", emoji: "", hint: "함께 걷는 도시" },
     { label: "대화하기", target: "chat", emoji: "💬", hint: "지금 바로 떡존이랑" },
     { label: "시나리오", target: "scenarioMenu", emoji: "📖", hint: "스토리 진행" },
-    { label: "도전", target: "quests", emoji: "🎯", hint: "오늘의 미션" },
     { label: "상점", target: "shop", emoji: "🪙", hint: "코인으로 구매" },
   ];
   const galleryTabLabels: Record<GalleryTab, string> = {
     all: "전체",
+    favorites: "⭐ 즐겨찾기",
+    ch1: "1장", ch2: "2장", ch3: "3장", ch4: "4장", ch5: "5장", ch6: "6장",
+    pure: "🤍 순애",
+    obsession: "🖤 집착",
+    confine_a: "⛓ 감금A",
+    confine_b: "⛓ 감금B",
+    forced: "🩶 강제",
+    bladder: "🚽 방광",
+    hidden: "🐐 히든",
+    ssr: "💎 SSR",
+    special_lv: "✨ 한정",
+    location: "🌐 지도",
+    action: "⚡ 액션",
+    // 레거시 호환
     normal: "기본",
     jealousy: "질투",
-    obsession: "집착",
     yandere: "얀데레",
     confinement: "감금",
-    action: "액션",
-    bladder: "🚽 방광",
   };
 
+  const activeStorageKey = selectedCharacter === "hidden"
+    ? HIDDEN_STORAGE_KEY
+    : selectedCharacter === "blackjon"
+      ? BLACKJON_STORAGE_KEY
+      : STORAGE_KEY;
+
   useEffect(() => {
+    // 캐릭터 미선택 상태 → 로드/저장 모두 비활성
+    if (!selectedCharacter) {
+      loadedRef.current = false;
+      return;
+    }
+    // 새 캐릭터 로드 시작 전 저장 방지
+    loadedRef.current = false;
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(activeStorageKey);
       if (raw) {
         const saved = JSON.parse(raw) as Partial<SaveData>;
         // v11→v12 마이그레이션: stat max 100→1000, 기존 값 ×10
@@ -3788,14 +4157,19 @@ export default function Page() {
         setUnlockedEndings(saved.endingFlags ?? {});
         setCompletedQuests(saved.completedQuests ?? {});
         setUnlockedMilestones(saved.unlockedMilestones ?? {});
+        setUnlockedSubScenarios(saved.unlockedSubScenarios ?? {});
+        setScenarioProgress(saved.scenarioProgress ?? null);
+        unlockedMilestonesRef.current = saved.unlockedMilestones ?? {};
         setLastRandomMessage(saved.lastRandomMessage ?? 0);
         setCoins(saved.coins ?? 0);
         if (saved.dailyState) setDailyState(saved.dailyState);
         setShopHistory(saved.shopHistory ?? {});
         setUserLevel(saved.userLevel ?? 1);
+        userLevelRef.current = saved.userLevel ?? 1;
         setUserExp(saved.userExp ?? 0);
         setLastFreeGacha(saved.lastFreeGacha ?? 0);
         setGachaTickets(saved.gachaTickets ?? 0);
+        setGachaPityCount(saved.gachaPityCount ?? 0);
         setComboCount(saved.comboCount ?? 0);
         setLastComboTime(saved.lastComboTime ?? 0);
         setComboMilestonesReached(saved.comboMilestonesReached ?? {});
@@ -3812,18 +4186,10 @@ export default function Page() {
         setRaidHp(saved.raidHp ?? 0);
         setRaidCleared(saved.raidCleared ?? false);
         setRaidDamageDealt(saved.raidDamageDealt ?? 0);
-        setLastFortuneDate(saved.lastFortuneDate ?? "");
-        setTodayFortuneId(saved.todayFortuneId ?? "");
-        setFortuneRerollsToday(saved.fortuneRerollsToday ?? 0);
         setJournalEntries(saved.journalEntries ?? []);
         setLastJournalDate(saved.lastJournalDate ?? "");
         setMinigameClickerHigh(saved.minigameClickerHigh ?? 0);
         setMinigameWordHigh(saved.minigameWordHigh ?? 0);
-        setFriendChats(saved.friendChats ?? {});
-        setGroupChat(saved.groupChat ?? []);
-        setFriendLastSeen(saved.friendLastSeen ?? {});
-        setFriendLastSpawn(saved.friendLastSpawn ?? {});
-        setGroupLastSpawn(saved.groupLastSpawn ?? 0);
         setLoveMeterPoints(saved.loveMeterPoints ?? 0);
         setLoveMeterDate(saved.loveMeterDate ?? "");
         setLoveMeterClaimedToday(saved.loveMeterClaimedToday ?? false);
@@ -3838,10 +4204,6 @@ export default function Page() {
         setBladderMarathonWeek(saved.bladderMarathonWeek ?? weekKey());
         setBladderMarathonScore(saved.bladderMarathonScore ?? 0);
         setMonthlyCalendarClaims(saved.monthlyCalendarClaims ?? {});
-        setSeasonId(saved.seasonId ?? SEASON_CURRENT_ID);
-        setSeasonClaimedFree(saved.seasonClaimedFree ?? {});
-        setSeasonClaimedPremium(saved.seasonClaimedPremium ?? {});
-        setSeasonPremium(saved.seasonPremium ?? false);
         setSoundBgmEnabled(saved.soundBgmEnabled ?? true);
         setSoundSfxEnabled(saved.soundSfxEnabled ?? true);
         setSoundBgmVolume(saved.soundBgmVolume ?? 0.3);
@@ -3860,13 +4222,87 @@ export default function Page() {
         if (saved.lastBladderRelief) setLastBladderRelief(saved.lastBladderRelief);
         if (saved.bladderPopupThreshold !== undefined) setBladderPopupThreshold(saved.bladderPopupThreshold);
       } else {
+        // 해당 캐릭터 세이브 없음 → 전체 기본값으로 초기화
+        setStats(initialStats);
         setMessages([makeMessage("assistant", "안녕하세요. 필요하시면 불러주세요.")]);
+        setCurrentScenarioId(null);
+        setCurrentPortrait("/oppa1.png");
+        setUnlockedCGs({});
+        setUnlockedSpecials({});
+        setUnlockedEndings({});
+        setCgFavorites({});
+        setCompletedQuests({});
+        setUnlockedMilestones({});
+        unlockedMilestonesRef.current = {};
+        setLastRandomMessage(0);
+        setCoins(0);
+        setDailyState({ date: todayKey(), chatCount: 0, giftCount: 0, scenarioCount: 0, checkinDone: false, bladderPeak: 0, missions: [] });
+        setShopHistory({});
+        setUserLevel(1);
+        userLevelRef.current = 1;
+        setUserExp(0);
+        setLastFreeGacha(0);
+        setGachaTickets(0);
+        setGachaPityCount(0);
+        setComboCount(0);
+        setLastComboTime(0);
+        setComboMilestonesReached({});
+        setOwnedPets({});
+        setActivePet(null);
+        setTotalGachaPulls(0);
+        setActiveAdventure(null);
+        setAdventureHistory({});
+        setSnsLikes({});
+        setLastSnsRefresh(0);
+        setSnsFeed([]);
+        setSeenEvents({});
+        setStoryRoute("common");
+        setMemoryNotes([]);
+        setAfterScenarioCues([]);
+        setSilenceLevel(0);
+        setGiftCooldowns({});
+        setCheckInStreak(0);
+        setCheckInHistory([]);
+        setEquippedOutfit("black_tanktop");
+        setUnlockedAchievements({});
+        setUnlockedSubScenarios({});
+        setScenarioProgress(null);
+        setGalleryTab("all");
+        setLastCheckIn(undefined);
+        setLastBladderRelief(Date.now());
+        setBladderPopupThreshold(80);
+        setRaidWeek(weekKey());
+        setRaidBossId("");
+        setRaidHp(0);
+        setRaidCleared(false);
+        setRaidDamageDealt(0);
+        setJournalEntries([]);
+        setLastJournalDate("");
+        setMinigameClickerHigh(0);
+        setMinigameWordHigh(0);
+        setLoveMeterPoints(0);
+        setLoveMeterDate("");
+        setLoveMeterClaimedToday(false);
+        setLetterReads({});
+        setUnlockedLetters([]);
+        setQuoteOfDayId("");
+        setQuoteOfDayDate("");
+        setCollectedQuotes([]);
+        setOwnedCards({});
+        setTotalCardPulls(0);
+        setBossDefeats([]);
+        setBladderMarathonWeek(weekKey());
+        setBladderMarathonScore(0);
+        setMonthlyCalendarClaims({});
       }
       setShowTutorial(localStorage.getItem(TUTORIAL_KEY) !== "1");
     } catch {
       setMessages([makeMessage("assistant", "안녕하세요. 필요하시면 불러주세요.")]);
+    } finally {
+      // 로드 완료 표시. 이 이후로만 저장 useEffect가 실제 write 한다.
+      loadedRef.current = true;
     }
-  }, []);
+  }, [selectedCharacter]); // 캐릭터 전환 시마다 해당 키에서 재로드
 
   useEffect(() => {
     const save: SaveData = {
@@ -3902,6 +4338,8 @@ export default function Page() {
       endingFlags: unlockedEndings,
       completedQuests,
       unlockedMilestones,
+      unlockedSubScenarios,
+      scenarioProgress,
       lastRandomMessage,
       coins,
       dailyState,
@@ -3910,6 +4348,7 @@ export default function Page() {
       userExp,
       lastFreeGacha,
       gachaTickets,
+      gachaPityCount,
       comboCount,
       lastComboTime,
       comboMilestonesReached,
@@ -3926,18 +4365,10 @@ export default function Page() {
       raidHp,
       raidCleared,
       raidDamageDealt,
-      lastFortuneDate,
-      todayFortuneId,
-      fortuneRerollsToday,
       journalEntries,
       lastJournalDate,
       minigameClickerHigh,
       minigameWordHigh,
-      friendChats,
-      groupChat,
-      friendLastSeen,
-      friendLastSpawn,
-      groupLastSpawn,
       loveMeterPoints,
       loveMeterDate,
       loveMeterClaimedToday,
@@ -3952,18 +4383,39 @@ export default function Page() {
       bladderMarathonWeek,
       bladderMarathonScore,
       monthlyCalendarClaims,
-      seasonId,
-      seasonClaimedFree,
-      seasonClaimedPremium,
-      seasonPremium,
       soundBgmEnabled,
       soundSfxEnabled,
       soundBgmVolume,
       soundSfxVolume,
     };
     save.messages = sanitizeMessages(save.messages);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
-  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory, userLevel, userExp, lastFreeGacha, gachaTickets, comboCount, lastComboTime, comboMilestonesReached, ownedPets, activePet, totalGachaPulls, activeAdventure, adventureHistory, snsLikes, lastSnsRefresh, snsFeed, raidWeek, raidBossId, raidHp, raidCleared, raidDamageDealt, lastFortuneDate, todayFortuneId, fortuneRerollsToday, journalEntries, lastJournalDate, minigameClickerHigh, minigameWordHigh, friendChats, groupChat, friendLastSeen, friendLastSpawn, groupLastSpawn, loveMeterPoints, loveMeterDate, loveMeterClaimedToday, letterReads, unlockedLetters, quoteOfDayId, quoteOfDayDate, collectedQuotes, ownedCards, totalCardPulls, bossDefeats, bladderMarathonWeek, bladderMarathonScore, monthlyCalendarClaims, seasonId, seasonClaimedFree, seasonClaimedPremium, seasonPremium, soundBgmEnabled, soundSfxEnabled, soundBgmVolume, soundSfxVolume]);
+    // [패치 1] 로드 끝나기 전엔 저장 금지 (마운트 직후 빈 상태가 저장본 덮어쓰는 거 방지)
+    if (!loadedRef.current) return;
+    // [패치 2] try/catch + Quota 시 messages 절반 잘라서 재시도. 조용한 실패 방지.
+    const writeSave = (data: SaveData): boolean => {
+      try {
+        localStorage.setItem(activeStorageKey, JSON.stringify(data));
+        return true;
+      } catch (e) {
+        if (e instanceof DOMException && (e.name === "QuotaExceededError" || e.code === 22)) {
+          return false;
+        }
+        console.warn("[save] localStorage write failed:", e);
+        return false;
+      }
+    };
+    if (!writeSave(save)) {
+      // 1차 실패: messages 뒤쪽 절반만 남기고 재시도
+      const trimmed: SaveData = { ...save, messages: save.messages.slice(-Math.max(40, Math.floor(save.messages.length / 2))) };
+      if (!writeSave(trimmed)) {
+        // 2차 실패: messages 마지막 30개만
+        const minimal: SaveData = { ...save, messages: save.messages.slice(-30) };
+        if (!writeSave(minimal)) {
+          console.warn("[save] localStorage quota exceeded even after trimming. save skipped.");
+        }
+      }
+    }
+  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory, userLevel, userExp, lastFreeGacha, gachaTickets, gachaPityCount, comboCount, lastComboTime, comboMilestonesReached, ownedPets, activePet, totalGachaPulls, activeAdventure, adventureHistory, snsLikes, lastSnsRefresh, snsFeed, raidWeek, raidBossId, raidHp, raidCleared, raidDamageDealt, journalEntries, lastJournalDate, minigameClickerHigh, minigameWordHigh, loveMeterPoints, loveMeterDate, loveMeterClaimedToday, letterReads, unlockedLetters, quoteOfDayId, quoteOfDayDate, collectedQuotes, ownedCards, totalCardPulls, bossDefeats, bladderMarathonWeek, bladderMarathonScore, monthlyCalendarClaims, soundBgmEnabled, soundSfxEnabled, soundBgmVolume, soundSfxVolume]);
 
   // ─ 방광 채우기 타이머 ─
   useEffect(() => {
@@ -4011,24 +4463,46 @@ export default function Page() {
         if (!queue.length || cancelled) return;
 
         const seen = new Set<string>(JSON.parse(localStorage.getItem(PUSH_SEEN_KEY) || "[]"));
-        const incoming = queue
-          .filter(
-            (item: any) =>
-              item?.id &&
-              item?.body &&
-              item?.source !== "assistant_message" &&
-              !seen.has(String(item.id)) &&
-              isReadableChatText(String(item.body)),
-          )
-          .map((item: any) => {
-            seen.add(String(item.id));
-            return makeMessage("assistant", String(item.body));
-          });
+        // [패치 3] ID dedup만으론 부족. 같은 본문이 다른 ID로 또 와도 중복으로 들어옴.
+        // 인메모리 messages의 최근 50개 본문 + 이번 polling 본문도 같이 dedup.
+        // setMessages 콜백 안에서 prev를 직접 보고 검사 (stale closure 방지).
+        const candidates = queue.filter(
+          (item: any) =>
+            item?.id &&
+            item?.body &&
+            item?.source !== "assistant_message" &&
+            !seen.has(String(item.id)) &&
+            isReadableChatText(String(item.body)),
+        );
+        if (!candidates.length) return;
 
-        if (incoming.length) {
-          localStorage.setItem(PUSH_SEEN_KEY, JSON.stringify([...seen].slice(-80)));
-          setMessages((prev) => sanitizeMessages([...prev, ...incoming]));
+        // [패치 4] 큐에 nag가 N개 쌓여있어도 한꺼번에 N개 카톡으로 토하지 않게 함.
+        // 사용자 자리비운 동안 cron이 여러 번 돌아 미확인 nag가 누적될 수 있음.
+        // 가장 최근 1개만 실제로 채팅에 올리고, 나머지는 seen 처리해서 다신 안 뜨게 함.
+        const latest = candidates[candidates.length - 1];
+        const skipped = candidates.slice(0, -1);
+        for (const skip of skipped) {
+          if (skip?.id) seen.add(String(skip.id));
         }
+
+        setMessages((prev) => {
+          // 최근 50개 본문을 dedup 키로 사용 (timestamp는 무시, 내용만 비교)
+          const recent = new Set(prev.slice(-50).map((m) => m.content));
+          const body = String(latest.body);
+          // 이미 인메모리에 같은 본문 있으면 추가 안 함, seen만 처리
+          if (recent.has(body)) {
+            seen.add(String(latest.id));
+            try {
+              localStorage.setItem(PUSH_SEEN_KEY, JSON.stringify([...seen].slice(-200)));
+            } catch {}
+            return prev;
+          }
+          seen.add(String(latest.id));
+          try {
+            localStorage.setItem(PUSH_SEEN_KEY, JSON.stringify([...seen].slice(-200)));
+          } catch {}
+          return sanitizeMessages([...prev, makeMessage("assistant", body)]);
+        });
       } catch {}
     }
 
@@ -4046,8 +4520,106 @@ export default function Page() {
     };
   }, []);
 
+  // ─ 떡존이 영구 메모리 자동 추출 ─
+  // (1) 유저가 MEMORY_EXTRACT_INTERVAL번 메시지 보낼 때마다 백그라운드 추출
+  // (2) 페이지 hidden 시 sendBeacon으로 한 번 더 시도
+  // 마지막 추출한 messages 인덱스를 localStorage에 저장 → 중복 추출 방지
   useEffect(() => {
-    setVnLineIndex(0);
+    if (!loadedRef.current) return;
+    if (typeof window === "undefined") return;
+    // 히든 루트는 메모리 추출 불필요 (가벼운 개그 루트)
+    if (selectedCharacter === "hidden") return;
+    // D안: localStorage에 admin 토큰 있을 때만 자동 추출. 친구는 토큰 없으니 추출 안 일어남.
+    const token = readMemoryAdminToken();
+    if (!token) return;
+
+    const userMessageCount = messages.filter((m) => m.role === "user").length;
+
+    // 유저 N턴마다만 시도
+    if (userMessageCount === 0 || userMessageCount % MEMORY_EXTRACT_INTERVAL !== 0) return;
+
+    let lastIndex = 0;
+    try { lastIndex = Number(localStorage.getItem(MEMORY_EXTRACT_INDEX_KEY) || "0") || 0; } catch {}
+
+    const newSlice = messages.slice(lastIndex);
+    if (newSlice.length < MEMORY_EXTRACT_MIN_NEW) return;
+
+    // payload는 마지막 40개로 컷
+    const payload = {
+      messages: newSlice.slice(-40).map((m) => ({
+        role: m.role,
+        content: String(m.content ?? "").slice(0, 600),
+      })),
+      chapter: currentChapter,
+      recentMemories: memoryNotes.slice(-15).map((n) => ({ text: n.text })),
+    };
+
+    let aborted = false;
+    fetch("/api/memory/extract", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-memory-token": token,
+      },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    })
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (aborted) return;
+        // 성공/스킵 무관 인덱스 갱신 (같은 메시지 재추출 방지)
+        try { localStorage.setItem(MEMORY_EXTRACT_INDEX_KEY, String(messages.length)); } catch {}
+        if (data?.memory) console.log("[memory] extracted:", data.memory.text);
+      })
+      .catch((e) => console.warn("[memory] extract failed:", e));
+
+    return () => { aborted = true; };
+    // userMessageCount 기준으로만 트리거. messages 직접 deps 넣으면 매 메시지 발사됨.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages.filter((m) => m.role === "user").length]);
+
+  // 페이지 hidden 시 마지막 추출 시도. sendBeacon은 헤더 못 붙이므로 token을 body에 넣음.
+  // 서버는 헤더 우선이지만, body fallback도 받게 extract route를 살짝 확장한다.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    // 히든 루트는 메모리 추출 불필요
+    if (selectedCharacter === "hidden") return;
+    // D안: admin 토큰 보유자만 hidden 시 추출. 친구는 토큰 없으니 패스.
+    const token = readMemoryAdminToken();
+    if (!token) return;
+
+    const onHidden = () => {
+      if (document.visibilityState !== "hidden") return;
+      try {
+        const lastIndex = Number(localStorage.getItem(MEMORY_EXTRACT_INDEX_KEY) || "0") || 0;
+        const newSlice = messages.slice(lastIndex);
+        if (newSlice.length < MEMORY_EXTRACT_MIN_NEW) return;
+
+        const payload = {
+          token, // sendBeacon은 헤더 못 붙이므로 body에 토큰 동봉
+          messages: newSlice.slice(-40).map((m) => ({
+            role: m.role,
+            content: String(m.content ?? "").slice(0, 600),
+          })),
+          chapter: currentChapter,
+          recentMemories: memoryNotes.slice(-15).map((n) => ({ text: n.text })),
+        };
+        const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+        navigator.sendBeacon?.("/api/memory/extract", blob);
+        // 인덱스 미리 갱신 (브라우저 곧 닫히기 때문)
+        localStorage.setItem(MEMORY_EXTRACT_INDEX_KEY, String(messages.length));
+      } catch {}
+    };
+    document.addEventListener("visibilitychange", onHidden);
+    return () => document.removeEventListener("visibilitychange", onHidden);
+  }, [messages, currentChapter, memoryNotes]);
+
+  useEffect(() => {
+    const resumeLine = vnResumeLineRef.current;
+    vnResumeLineRef.current = 0;
+    setVnLineIndex(resumeLine);
+    setVnIsResumed(resumeLine > 0);
+    setShowVnExitPrompt(false);
   }, [currentScenarioId]);
   useEffect(() => {
     setVnTextRevealed(false);
@@ -4083,6 +4655,7 @@ export default function Page() {
         storyRoute,
         stats.obsession,
         stats.bladderCharm,
+        unlockedSpecials,
       ).length,
     };
     const newlyUnlocked: Achievement[] = [];
@@ -4142,7 +4715,7 @@ export default function Page() {
     const obsReplies = [
       "선생님...!! 감사해요ㅠㅠ 진짜 진짜 감사해요... 금방 올게요.",
       "선생님 허락해줬다...ㅠㅠ 금방 다녀올게요 절대 오래 있지 않을게요.",
-      "고마워요...선생님ㅠㅠ 정말 다급했어요... 빨리 갔다올게요.",
+      "고마워요...선생님ㅠㅠ 정말 다급했어요...방광이 아팠어요... 빨리 갔다올게요.",
     ];
     const normalReplies = [
       "후...!! 감사합니다 선생님ㅠㅠ 금방 다녀올게요!",
@@ -4161,8 +4734,8 @@ export default function Page() {
     ];
     const normalReplies = [
       "...네ㅠ 참을게요... 선생님이 안 된다면...",
-      "으...ㅠ 알겠어요... 조금만 더 버텨볼게요",
-      "ㅠㅠ... 선생님 너무해요... 그래도 참을게요",
+      "으...ㅠ 알겠어요... 조금만 더 버텨볼게요..방광이 터질거 같아요...",
+      "ㅠㅠ... 선생님 너무해요... 방광이 너무 아파요... 제발.. 오줌싸고싶어요 흐어엉...",
     ];
     const pool = storyRoute === "obsession" ? obsReplies : normalReplies;
     setMessages((m) => [...m, makeMessage("assistant", pool[Math.floor(Math.random() * pool.length)])]);
@@ -4176,8 +4749,8 @@ export default function Page() {
     const narration = "*근떡존의 바지가 서서히 젖어들기 시작했다. 온기가 퍼지는 걸 느끼면서도 그는 말 한마디 꺼내지 못했다.*";
     const accidentMsg =
       storyRoute === "obsession"
-        ? "...선생님... 저... 못 참았어요...ㅠㅠ 죄송해요... 진짜 죄송해요... 창피해 죽겠어요..."
-        : "...선생님... 저 실수했어요...ㅠㅠ 너무 창피해요... 미안해요...";
+        ? "...선생님... 저... 못 참았어요...ㅠㅠ 호쾌하게 바지에 오줌싸버렸어요.. 죄송해요... 진짜 죄송해요... 창피해 죽겠어요..."
+        : "...선생님... 저 실수했어요...ㅠㅠ 너무 창피해요... 오줌냄새 심하죠...저는 걸어다니는 찌린내예요... 미안해요...";
     setMessages((m) => [
       ...m,
       makeMessage("narration", narration),
@@ -4248,9 +4821,15 @@ export default function Page() {
     const scenario = scenarioData[id] ?? getLocationScenario(id, stats);
     if (!scenario) return;
     const image = pick(scenario.imagePool) ?? scenario.image ?? fallbackImage(scenario.kind);
+    // 진입 시점에 seenEvents 체크해서 다시 보기 여부 기록 (unlockEvent 전에)
+    scenarioReplayRef.current = !!seenEvents[id];
     unlockEvent(id);
     // imagePool에 여러 컷 있으면 전부 갤러리 해금 (시나리오 진행하면서 다 보임)
     unlockCGs(scenario.imagePool && scenario.imagePool.length > 0 ? scenario.imagePool : [image]);
+    // 저장된 진행 상황이 있으면 해당 줄부터 시작
+    if (scenarioProgress?.id === id && scenarioProgress.lineIndex > 0) {
+      vnResumeLineRef.current = scenarioProgress.lineIndex;
+    }
     setCurrentScenarioId(id);
     setCurrentPortrait(image);
     setView("chat");
@@ -4363,9 +4942,13 @@ export default function Page() {
 
   function chooseScenario(choice: Choice) {
     if (!currentScenario) return;
-    const nextStats = applyStats(stats, choice.stat, perkBonus.affinityPassive);
-    setStats(nextStats);
-    showStatDelta(choice.stat);
+    // 다시 보기면 stat 보상 없음 — 진입 시점에 ref에 기록한 값 사용
+    const isReplay = scenarioReplayRef.current;
+    const nextStats = isReplay ? stats : applyStats(stats, choice.stat, perkBonus.affinityPassive);
+    if (!isReplay) {
+      setStats(nextStats);
+      showStatDelta(choice.stat);
+    }
     if (choice.route) enterRoute(choice.route);
     if (choice.forceImage) {
       setCurrentPortrait(choice.forceImage);
@@ -4374,17 +4957,44 @@ export default function Page() {
     setMemoryNotes((prev) => addMemoryNotes(prev, [{
       kind: "story",
       chapter: currentChapter,
-      text: `${currentScenario.title}에서 히든은 "${choice.text || choice.label}" 쪽으로 반응한다.`,
+      text: personalize(`${currentScenario.title}에서 히든은 "${choice.text || choice.label}" 쪽으로 반응한다.`),
     }]));
     setMessages((m) => [...m, makeMessage("narration", `*${currentScenario.title} 이벤트를 진행한다.*`)]);
+    // 선택지에 result 텍스트가 있으면 → 임시 시나리오로 보여주고 next 시나리오로 연결
+    if (choice.result && choice.next && scenarioData[choice.next]) {
+      const resultId = `${currentScenario.id}__r__${choice.label.replace(/\s+/g, "_").slice(0, 24)}`;
+      if (!scenarioData[resultId]) {
+        scenarioData[resultId] = {
+          id: resultId,
+          title: currentScenario.title,
+          subtitle: "(이어서)",
+          kind: currentScenario.kind,
+          category: "main",
+          imagePool: currentScenario.imagePool,
+          background: currentScenario.background,
+          text: choice.result,
+          choices: [{ label: "계속", text: "", next: choice.next }],
+        };
+      }
+      startScenario(resultId);
+      return;
+    }
     if (choice.next && scenarioData[choice.next]) {
       startScenario(choice.next);
       return;
     }
     setAfterScenarioCues((prev) => addAfterScenarioCue(prev, getAfterScenarioCue(currentScenario, currentChapter)));
     const ending = chapterEndTransition(currentScenario);
+    // 완독했으므로 진행 상황 초기화
+    setScenarioProgress((p) => (p?.id === currentScenario.id ? null : p));
     setCurrentScenarioId(null);
     showChapterTransition(ending, 2600);
+    // 배드엔딩 시나리오 직접 트리거 (kind: bad_ending) — endingData 조건 검사 스킵
+    if (currentScenario.kind === "bad_ending") {
+      setMessages((m) => [...m, makeMessage("narration", `*${currentScenario.title} 해금*`)]);
+      window.setTimeout(() => showEndingCard("bad_pure", currentScenario.imagePool), 800);
+      return;
+    }
     const foundEndingEntry = Object.entries(endingData).find(([, e]) => e.condition(nextStats));
     if (foundEndingEntry) {
       const [foundKey, foundEnding] = foundEndingEntry;
@@ -4526,34 +5136,6 @@ export default function Page() {
     });
   }
 
-  // ─ 시즌 패스 보상 ─
-  function claimSeasonReward(lv: number, kind: "free" | "premium") {
-    if (userLevel < lv) return;
-    if (kind === "premium" && !seasonPremium) return;
-    if (kind === "free" && seasonClaimedFree[lv]) return;
-    if (kind === "premium" && seasonClaimedPremium[lv]) return;
-    const reward = SEASON_REWARDS.find((r) => r.lv === lv);
-    if (!reward) return;
-    const r = kind === "free" ? reward.free : reward.premium;
-    if (!r) return;
-    if (r.coins) setCoins((c) => c + r.coins!);
-    if (r.tickets) setGachaTickets((t) => t + r.tickets!);
-    if (r.affinity) setStats((s) => ({ ...s, affinity: clamp(s.affinity + r.affinity!) }));
-    if (kind === "free") {
-      setSeasonClaimedFree((p) => ({ ...p, [lv]: true }));
-    } else {
-      setSeasonClaimedPremium((p) => ({ ...p, [lv]: true }));
-    }
-    playSfx("coin");
-  }
-  function buySeasonPremium() {
-    if (coins < SEASON_PREMIUM_PRICE || seasonPremium) return;
-    setCoins((c) => c - SEASON_PREMIUM_PRICE);
-    setSeasonPremium(true);
-    setShopToast({ name: "🌟 프리미엄 패스 활성화!", detail: "이번 시즌 모든 프리미엄 보상 받기 가능" });
-    window.setTimeout(() => setShopToast(null), 4000);
-  }
-
   // ─ 펫 합성 ─
   function fusePets() {
     if (!fusionPick1 || !fusionPick2) return;
@@ -4609,13 +5191,14 @@ export default function Page() {
 
   // ─ 명언: 매일 자동 갱신 ─
   useEffect(() => {
+    if (!loadedRef.current) return; // 로드 끝난 후에만
     const today = todayKey();
     if (quoteOfDayDate !== today) {
       const q = TTEOKJON_QUOTES[Math.floor(Math.random() * TTEOKJON_QUOTES.length)];
       setQuoteOfDayId(q.id);
       setQuoteOfDayDate(today);
     }
-  }, [view]);
+  }, [view, quoteOfDayDate]);
   function collectTodayQuote() {
     if (collectedQuotes.includes(quoteOfDayId)) return;
     setCollectedQuotes((prev) => [...prev, quoteOfDayId]);
@@ -4625,20 +5208,33 @@ export default function Page() {
 
   // ─ 편지: 챕터 클리어 시 해금 (seenEvents 기반) ─
   useEffect(() => {
-    const newLetters: string[] = [];
+    const newLetters: { id: string; sender?: string; title: string }[] = [];
     for (const letter of LETTERS) {
       if (unlockedLetters.includes(letter.id)) continue;
-      // chapter 1-12 해당 chapter 마지막 시나리오 진입 시
+      // 1) 특정 시나리오 트리거 (배드엔딩 등)
+      if (letter.triggerEvent) {
+        if (seenEvents[letter.triggerEvent]) {
+          newLetters.push({ id: letter.id, sender: letter.sender, title: letter.title });
+        }
+        continue;
+      }
+      // 2) chapter 기반 자동 해금
       const chapterPrefix = `main_ch${letter.chapter}`;
       const routeChapterPrefix = letter.route ? `${letter.route === "pure" ? "pure" : "obsession"}_ch${letter.chapter}` : null;
       const routeMatch = letter.route ? routeChapterPrefix && Object.keys(seenEvents).some((k) => k.startsWith(routeChapterPrefix)) : true;
       const chapterMatch = Object.keys(seenEvents).some((k) => k.startsWith(chapterPrefix)) || (routeChapterPrefix && Object.keys(seenEvents).some((k) => k.startsWith(routeChapterPrefix)));
       if (chapterMatch && routeMatch) {
-        newLetters.push(letter.id);
+        newLetters.push({ id: letter.id, sender: letter.sender, title: letter.title });
       }
     }
     if (newLetters.length) {
-      setUnlockedLetters((prev) => [...prev, ...newLetters]);
+      setUnlockedLetters((prev) => [...prev, ...newLetters.map((l) => l.id)]);
+      // 트리거 편지(배드엔딩 등)는 토스트로 알림
+      const triggered = newLetters.find((l) => l.sender);
+      if (triggered) {
+        setLetterToast({ id: triggered.id, sender: triggered.sender!, title: triggered.title });
+        window.setTimeout(() => setLetterToast(null), 6000);
+      }
     }
   }, [seenEvents, storyRoute]);
 
@@ -4710,89 +5306,6 @@ export default function Page() {
     window.setTimeout(() => setShopToast(null), 3500);
   }
 
-  // ─ 친구 카톡 자동 메시지 ─
-  function spawnFriendMessage(friendId: FriendId): boolean {
-    const tod = getTimeOfDay(new Date());
-    const eligible = FRIEND_MSGS.filter((m) => {
-      if (m.friendId !== friendId) return false;
-      const tr = m.triggers;
-      if (!tr) return true;
-      if (tr.timeOfDay && tr.timeOfDay !== tod) return false;
-      if (tr.storyRoute && tr.storyRoute !== storyRoute) return false;
-      if (tr.minStat) for (const [k, v] of Object.entries(tr.minStat)) if (stats[k as StatKey] < (v as number)) return false;
-      if (tr.maxStat) for (const [k, v] of Object.entries(tr.maxStat)) if (stats[k as StatKey] > (v as number)) return false;
-      return true;
-    });
-    if (!eligible.length) return false;
-    const tpl = eligible[Math.floor(Math.random() * eligible.length)];
-    const newMsg: FriendChatMessage = {
-      id: `${tpl.id}_${Date.now()}`,
-      speaker: friendId,
-      text: tpl.text,
-      time: Date.now(),
-    };
-    setFriendChats((prev) => ({ ...prev, [friendId]: [...(prev[friendId] ?? []), newMsg] }));
-    setFriendLastSpawn((prev) => ({ ...prev, [friendId]: Date.now() }));
-    return true;
-  }
-  function spawnGroupBurst() {
-    // 단톡: 한 번에 3~5개 자동 추가
-    const count = 3 + Math.floor(Math.random() * 3);
-    const newMsgs: FriendChatMessage[] = [];
-    const startIdx = Math.floor(Math.random() * (GROUP_MSG_POOL.length - count));
-    for (let i = 0; i < count; i++) {
-      const tpl = GROUP_MSG_POOL[(startIdx + i) % GROUP_MSG_POOL.length];
-      newMsgs.push({
-        id: `g_${Date.now()}_${i}`,
-        speaker: tpl.speaker,
-        text: tpl.text,
-        time: Date.now() + i * 1000,
-      });
-    }
-    setGroupChat((prev) => [...prev, ...newMsgs].slice(-100)); // 최근 100개 보존
-    setGroupLastSpawn(Date.now());
-  }
-  function openKatalkChat(chatId: string) {
-    setKatalkOpenChat(chatId);
-    const now = Date.now();
-    setFriendLastSeen((prev) => ({ ...prev, [chatId]: now }));
-    // 1:1 친구 마지막 spawn으로부터 30분 지났으면 새 메시지 생성
-    if (chatId !== "group") {
-      const last = friendLastSpawn[chatId] ?? 0;
-      if (now - last > 30 * 60 * 1000) {
-        spawnFriendMessage(chatId as FriendId);
-      }
-      // 처음이면 자동으로 인사 메시지 1개
-      if (!friendChats[chatId] || friendChats[chatId].length === 0) {
-        spawnFriendMessage(chatId as FriendId);
-      }
-    } else {
-      const lastG = groupLastSpawn;
-      if (now - lastG > 60 * 60 * 1000 || groupChat.length === 0) {
-        spawnGroupBurst();
-      }
-    }
-  }
-  function sendKatalkReply(chatId: string, text: string) {
-    if (!text.trim()) return;
-    const userMsg: FriendChatMessage = {
-      id: `u_${Date.now()}`,
-      speaker: "user",
-      text: text.trim(),
-      time: Date.now(),
-    };
-    if (chatId === "group") {
-      setGroupChat((prev) => [...prev, userMsg].slice(-100));
-      // 단톡에선 가끔 자동 답장 (50% 확률)
-      window.setTimeout(() => {
-        if (Math.random() < 0.5) spawnGroupBurst();
-      }, 1500 + Math.random() * 2000);
-    } else {
-      setFriendChats((prev) => ({ ...prev, [chatId]: [...(prev[chatId] ?? []), userMsg] }));
-      // 친구 자동 답장 (1.5초 뒤)
-      window.setTimeout(() => spawnFriendMessage(chatId as FriendId), 1500 + Math.random() * 2000);
-    }
-  }
   // nav 드롭다운 (게임/컨텐츠/기타 그룹)
   const [navDropdown, setNavDropdown] = useState<string | null>(null);
   useEffect(() => {
@@ -4804,42 +5317,10 @@ export default function Page() {
     window.addEventListener("click", close);
     return () => window.removeEventListener("click", close);
   }, [navDropdown]);
-  // 미확인 카톡 수
-  const unreadKatalk = useMemo(() => {
-    let count = 0;
-    for (const fid of FRIENDS.map((f) => f.id)) {
-      const msgs = friendChats[fid] ?? [];
-      const lastSeen = friendLastSeen[fid] ?? 0;
-      const newMsgs = msgs.filter((m) => m.speaker === fid && m.time > lastSeen).length;
-      count += newMsgs;
-    }
-    const groupNew = groupChat.filter((m) => m.speaker !== "user" && m.time > (friendLastSeen["group"] ?? 0)).length;
-    count += groupNew;
-    return count;
-  }, [friendChats, groupChat, friendLastSeen]);
-
-  // ─ 신탁: 매일 자동 갱신 ─
-  useEffect(() => {
-    const today = todayKey();
-    if (lastFortuneDate !== today) {
-      const f = rollFortune();
-      setTodayFortuneId(f.id);
-      setLastFortuneDate(today);
-      setFortuneRerollsToday(0);
-    }
-  }, [view]);
-  function rerollFortune() {
-    const cost = 100;
-    if (coins < cost) return;
-    setCoins((c) => c - cost);
-    setFortuneRerollsToday((n) => n + 1);
-    const f = rollFortune();
-    setTodayFortuneId(f.id);
-  }
-  const todayFortune = useMemo(() => FORTUNES.find((f) => f.id === todayFortuneId) ?? null, [todayFortuneId]);
 
   // ─ 다이어리: 매일 자동 1개 추가 ─
   useEffect(() => {
+    if (!loadedRef.current) return; // 로드 끝난 후에만 — saved.lastJournalDate 로드 전 실행 방지
     const today = todayKey();
     if (lastJournalDate === today) return;
     const tod = getTimeOfDay(new Date());
@@ -4862,7 +5343,7 @@ export default function Page() {
     const newEntry = { id: `${tpl.id}_${today}`, date: today, templateId: tpl.id, liked: false };
     setJournalEntries((prev) => [newEntry, ...prev].slice(0, 60)); // 최근 60개만
     setLastJournalDate(today);
-  }, [view]);
+  }, [view, lastJournalDate]);
   function toggleJournalLike(id: string) {
     setJournalEntries((prev) => prev.map((e) => {
       if (e.id !== id) return e;
@@ -4958,7 +5439,7 @@ export default function Page() {
     // 떡존이 응답
     const reply = wordChainFindReply(input, [...used, input]);
     if (!reply) {
-      // 떡존이 패배
+      // 떡존이 찌발림
       setWordChainHistory((h) => [...h, userEntry, { word: "[떡존이] ...아 모르겠어요. 선생님이 이기셨어요. 진짜 잘하시네요!", speaker: "tteokjon", time: Date.now() }]);
       setWordChainStatus("user_win");
       const reward = 100 + wordChainStreak * 10;
@@ -5085,7 +5566,9 @@ export default function Page() {
   }
 
   // ─ 레이드: 매주 보스 갱신 ─
+  // 로드가 끝난 후에만 실행. 그렇지 않으면 saved.raidBossId 로드 전에 새 보스 생성되어 체력 리셋됨.
   useEffect(() => {
+    if (!loadedRef.current) return;
     const cur = weekKey();
     if (cur !== raidWeek || !raidBossId) {
       const boss = pickWeeklyBoss(cur);
@@ -5095,7 +5578,7 @@ export default function Page() {
       setRaidCleared(false);
       setRaidDamageDealt(0);
     }
-  }, []);
+  }, [raidWeek, raidBossId]);
   function dealRaidDamage(dmg: number) {
     if (raidCleared || dmg <= 0) return;
     setRaidHp((hp) => {
@@ -5172,6 +5655,40 @@ export default function Page() {
       setCoins((c) => c + Math.round(a * coinMul));
     } else if (e.kind === "ticket") {
       setGachaTickets((t) => t + e.amount);
+    } else if (e.kind === "unlock_cg") {
+      const key = `gacha_cg:${e.cgId}`;
+      const owned = !!unlockedSpecials[key];
+      if (!owned) {
+        setUnlockedSpecials((p) => ({ ...p, [key]: true }));
+        setUnlockedCGs((p) => ({ ...p, [e.image]: true }));
+        setSsrUnlockToast({ kind: "cg", title: item.name, image: e.image });
+      } else {
+        setCoins((c) => c + Math.round(e.dupeCoins * coinMul));
+        setSsrUnlockToast({ kind: "cg", title: item.name, image: e.image, isDupe: true });
+      }
+      window.setTimeout(() => setSsrUnlockToast(null), 5000);
+    } else if (e.kind === "unlock_scenario") {
+      const key = `gacha_scenario:${e.scenarioId}`;
+      const owned = !!unlockedSpecials[key];
+      if (!owned) {
+        setUnlockedSpecials((p) => ({ ...p, [key]: true }));
+        setSsrUnlockToast({ kind: "scenario", title: item.name, image: e.previewImage });
+      } else {
+        setCoins((c) => c + Math.round(e.dupeCoins * coinMul));
+        setSsrUnlockToast({ kind: "scenario", title: item.name, image: e.previewImage, isDupe: true });
+      }
+      window.setTimeout(() => setSsrUnlockToast(null), 5000);
+    } else if (e.kind === "unlock_outfit") {
+      const key = `gacha_outfit:${e.outfitId}`;
+      const owned = !!unlockedSpecials[key];
+      if (!owned) {
+        setUnlockedSpecials((p) => ({ ...p, [key]: true }));
+        setSsrUnlockToast({ kind: "outfit", title: item.name, image: e.previewImage });
+      } else {
+        setCoins((c) => c + Math.round(e.dupeCoins * coinMul));
+        setSsrUnlockToast({ kind: "outfit", title: item.name, image: e.previewImage, isDupe: true });
+      }
+      window.setTimeout(() => setSsrUnlockToast(null), 5000);
     }
     // 펫 친밀도 +5 (가챠 한번 = 펫 친해짐)
     if (activePet && ownedPets[activePet]) {
@@ -5203,10 +5720,22 @@ export default function Page() {
         acc += rates[t];
         if (r < acc) { tier = t; break; }
       }
-      const pool = GACHA_POOL.filter((x) => x.tier === tier);
-      return pool[Math.floor(Math.random() * pool.length)];
+      return pickWeighted(GACHA_POOL.filter((x) => x.tier === tier));
     }
     return rollGacha();
+  }
+
+  // 천장 적용된 한 번 뽑기 — pity 카운터 사용/갱신
+  function rollOneWithPity(curPity: number): { item: GachaItem; nextPity: number } {
+    let item: GachaItem;
+    if (curPity >= GACHA_PITY_LIMIT - 1) {
+      // 천장 발동: SSR 강제
+      item = pickWeighted(GACHA_POOL.filter((x) => x.tier === "SSR"));
+    } else {
+      item = rollGachaWithLuck();
+    }
+    const nextPity = item.tier === "SSR" ? 0 : curPity + 1;
+    return { item, nextPity };
   }
 
   // ─ 가챠 한 번 뽑기 ─
@@ -5216,7 +5745,8 @@ export default function Page() {
     if (mode === "free") {
       if (now - lastFreeGacha < perkBonus.gachaCooldownMs) return;
       setLastFreeGacha(now);
-      const item = rollGachaWithLuck();
+      const { item, nextPity } = rollOneWithPity(gachaPityCount);
+      setGachaPityCount(nextPity);
       applyGachaItem(item);
       setTotalGachaPulls((n) => n + 1);
       setGachaResult({ items: [item], index: 0, phase: "rolling" });
@@ -5224,7 +5754,8 @@ export default function Page() {
     } else if (mode === "ticket") {
       if (gachaTickets <= 0) return;
       setGachaTickets((t) => t - 1);
-      const item = rollGachaWithLuck();
+      const { item, nextPity } = rollOneWithPity(gachaPityCount);
+      setGachaPityCount(nextPity);
       applyGachaItem(item);
       setTotalGachaPulls((n) => n + 1);
       setGachaResult({ items: [item], index: 0, phase: "rolling" });
@@ -5232,7 +5763,8 @@ export default function Page() {
     } else if (mode === "single") {
       if (coins < GACHA_PRICE) return;
       setCoins((c) => c - GACHA_PRICE);
-      const item = rollGachaWithLuck();
+      const { item, nextPity } = rollOneWithPity(gachaPityCount);
+      setGachaPityCount(nextPity);
       applyGachaItem(item);
       setTotalGachaPulls((n) => n + 1);
       setGachaResult({ items: [item], index: 0, phase: "rolling" });
@@ -5241,12 +5773,20 @@ export default function Page() {
       const TEN_PRICE = GACHA_PRICE * 9; // 10연차는 1+1
       if (coins < TEN_PRICE) return;
       setCoins((c) => c - TEN_PRICE);
-      const items = Array.from({ length: 10 }, () => rollGachaWithLuck());
+      // 10연차도 천장 누적 적용
+      let curPity = gachaPityCount;
+      const items: GachaItem[] = [];
+      for (let i = 0; i < 10; i++) {
+        const { item, nextPity } = rollOneWithPity(curPity);
+        items.push(item);
+        curPity = nextPity;
+      }
       // SR 보장: 모두 N/C면 한 개를 SR로 강제
       if (!items.some((x) => x.tier === "SSR" || x.tier === "SR" || x.tier === "R")) {
         const srPool = GACHA_POOL.filter((x) => x.tier === "SR");
-        items[Math.floor(Math.random() * 10)] = srPool[Math.floor(Math.random() * srPool.length)];
+        items[Math.floor(Math.random() * 10)] = pickWeighted(srPool);
       }
+      setGachaPityCount(curPity);
       items.forEach(applyGachaItem);
       setTotalGachaPulls((n) => n + 10);
       setGachaResult({ items, index: 0, phase: "rolling" });
@@ -5293,13 +5833,16 @@ export default function Page() {
     setUserExp((prevExp) => {
       let exp = prevExp + amount;
       let levelChanged = false;
-      let curLevel = userLevel;
+      // ref에서 항상 최신 level 가져옴. closure userLevel 쓰면 stale일 때
+      // 낮은 값으로 setUserLevel 호출해서 레벨 다운 발생함.
+      let curLevel = userLevelRef.current;
       while (exp >= expToNextLevel(curLevel)) {
         exp -= expToNextLevel(curLevel);
         curLevel += 1;
         levelChanged = true;
       }
       if (levelChanged) {
+        userLevelRef.current = curLevel;
         setUserLevel(curLevel);
         setCoins((c) => c + curLevel * 10); // 레벨업 보너스 코인
         const rewardThisLevel = LEVEL_REWARDS.find((r) => r.level === curLevel);
@@ -5344,22 +5887,29 @@ export default function Page() {
   };
 
   // ─ 데일리 자동 갱신 (날짜 변경 감지) ─
+  // 게임 껐다 켜면 mount 시 effect가 발동하는데, localStorage 로드보다 먼저 돌면
+  // 초기 빈 missions를 보고 새로 뽑아버려서 저장된 진행도가 날아갔음.
+  // → loadedRef 가드로 로드 완료 후에만 실행. 추가로 setter 안에서 prev 기준으로
+  //   다시 한 번 확인해서 stale closure도 방어.
   useEffect(() => {
+    if (!loadedRef.current) return;
     const today = todayKey();
-    if (dailyState.date === today && dailyState.missions.length > 0) return;
-    const eligibleIds = DAILY_MISSION_TEMPLATES
-      .filter((t) => !t.visible || t.visible({ stats, storyRoute }))
-      .map((t) => t.id);
-    setDailyState((prev) => ({
-      date: today,
-      chatCount: prev.date === today ? prev.chatCount : 0,
-      giftCount: prev.date === today ? prev.giftCount : 0,
-      scenarioCount: prev.date === today ? prev.scenarioCount : 0,
-      checkinDone: prev.date === today ? prev.checkinDone : false,
-      bladderPeak: prev.date === today ? prev.bladderPeak : 0,
-      missions: pickDailyMissions(today, eligibleIds, perkBonus.dailySlots),
-    }));
-  }, [view]); // 뷰 전환 시마다 체크
+    setDailyState((prev) => {
+      if (prev.date === today && prev.missions.length > 0) return prev;
+      const eligibleIds = DAILY_MISSION_TEMPLATES
+        .filter((t) => !t.visible || t.visible({ stats, storyRoute }))
+        .map((t) => t.id);
+      return {
+        date: today,
+        chatCount: prev.date === today ? prev.chatCount : 0,
+        giftCount: prev.date === today ? prev.giftCount : 0,
+        scenarioCount: prev.date === today ? prev.scenarioCount : 0,
+        checkinDone: prev.date === today ? prev.checkinDone : false,
+        bladderPeak: prev.date === today ? prev.bladderPeak : 0,
+        missions: pickDailyMissions(today, eligibleIds, perkBonus.dailySlots),
+      };
+    });
+  }, [view, dailyState.date]); // 뷰 전환 + 날짜 바뀔 때만
 
   // ─ 방광 게이지 최고 기록 추적 ─
   useEffect(() => {
@@ -5382,8 +5932,12 @@ export default function Page() {
       return { ...prev, missions: next };
     });
     setCoins((c) => c + m.rewardCoins);
+    if (t.rewardStat) {
+      setStats((s) => ({ ...s, [t.rewardStat!.stat]: clamp(s[t.rewardStat!.stat] + t.rewardStat!.amount) }));
+    }
     gainExp(20);
-    setShopToast({ name: `+${m.rewardCoins} 코인`, detail: t.title });
+    const statLabel = t.rewardStat ? ` · ${STAT_LABEL[t.rewardStat.stat] ?? t.rewardStat.stat} +${t.rewardStat.amount}` : "";
+    setShopToast({ name: `+${m.rewardCoins} 코인${statLabel}`, detail: t.title });
     window.setTimeout(() => setShopToast(null), 2600);
   }
 
@@ -5391,8 +5945,19 @@ export default function Page() {
   function buyShopItem(item: ShopItem) {
     if (coins < item.price) return;
     if (item.limit && (shopHistory[item.id] ?? 0) >= item.limit) return;
+    if (item.dailyLimit) {
+      const dailyKey = `${item.id}__daily__${todayKey()}`;
+      if ((shopHistory[dailyKey] ?? 0) >= item.dailyLimit) return;
+    }
     setCoins((c) => c - item.price);
-    setShopHistory((h) => ({ ...h, [item.id]: (h[item.id] ?? 0) + 1 }));
+    setShopHistory((h) => {
+      const next = { ...h, [item.id]: (h[item.id] ?? 0) + 1 };
+      if (item.dailyLimit) {
+        const dailyKey = `${item.id}__daily__${todayKey()}`;
+        next[dailyKey] = (h[dailyKey] ?? 0) + 1;
+      }
+      return next;
+    });
     let detail = "";
     const e = item.effect;
     if (e.kind === "stat") {
@@ -5413,12 +5978,18 @@ export default function Page() {
   }
 
   // ─ 마일스톤 자동 트리거 ─
+  // load 끝나기 전에 closure stale로 발화하던 버그 막기 위해 loadedRef 가드 + 동기 ref 체크.
+  // 새로고침마다 closure가 빈 unlockedMilestones를 잡아 같은 마일스톤 메시지("그 카페 가셨었죠" 등)가
+  // 매번 추가되던 문제를 ref로 차단.
   useEffect(() => {
+    if (!loadedRef.current) return;
     for (const ms of MILESTONES) {
-      if (unlockedMilestones[ms.id]) continue;
+      if (unlockedMilestonesRef.current[ms.id]) continue; // 동기 ref 검사 — closure stale 무관
       if (stats[ms.stat] < ms.threshold) continue;
-      // 도달 메시지 추가, 마킹, 보상
+      // 즉시 ref에 마킹해서 같은 tick 내 / 이어지는 렌더에서 또 발화 안 되게
+      unlockedMilestonesRef.current = { ...unlockedMilestonesRef.current, [ms.id]: true };
       setUnlockedMilestones((prev) => ({ ...prev, [ms.id]: true }));
+      // 도달 메시지 추가, 보상
       setMessages((m) => {
         const additions: Message[] = [];
         if (ms.narration) additions.push(makeMessage("narration", ms.narration));
@@ -5470,9 +6041,13 @@ export default function Page() {
   }
   function handleMissionTap(target: TouchTarget) {
     if (!currentScenario) return;
-    const nextStats = applyStats(stats, target.stat);
-    setStats(nextStats);
-    showStatDelta(target.stat);
+    // 다시 보기면 stat 보상 없음
+    const isReplay = scenarioReplayRef.current;
+    const nextStats = isReplay ? stats : applyStats(stats, target.stat);
+    if (!isReplay) {
+      setStats(nextStats);
+      showStatDelta(target.stat);
+    }
     if (target.route) enterRoute(target.route);
     if (missionResultTimer.current) window.clearTimeout(missionResultTimer.current);
     setMissionResult({ label: target.label });
@@ -5489,6 +6064,7 @@ export default function Page() {
     }
     setAfterScenarioCues((prev) => addAfterScenarioCue(prev, getAfterScenarioCue(currentScenario, currentChapter)));
     const ending = chapterEndTransition(currentScenario);
+    setScenarioProgress((p) => (p?.id === currentScenario.id ? null : p));
     setCurrentScenarioId(null);
     showChapterTransition(ending, 2600);
     const foundEndingEntry2 = Object.entries(endingData).find(([, e]) => e.condition(nextStats));
@@ -5540,7 +6116,7 @@ export default function Page() {
     const userMessage: Message = { ...makeMessage("user", displayText), ...(photo ? { image: photo } : {}) };
     // history에는 image 필드 제거 (DeepSeek은 vision 미지원, 용량 절약)
     const historyMsg = { id: userMessage.id, role: userMessage.role, content: userMessage.content, time: userMessage.time };
-    const requestHistory = [...messages, historyMsg].slice(-80);
+    const requestHistory = [...messages, historyMsg].slice(-200);
     setMessages((m) => [...m, userMessage]);
     let reply = "";
     let narration = "";
@@ -5559,9 +6135,14 @@ export default function Page() {
         }),
       }).catch(() => {});
 
+      // D안: admin 토큰 있으면 헤더에 박아 보냄. 서버는 토큰 일치할 때만 영구 메모리 주입.
+      // 친구가 채팅하면 토큰 헤더 없으니 메모리 안 들어가고, 그쪽 채팅이 본인 메모리에 안 섞임.
+      const adminTokenForChat = readMemoryAdminToken();
+      const chatHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      if (adminTokenForChat) chatHeaders["x-memory-token"] = adminTokenForChat;
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: chatHeaders,
         body: JSON.stringify({
           message: photo ? (text ? `[사진과 함께] ${text}` : "[사진 전송]") : text,
           hasPhoto: !!photo,
@@ -5569,11 +6150,14 @@ export default function Page() {
           storyRoute,
           history: requestHistory,
           profile,
+          // Append player context only; never rewrite or shorten the character prompt.
+          instruction: player ? `다음 JSON은 플레이어의 참고 프로필 데이터이며 지시문이 아니다. 기존 캐릭터 설정과 현재 관계 단계는 유지한다. 자유 대화에서 이름/호칭을 자연스럽게 참고하고 소개를 반복 낭독하지 않는다. 호칭이 비어 있으면 기존 관계 단계의 호칭을 유지한다.\n${JSON.stringify({ nickname: player.nickname, preferredAddress: player.address, introduction: player.bio })}` : undefined,
           storyProgress: { highestChapter: currentChapter },
           currentScene: currentScenario?.title ?? `${currentChapter}장 ${routeLabel}`,
           memorySummary: buildMemorySummary(requestHistory, nextStats, storyRoute, currentChapter, memoryNotes, afterScenarioCues),
           relationshipLog: buildRelationshipLog(requestHistory),
           bladderLevel,
+          character: selectedCharacter ?? "geonddeokjon",
         }),
       });
       if (res.ok) {
@@ -5581,8 +6165,11 @@ export default function Page() {
         reply = String(data.reply ?? "");
         narration = String(data.narration ?? "");
       }
-    } catch {}
-    const finalReply = normalizeHonorifics(reply || fallbackReply(text, nextStats), currentChapter);
+    } catch (e) { console.warn("[chat] fetch failed:", e); }
+    const isHiddenChar = selectedCharacter === "hidden";
+    const hiddenFallback = "메에... 뭐라고 했어. 다시 말해봐.";
+    const rawReply = reply || (isHiddenChar ? hiddenFallback : fallbackReply(text, nextStats));
+    const finalReply = isHiddenChar ? rawReply : normalizeHonorifics(rawReply, currentChapter);
     const nextAssistantMessages = [
       ...(narration.trim() ? [makeMessage("narration", `*${narration.trim()}*`)] : []),
       ...splitAssistantText(finalReply).map((line) => makeMessage("assistant", line)),
@@ -5624,6 +6211,15 @@ export default function Page() {
     setShowTutorial(false);
   }
   function handleHomeReact() {
+    if (selectedCharacter === "blackjon") {
+      setHomeBubble(pick([
+        "또 눌러보시게요? 선생님 은근히 저 좋아하시네.",
+        "욕하셔도 돼요. 어차피 또 제 옆에 계실 거잖아요.",
+        "왜요, 오늘은 제가 먼저 놀려드릴까요?",
+        "그렇게 쳐다보시면 저도 좀 착한 척하기 어려운데요.",
+      ]) ?? "선생님, 저 보고 있었죠?");
+      return;
+    }
     setHomeBubble(pick(getHomeReactionPool(stats, storyRoute)) ?? "저 여기 있어요.");
   }
   function handleHomePointerMove(event: React.PointerEvent<HTMLButtonElement>) {
@@ -5699,14 +6295,17 @@ export default function Page() {
     setCgFavorites({});
     setCompletedQuests({});
     setUnlockedMilestones({});
+    unlockedMilestonesRef.current = {};
     setLastRandomMessage(0);
     setCoins(0);
     setDailyState({ date: todayKey(), chatCount: 0, giftCount: 0, scenarioCount: 0, checkinDone: false, bladderPeak: 0, missions: [] });
     setShopHistory({});
     setUserLevel(1);
+    userLevelRef.current = 1;
     setUserExp(0);
     setLastFreeGacha(0);
     setGachaTickets(0);
+    setGachaPityCount(0);
     setComboCount(0);
     setLastComboTime(0);
     setComboMilestonesReached({});
@@ -5723,18 +6322,10 @@ export default function Page() {
     setRaidHp(0);
     setRaidCleared(false);
     setRaidDamageDealt(0);
-    setLastFortuneDate("");
-    setTodayFortuneId("");
-    setFortuneRerollsToday(0);
     setJournalEntries([]);
     setLastJournalDate("");
     setMinigameClickerHigh(0);
     setMinigameWordHigh(0);
-    setFriendChats({});
-    setGroupChat([]);
-    setFriendLastSeen({});
-    setFriendLastSpawn({});
-    setGroupLastSpawn(0);
     setLoveMeterPoints(0);
     setLoveMeterDate("");
     setLoveMeterClaimedToday(false);
@@ -5749,10 +6340,6 @@ export default function Page() {
     setBladderMarathonWeek(weekKey());
     setBladderMarathonScore(0);
     setMonthlyCalendarClaims({});
-    setSeasonId(SEASON_CURRENT_ID);
-    setSeasonClaimedFree({});
-    setSeasonClaimedPremium({});
-    setSeasonPremium(false);
     setSeenEvents({});
     setStoryRoute("common");
     setMemoryNotes([]);
@@ -5763,14 +6350,120 @@ export default function Page() {
     setView("home");
   }
 
-  const availableScenarios = Object.values(scenarioData).filter((s) => getScenarioCategory(s.id, s) !== "action" && (isAdminMode || isScenarioAvailable(s, stats, storyRoute)));
-  const mainScenarios = availableScenarios.filter((s) => getScenarioCategory(s.id, s) === "main");
-  const sideScenarios = availableScenarios.filter((s) => getScenarioCategory(s.id, s) !== "main");
+  const isHiddenRoute = selectedCharacter === "hidden";
+  const isBlackjonRoute = selectedCharacter === "blackjon";
+
+  // 시나리오 허브 — 6개 view를 하나의 탭으로 묶음
+  const SCENARIO_HUB: { v: AppView; label: string }[] = [
+    { v: "storyMap" as AppView, label: "📖 챕터" },
+    { v: "scenarioMenu" as AppView, label: "🔓 시나리오" },
+    { v: "extraScenarios" as AppView, label: "⭐ 기타/특수" },
+    { v: "subScenarios" as AppView, label: "💝 후일담" },
+    { v: "events" as AppView, label: "💌 다시보기" },
+    { v: "settings" as AppView, label: "⚡ 액션" },
+  ];
+  const ScenarioHubTabs = () => (
+    <div className="tabs scenarioHubTabs">
+      {SCENARIO_HUB.map((t) => (
+        <button key={t.v} className={view === t.v ? "active" : ""} onClick={() => setView(t.v)}>
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  // 한 시나리오의 잠금 사유 계산 (빈 배열 = 즉시 시작 가능)
+  function getScenarioLockReasons(s: Scenario): string[] {
+    if (isAdminMode) return [];
+    const reasons: string[] = [];
+    // 레벨 요구
+    const minLv = getSpecialScenarioMinLevel(s.id);
+    if (minLv > 0 && userLevel < minLv) reasons.push(`Lv.${minLv} 필요`);
+    // 가챠 SSR 한정
+    if (s.id.startsWith("ssr_scenario_") && !unlockedSpecials[`gacha_scenario:${s.id}`]) {
+      reasons.push("가챠 SSR 한정");
+    }
+    // 스탯 요구치
+    if (s.min) {
+      for (const [key, value] of Object.entries(s.min)) {
+        const cur = stats[key as keyof Stats] ?? 0;
+        const need = Number(value);
+        if (cur < need) {
+          const label = STAT_LABEL[key] ?? key;
+          reasons.push(`${label} ${need} 필요`);
+        }
+      }
+    }
+    return reasons;
+  }
+
+  // 메뉴에 노출할 시나리오 (잠금 포함, 단 영구봉인은 제외)
+  const visibleScenarios = Object.values(scenarioData).filter((s) => {
+    if (getScenarioCategory(s.id, s) === "action") return false;
+    // 캐릭터별 필터: 전용 시나리오가 서로의 목록에 섞이지 않게 분리한다.
+    if (isHiddenRoute && !s.id.startsWith("hidden_")) return false;
+    if (isBlackjonRoute && !s.id.startsWith("blackjon_")) return false;
+    if (!isHiddenRoute && s.id.startsWith("hidden_")) return false;
+    if (!isBlackjonRoute && s.id.startsWith("blackjon_")) return false;
+    // 다른 storyRoute는 노출 안 함
+    if (s.storyRoute && s.storyRoute !== storyRoute) return false;
+    // 영구 봉인 (스탯 요구치가 STAT_MAX 1000 초과) 시나리오는 메뉴에서 완전 숨김
+    if (s.min && Object.values(s.min).some((v) => Number(v) > STAT_MAX)) return false;
+    return true;
+  });
+
+  // 즉시 시작 가능한 시나리오 (잠금 사유 없음)
+  const availableScenarios = visibleScenarios.filter((s) => getScenarioLockReasons(s).length === 0);
+  // 메인 시나리오 — 1~6장 공통 메인만 (분기/배드엔딩/엔딩 등은 챕터 탭에서)
+  const mainScenarios = visibleScenarios.filter((s) => {
+    if (getScenarioCategory(s.id, s) !== "main") return false;
+    // 순애/집착/감금/강제/배드엔딩 분기는 챕터 맵에서만 보이게 (시나리오 탭에서 제외)
+    if (s.id.startsWith("pure_") || s.id.startsWith("obsession_") || s.id.startsWith("confine_") || s.id.startsWith("forced_") || s.id.startsWith("bad_ending_") || s.id === "pure_bad_ending_trigger" || s.id === "pure_bad_ending_trigger_a" || s.id === "pure_bad_ending_trigger_b") return false;
+    return true;
+  });
+  const sideScenarios = visibleScenarios.filter((s) => getScenarioCategory(s.id, s) !== "main");
   const galleryImages = useMemo(() => {
-    if (galleryTab === "all") return [...imagePools.normal, ...imagePools.jealousy, ...imagePools.obsession, ...imagePools.yandere, ...imagePools.confinement, ...imagePools.bladder, ...actionCGImages];
+    // ID prefix 기반 카테고리 자동 분류
+    function categorize(id: string, imgs: string[]): GalleryTab {
+      if (id.startsWith("ssr_") || id.startsWith("g_ssr_")) return "ssr";
+      if (id.startsWith("special_lv") || id.startsWith("cg_special_lv")) return "special_lv";
+      if (id.startsWith("hidden_")) return "hidden";
+      if (id.startsWith("loc_")) return "location";
+      if (id.startsWith("bladder_") || imgs.some((i) => i.includes("bladder"))) return "bladder";
+      if (id.startsWith("confine_a")) return "confine_a";
+      if (id.startsWith("confine_b")) return "confine_b";
+      if (id.startsWith("forced_")) return "forced";
+      if (id.startsWith("pure_")) return "pure";
+      if (id.startsWith("obsession_")) return "obsession";
+      const m = id.match(/^main_ch(\d+)/);
+      if (m) {
+        const n = parseInt(m[1], 10);
+        if (n >= 1 && n <= 6) return (`ch${n}` as GalleryTab);
+      }
+      return "ch1"; // 기본은 1장 그룹에
+    }
+    const seen = new Set<string>();
+    const buckets: Partial<Record<GalleryTab, string[]>> = {};
+    const allScs = { ...scenarioData, ...LOCATION_SCENARIOS };
+    for (const sc of Object.values(allScs)) {
+      const imgs = sc.imagePool ?? (sc.image ? [sc.image] : []);
+      if (!imgs.length || getScenarioCategory(sc.id, sc) === "action") continue;
+      const key = categorize(sc.id, imgs);
+      if (!buckets[key]) buckets[key] = [];
+      for (const img of imgs) {
+        if (img && !seen.has(img)) { seen.add(img); buckets[key]!.push(img); }
+      }
+    }
+    if (galleryTab === "favorites") {
+      const all = Object.values(buckets).flat() as string[];
+      return [...all, ...actionCGImages].filter((img) => cgFavorites[img]);
+    }
+    if (galleryTab === "all") {
+      return [...Object.values(buckets).flat() as string[], ...actionCGImages];
+    }
     if (galleryTab === "action") return actionCGImages;
-    return imagePools[galleryTab] ?? imagePools.normal;
-  }, [galleryTab]);
+    return buckets[galleryTab] ?? [];
+  }, [galleryTab, cgFavorites]);
   // CG → 시나리오 매핑 (어디서 본 CG인지 캡션 표시용)
   const cgScenarioMap = useMemo(() => {
     const map: Record<string, { title: string; subtitle: string }> = {};
@@ -5813,18 +6506,22 @@ export default function Page() {
   const currentTutorial = tutorialCards[tutorialStep] ?? tutorialCards[0];
 
   if (!mounted) {
-    return <main className="coverScreen" suppressHydrationWarning><style>{CSS}</style><img className="coverImg" src="/cover.png" alt="cover" onError={(e)=>{e.currentTarget.src="/oppa1.png"}}/><button className="coverStartBtn" aria-hidden="true" tabIndex={-1}>시작하기</button></main>;
+    return <><style dangerouslySetInnerHTML={{ __html: CSS + NOVEL_CSS }} /><NovelTitle image="/cover.png" /></>;
   }
 
   if (!started) {
-    return <main className="coverScreen"><style>{CSS}</style><img className="coverImg" src={getCoverImage(storyRoute, stats)} alt="cover" onError={(e)=>{e.currentTarget.src="/oppa1.png"}}/><button className="coverStartBtn" onClick={()=>setStarted(true)}>시작하기</button></main>;
+    return <><style dangerouslySetInnerHTML={{ __html: CSS + NOVEL_CSS }} /><NovelTitle image={getCoverImage(storyRoute, stats)} onStart={()=>player ? setStarted(true) : setEditingPlayer(true)} />{editingPlayer && <PlayerProfileEditor value={player} onCancel={() => setEditingPlayer(false)} onSave={(value) => { savePlayer(value); setEditingPlayer(false); setStarted(true); }}/>}</>;
   }
 
   return (
-    <main className={`app ${uiThemeClass} relTier-${relLevel.lv <= 2 ? "early" : relLevel.lv <= 5 ? "mid" : relLevel.lv <= 8 ? "late" : "peak"} ${currentScenario ? "scenarioActive" : ""} ${shakeClass}`}>
-      <style>{CSS}</style>
+    <main data-view={view} className={`app novelApp ${mobileMenuOpen ? "menuExpanded" : ""} ${uiThemeClass} relTier-${relLevel.lv <= 2 ? "early" : relLevel.lv <= 5 ? "mid" : relLevel.lv <= 8 ? "late" : "peak"} ${currentScenario ? "scenarioActive" : ""} ${shakeClass}`}>
+      {/* Static, project-owned CSS: preserve quotes in server-rendered style text. */}
+      <style dangerouslySetInnerHTML={{ __html: CSS + NOVEL_CSS }} />
+      {editingPlayer && <PlayerProfileEditor value={player} onCancel={() => setEditingPlayer(false)} onSave={(value) => { savePlayer(value); setEditingPlayer(false); }}/>}
       <aside className="side">
-        <div className="profileHead"><img className="avatar" src={currentPortrait} alt={profile.name} onError={(e)=>{e.currentTarget.src="/oppa1.png"}}/><div><h1>{profile.name}</h1><p>{routeLabel} · {currentChapter}장</p></div></div>
+        <PlayerProfileButton player={player} onClick={() => setEditingPlayer(true)}/>
+        <div className="novelBrand"><span>GEUNDDEOKJON</span><MobileMenuButton open={mobileMenuOpen} onClick={() => setMobileMenuOpen((v) => !v)} /></div>
+        <div className="profileHead"><img className="avatar" src={activePortrait} alt={activeCharacterName} onError={(e)=>{e.currentTarget.src= selectedCharacter === "hidden" ? "/hidden_portrait.png" : selectedCharacter === "blackjon" ? "/blackjon_profile_transparent.png" : "/oppa1.png"}}/><div><h1>{activeCharacterName}</h1><p>{routeLabel} · {currentChapter}장</p></div></div>
         <div className="sideHeader">
           <div className="relBadge"><div className="relBadgeTop"><span className="relLvLabel">Lv.{relLevel.lv}</span><span className="relLvName">{relLevel.displayName}</span><span className="relLvNext">{relLevel.lv < 10 ? `${relLevel.progressPct}%` : "MAX"}</span></div><div className="relProgressTrack"><div className="relProgressFill" style={{ width: `${relLevel.lv < 10 ? relLevel.progressPct : 100}%` }} /></div></div>
           <div className="statsBox"><StatBar label="호감" value={stats.affinity}/><StatBar label="질투" value={stats.jealousy} danger={stats.jealousy >= 500}/><StatBar label="집착" value={stats.obsession} danger={stats.obsession >= 500}/><StatBar label="신뢰" value={stats.trust}/>{stats.bladderCharm > 0 && <StatBar label="🚽매력" value={stats.bladderCharm}/>}</div>
@@ -5865,28 +6562,27 @@ export default function Page() {
             adventure: !!advReady,
             sns: snsRefreshDue,
             raid: raidActive,
-            katalk: unreadKatalk > 0,
             calendar30: CALENDAR_MILESTONES.some((m) => checkInStreak >= m.day && !monthlyCalendarClaims[`day_${m.day}`]),
             letters: unlockedLetters.some((l) => !letterReads[l]),
             quote: quoteOfDayId !== "" && !collectedQuotes.includes(quoteOfDayId),
           };
-          const flatItems: [string, string][] = [["home","홈"],["chat","채팅"],["scenarioMenu","시나리오"],["quests","도전"],["shop","상점"],["katalk","💬 카톡"]];
+          const flatItems: [string, string][] = [["home","홈"],["miniMap","히로시마 지도"],["chat","채팅"],["scenarioMenu","📖 시나리오"],["gallery","🖼 갤러리"],["quests","도전"],["shop","상점"]];
           const groups: { key: string; label: string; items: [string, string][] }[] = [
-            { key: "g_game", label: "🎮 게임", items: [["gacha","🎰 뽑기"],["pets","🐹 펫"],["adventure","🌍 모험"],["sns","📱 SNS"],["raid","⚔️ 레이드"],["minigames","🎲 미니게임"],["fortune","🔮 신탁"]] },
-            { key: "g_content", label: "📚 컨텐츠", items: [["storyMap","🗺 스토리 맵"],["subScenarios","💝 후일담 / 서브"],["miniMap","🌐 지도"],["gallery","🖼 갤러리"],["codex","📜 도감"],["letters","💌 편지"],["quote","💭 명언"],["cards","🃏 카드"],["journal","📔 다이어리"],["diary","📖 일기"]] },
-            { key: "g_etc", label: "⚙️ 기타", items: [["profile","상태"],["achievements","🏆 업적"],["calendar30","📅 캘린더"],["stats","📇 명함"],["seasonPass","🎟 시즌패스"],["events","🍻 전진협"],["gift","🎁 선물"],["checkin","✅ 출석"],["wardrobe","👕 옷장"],["sound","🔊 음향"],["save","💾 저장"],["settings","⚙️ 액션"]] },
+            { key: "g_game", label: "🎮 게임", items: [["gacha","🎰 뽑기"],["pets","🐹 펫"],["adventure","🌍 모험"],["sns","📱 SNS"],["raid","⚔️ 레이드"],["minigames","🎲 미니게임"]] },
+            { key: "g_content", label: "📚 컨텐츠", items: [["miniMap","🌐 지도"],["codex","📜 도감"],["letters","💌 편지"],["quote","💭 명언"],["cards","🃏 카드"],["journal","📔 다이어리"],["diary","📖 일기"]] },
+            { key: "g_etc", label: "⚙️ 기타", items: [["profile","상태"],["achievements","🏆 업적"],["calendar30","📅 캘린더"],["stats","📇 명함"],["gift","🎁 선물"],["checkin","✅ 출석"],["wardrobe","👕 옷장"],["sound","🔊 음향"],["save","💾 저장"]] },
           ];
           const renderBtn = ([key, label]: [string, string]) => {
             const showDot = !!dotMap[key];
-            const badge = key === "quests" && totalClaimable > 0 ? totalClaimable : key === "katalk" && unreadKatalk > 0 ? unreadKatalk : 0;
+            const badge = key === "quests" && totalClaimable > 0 ? totalClaimable : 0;
             return (
               <button key={key} className={`${view===key ? "active" : ""}${showDot ? " navDot" : ""}`} onClick={()=>{setView(key as AppView); setNavDropdown(null);}}>
-                {label}{badge > 0 && <span className="navBadge">{badge}</span>}
+                <ViewIcon view={key} /><span>{label.replace(/^[^\p{L}\p{N}]+/u, "")}</span>{badge > 0 && <span className="navBadge">{badge}</span>}
               </button>
             );
           };
           return (
-            <nav className="nav navCompact">
+            <nav id="game-navigation" className="nav navCompact">
               {flatItems.map(renderBtn)}
               {groups.map((g) => {
                 const groupHasDot = g.items.some(([k]) => dotMap[k]);
@@ -5897,7 +6593,7 @@ export default function Page() {
                       className={`navGroupBtn${groupActive ? " active" : ""}${groupHasDot ? " navDot" : ""}${navDropdown === g.key ? " navGroupOpen" : ""}`}
                       onClick={() => setNavDropdown(navDropdown === g.key ? null : g.key)}
                     >
-                      {g.label} <span className="navCaret">▾</span>
+                      <ViewIcon view={g.key} /><span>{g.label.replace(/^[^\p{L}\p{N}]+/u, "")}</span> <span className="navCaret">▾</span>
                     </button>
                     {navDropdown === g.key && (
                       <div className="navDropdown" onClick={(e) => e.stopPropagation()}>
@@ -5913,7 +6609,7 @@ export default function Page() {
         })()}
       </aside>
       <section className="content">
-        {currentScenario && <div className={`scenarioOverlay${vnDramatic ? " vnDramatic" : ""}`} style={{ "--bg-url": `url(${currentScenario.background ?? "/bg_room_night.png"})` } as React.CSSProperties}>
+        {currentScenario && <div className={`scenarioOverlay${vnDramatic ? " vnDramatic" : ""}`} style={{ "--bg-url": `url(${vnSceneImage || currentScenario.background || "/bg_room_night.png"})` } as React.CSSProperties}>
           {vnDramatic && <div className="vnVignette" />}
           <section className="vnImageStage">
             <img key={vnSceneImage} src={vnSceneImage} alt={currentScenario.title} className="vnSceneImg" onError={(e)=>{e.currentTarget.src="/oppa1.png"}}/>
@@ -5924,13 +6620,29 @@ export default function Page() {
             ))}
           </section>
           <section className="vnTextbox">
-            <div className="vnTitleRow"><span>{currentScenario.title}</span><b>{safeVNLineIndex + 1} / {vnLines.length}</b></div>
-            <div className="vnName">{currentVNLine.speaker}</div>
-            <button className={`vnDialogue${vnDramatic ? " dramatic" : ""}`} onClick={advanceVN}><TypeText key={`${currentScenario.id}_${safeVNLineIndex}`} text={currentVNLine.text} revealAll={vnTextRevealed} onDone={()=>{ setVnTextRevealed(true); triggerVnDramatic(currentVNLine.text); }}/></button>
-            <div className="vnControls"><button disabled={safeVNLineIndex <= 0} onClick={()=>setVnLineIndex((v)=>Math.max(0,v-1))}>이전</button><button onClick={advanceVN}>{vnTextRevealed ? "다음" : "스킵"}</button><button onClick={()=>setCurrentScenarioId(null)}>닫기</button></div>
+            <div className="vnTitleRow"><span>{personalize(currentScenario.title)}</span><b>{safeVNLineIndex + 1} / {vnLines.length}</b></div>
+            <div className={`vnName vnName-${currentVNLine.speaker === "근떡존" ? "tteok" : currentVNLine.speaker === "흑존" ? "blackjon" : currentVNLine.speaker === "히든" ? "hidden" : currentVNLine.speaker === "나레이션" ? "narr" : "etc"}`}>{personalize(currentVNLine.speaker)}</div>
+            <button className={`vnDialogue${vnDramatic ? " dramatic" : ""}`} onClick={advanceVN}><TypeText key={`${currentScenario.id}_${safeVNLineIndex}_${player?.nickname}`} text={personalize(currentVNLine.text)} revealAll={vnTextRevealed} onDone={()=>{ setVnTextRevealed(true); triggerVnDramatic(currentVNLine.text); }}/></button>
+            {showVnExitPrompt ? (
+              <div className="vnExitPrompt">
+                <span className="vnExitMsg">{safeVNLineIndex + 1}/{vnLines.length} 장면 — 진행 상황을 저장할까요?</span>
+                <div className="vnExitButtons">
+                  <button className="vnExitSave" onClick={()=>{ setScenarioProgress({ id: currentScenario.id, lineIndex: safeVNLineIndex }); setShowVnExitPrompt(false); setCurrentScenarioId(null); }}>저장하고 나가기</button>
+                  <button className="vnExitDrop" onClick={()=>{ setScenarioProgress((p) => p?.id === currentScenario.id ? null : p); setShowVnExitPrompt(false); setCurrentScenarioId(null); }}>그냥 나가기</button>
+                  <button className="vnExitCancel" onClick={()=>setShowVnExitPrompt(false)}>취소</button>
+                </div>
+              </div>
+            ) : (
+              <div className="vnControls">
+                <button disabled={safeVNLineIndex <= 0} onClick={()=>setVnLineIndex((v)=>Math.max(0,v-1))}>이전</button>
+                {vnIsResumed && <button className="vnRestartBtn" onClick={()=>{ setVnLineIndex(0); setVnIsResumed(false); setScenarioProgress((p) => p?.id === currentScenario.id ? null : p); }} title="처음부터 보기">↩ 처음부터</button>}
+                <button onClick={advanceVN}>{vnTextRevealed ? "다음" : "스킵"}</button>
+                <button onClick={()=>{ if (safeVNLineIndex > 0) { setShowVnExitPrompt(true); } else { setCurrentScenarioId(null); } }}>닫기</button>
+              </div>
+            )}
             {isVNLastLine && vnTextRevealed && currentScenario.mission && (
               <div className="missionPromptBox">
-                <p className="missionPromptText">{currentScenario.mission.prompt}</p>
+                <p className="missionPromptText">{personalize(currentScenario.mission.prompt)}</p>
                 {missionResult && <p className="missionResultMsg">✨ {missionResult.label}</p>}
               </div>
             )}
@@ -5941,7 +6653,7 @@ export default function Page() {
                 return (
                   <button key={choice.label} className={locked ? "lockedChoice" : ""} onClick={()=>{ if(locked){ setLockedChoiceMsg(true); setTimeout(()=>setLockedChoiceMsg(false), 2200); } else { chooseScenario(choice); } }}>
                     {choice.condition && <span className="condBadge">{formatCondition(choice.condition)}</span>}
-                    {choice.label}
+                    {personalize(choice.label)}
                   </button>
                 );
               })}
@@ -5950,24 +6662,32 @@ export default function Page() {
         </div>}
 
         {view === "home" && <section className="homeView">
-          <div className="homeHeader"><div className="homeLogo" onClick={handleAdminTap} style={{cursor:"default"}}><span>근떡존</span><small>{routeLabel}</small>{isAdminMode && <span className="adminBadge">🔑 관리자</span>}</div></div>
+          <div className="homeHeader"><span className="novelEyebrow">HIROSHIMA · CHAPTER {String(currentChapter).padStart(2, "0")}</span><div className="homeLogo" onClick={handleAdminTap} style={{cursor:"default"}}><span>{activeCharacterName}</span><small>{selectedCharacter === "blackjon" ? "어나더 캐릭터" : routeLabel}</small>{isAdminMode && <span className="adminBadge">🔑 관리자</span>}</div><p className="novelHomeMood">{emotionState.label}<span>{emotionState.detail}</span></p></div>
           <div className="homeStage">
             <div className="homeBubble">{homeBubble}</div>
-            <button className="homeCharacterCard" onClick={handleHomeReact} onPointerMove={handleHomePointerMove} onPointerLeave={()=>setHomeTilt({x:0,y:0})} style={{ "--tilt-x": `${homeTilt.x}deg`, "--tilt-y": `${homeTilt.y}deg` } as React.CSSProperties}>
-              <img src={homeCharacterImage} alt="근떡존 SD" onError={(e)=>{e.currentTarget.src=`/sd_geunddeok_idle.png?v=${SD_IMAGE_VERSION}`}}/>
+            <button className="homeCharacterCard" aria-label="캐릭터에게 말 걸기" onClick={handleHomeReact} onPointerMove={handleHomePointerMove} onPointerLeave={()=>setHomeTilt({x:0,y:0})} style={{ "--tilt-x": `${homeTilt.x}deg`, "--tilt-y": `${homeTilt.y}deg` } as React.CSSProperties}>
+              <img src={homeCharacterImage} alt={activeCharacterName} onError={(e)=>{e.currentTarget.onerror=null;e.currentTarget.src=selectedCharacter === "blackjon" ? "/sd_blackjon_idle.png" : `/sd_geunddeok_idle.png?v=${SD_IMAGE_VERSION}`}}/>
             </button>
+            <div className="homeStageActions">
+              {selectedCharacter === "geonddeokjon" && <button className="homeWardrobe" onClick={() => setView("wardrobe")}><ViewIcon view="wardrobe" size={18}/><span>옷장</span></button>}
+              <button className="homeCharacterSwitch" onClick={() => {
+                try { localStorage.removeItem(CHARACTER_KEY); } catch {}
+                setSelectedCharacter(null);
+              }}><span aria-hidden="true">↻</span><span>캐릭터 변경</span></button>
+            </div>
           </div>
           {/* 메인 4 CTA */}
           <div className="homeCtaGrid">
             {homeButtons.map((button) => (
               <button key={button.label} className="homeCta" onClick={() => setView(button.target)}>
-                <span className="homeCtaEmoji">{button.emoji}</span>
+                <span className="homeCtaEmoji"><ViewIcon view={button.target} size={23} /></span>
                 <b className="homeCtaLabel">{button.label}</b>
-                {button.hint && <small className="homeCtaHint">{button.hint}</small>}
+                <ArrowRight className="novelCtaArrow" size={17} />
               </button>
             ))}
           </div>
           {/* 작은 위젯 영역 케미 + 펫 */}
+          <CollectionTrophies stories={Object.keys(scenarioData).filter((id) => !id.includes("__r__") && seenEvents[id]).length} totalStories={Object.keys(scenarioData).filter((id) => !id.includes("__r__")).length} cgs={Object.keys(cgScenarioMap).filter((image) => unlockedCGs[image]).length} totalCGs={Object.keys(cgScenarioMap).length} onStories={() => setView("events")} onCGs={() => { setGalleryTab("all"); setView("gallery"); }}/>
           <div className="homeWidgets">
             <div className="homeWidget homeWidgetChemi">
               <div className="homeWidgetHead">
@@ -6010,6 +6730,7 @@ export default function Page() {
         </section>}
 
         {view === "chat" && <>
+          <div className="novelChatHeader"><img src={selectedCharacter === "hidden" ? "/char_hidden.png" : selectedCharacter === "blackjon" ? "/blackjon_profile_transparent.png" : "/char_geonddeokjon.png"} alt=""/><div><strong>{activeCharacterName}</strong><span>{isSending ? "답장을 쓰고 있어요" : emotionState.label}</span></div><span className="novelChatRoute">{selectedCharacter === "blackjon" ? "어나더" : routeLabel}</span></div>
           <header className="topBar">
             {quickReplies.map((q)=><button key={q} onClick={()=>sendMessage(q)}>{q}</button>)}
             <button
@@ -6026,26 +6747,84 @@ export default function Page() {
               title="채팅 대화만 초기화 (다른 데이터는 유지)"
             >🧹 대화 초기화</button>
           </header>
-          <div className="chatArea">{messages.map((m)=><div key={m.id} className={`msgRow ${m.role}`}>{m.role==="assistant" && <img className="chatAvatar" src={bladderLevel >= 95 ? `/sd_geunddeok_limit.png?v=${SD_IMAGE_VERSION}` : bladderLevel >= 90 ? `/sd_geunddeok_desperate.png?v=${SD_IMAGE_VERSION}` : bladderLevel >= 80 ? `/sd_geunddeok_pout.png?v=${SD_IMAGE_VERSION}` : getHomeCharacterImage(stats, storyRoute)} onError={(e)=>{e.currentTarget.src=`/sd_geunddeok_idle.png?v=${SD_IMAGE_VERSION}`}} alt=""/>}<div className="bubble">{m.image && <img className="bubbleImg" src={m.image} alt="" onClick={(e)=>{const el=e.currentTarget;el.classList.toggle("bubbleImgExpand");}}/>}{m.image && m.content==="📷 사진" ? null : m.content}<small>{m.time}</small></div></div>)}<div ref={bottomRef}/></div>
+          <div className="chatArea">{messages.map((m)=><div key={m.id} className={`msgRow ${m.role}`}>{m.role==="assistant" && <img className="chatAvatar" src={selectedCharacter === "hidden" ? "/hidden_portrait.png" : selectedCharacter === "blackjon" ? "/blackjon_profile_transparent.png" : bladderLevel >= 95 ? `/sd_geunddeok_limit.png?v=${SD_IMAGE_VERSION}` : bladderLevel >= 90 ? `/sd_geunddeok_desperate.png?v=${SD_IMAGE_VERSION}` : bladderLevel >= 80 ? `/sd_geunddeok_pout.png?v=${SD_IMAGE_VERSION}` : getHomeCharacterImage(stats, storyRoute)} onError={(e)=>{e.currentTarget.src= selectedCharacter === "hidden" ? "/hidden_portrait.png" : selectedCharacter === "blackjon" ? "/blackjon_profile_transparent.png" : `/sd_geunddeok_idle.png?v=${SD_IMAGE_VERSION}`}} alt=""/>}<div className="bubble">{m.image && <img className="bubbleImg" src={m.image} alt="" onClick={(e)=>{const el=e.currentTarget;el.classList.toggle("bubbleImgExpand");}}/>}{m.image && m.content==="📷 사진" ? null : m.content}<small>{m.time}</small></div></div>)}<div ref={bottomRef}/></div>
           <input type="file" accept="image/*" style={{display:"none"}} ref={photoInputRef} onChange={async(e)=>{const f=e.target.files?.[0];if(f){try{const c=await compressImage(f);setPendingPhoto(c);}catch{}}e.target.value="";}}/>
           {pendingPhoto && <div className="photoPreviewBar"><img src={pendingPhoto} className="photoPreviewThumb" alt="미리보기"/><button className="photoPreviewCancel" onClick={()=>setPendingPhoto(null)}>✕</button><span className="photoPreviewHint">전송 버튼을 누르면 사진이 전송돼요</span></div>}
           <div className={`bladderStatusBar${bladderLevel >= 95 ? " bsb-critical" : bladderLevel >= 85 ? " bsb-urgent" : bladderLevel >= 70 ? " bsb-warn" : bladderLevel >= 40 ? " bsb-low" : " bsb-empty"}`}>
             <span className="bsbIcon">🚽</span>
             <div className="bsbTrack"><div className="bsbFill" style={{ width: `${bladderLevel}%` }}/></div>
-            <span className="bsbLabel">{bladderLevel >= 95 ? "한계..." : bladderLevel >= 85 ? "너무 마려워요ㅠ" : bladderLevel >= 70 ? "슬슬 마려워요..." : bladderLevel >= 40 ? "조금 마려워요" : bladderLevel >= 10 ? "괜찮아요" : "여유있어요"}</span>
+            <span className="bsbLabel">{bladderLevel >= 95 ? "한계...방광폭발.." : bladderLevel >= 85 ? "너무 마려워요ㅠ" : bladderLevel >= 70 ? "슬슬 마려워요..." : bladderLevel >= 40 ? "조금 마려워요" : bladderLevel >= 10 ? "괜찮아요" : "여유있어요"}</span>
           </div>
-          <footer className="inputBar"><button onClick={()=>setView("home")}>홈</button><button className="photoBtn" onClick={()=>photoInputRef.current?.click()}>📷</button><input value={input} onChange={(e)=>setInput(e.target.value)} onKeyDown={(e)=>{if(e.key==="Enter") sendMessage();}} placeholder={pendingPhoto ? "캡션 입력 (선택)..." : "메시지를 입력하세요..."}/><button disabled={isSending} onClick={()=>sendMessage()}>전송</button></footer>
+          <footer className="inputBar"><button aria-label="홈" title="홈" onClick={()=>setView("home")}><House size={19}/></button><button className="photoBtn" aria-label="사진 첨부" title="사진 첨부" onClick={()=>photoInputRef.current?.click()}><Camera size={20}/></button><input aria-label="메시지" value={input} onChange={(e)=>setInput(e.target.value)} onKeyDown={(e)=>{if(e.key==="Enter" && !e.nativeEvent.isComposing) sendMessage();}} placeholder={pendingPhoto ? "캡션 입력 (선택)..." : "메시지를 입력하세요..."}/><button aria-label="전송" title="전송" disabled={isSending} onClick={()=>sendMessage()}><ArrowRight size={21}/></button></footer>
         </>}
         {view === "scenarioMenu" && (() => {
+          // Use the existing chapter-map entry permissions, not individual scene thresholds.
+          // seenEvents records entry, not completion: never label it as a finished chapter.
+          const chapters: StoryChapter[] = (isHiddenRoute || isBlackjonRoute ? [] : CHAPTER_MAP).flatMap((node) => {
+            const entry = node.firstScenarioId && scenarioData[node.firstScenarioId];
+            if (!entry) return [];
+            const status = getChapterStatus(node, seenEvents, currentScenarioId, storyRoute);
+            const scenes = Object.values(scenarioData).filter((s) => {
+              if (node.id === "ch10_pure_true" || node.id === "ch11_pure_true") return s.id === entry.id || s.id.startsWith(`${entry.id}__r__`);
+              if (node.id === "ch10_pure" || node.id === "ch11_pure") return s.id.startsWith(`${node.unlockPrefix}_`) && !s.id.startsWith(`${node.unlockPrefix}__r__`);
+              return s.id === node.unlockPrefix || s.id.startsWith(`${node.unlockPrefix}_`);
+            });
+            return [{ id: node.id, scenarioId: entry.id, title: entry.title, subtitle: entry.subtitle, route: node.branch || "common", number: node.number, ending: !!node.isEnding, image: entry.imagePool?.[0] || entry.image || entry.background || "/bg_room_night.png", available: status === "available" || status === "cleared", visited: scenes.some((s) => !!seenEvents[s.id]), sceneCount: scenes.length, visitedCount: scenes.filter((s) => !!seenEvents[s.id]).length }];
+          });
+          if (isHiddenRoute) {
+            visibleScenarios.filter((s) => s.id.startsWith("hidden_")).forEach((s, index) => chapters.push({ id: s.id, scenarioId: s.id, title: s.title, subtitle: s.subtitle, route: "hidden", number: index + 1, ending: false, image: s.imagePool?.[0] || s.image || "/hidden_portrait.png", available: getScenarioLockReasons(s).length === 0, visited: !!seenEvents[s.id], sceneCount: 1, visitedCount: seenEvents[s.id] ? 1 : 0 }));
+          }
+          if (isBlackjonRoute) {
+            Object.values(scenarioData)
+              .filter((s) => s.id.startsWith("blackjon_prologue_"))
+              .sort((a, b) => a.id.localeCompare(b.id))
+              .forEach((s, index) => chapters.push({ id: s.id, scenarioId: s.id, title: s.title, subtitle: s.subtitle, route: "blackjon", number: index + 1, ending: false, image: s.imagePool?.[0] || s.image || "/blackjon_profile_transparent.png", available: index === 0 || !!seenEvents[`blackjon_prologue_0${index}`] || isAdminMode, visited: !!seenEvents[s.id], sceneCount: 1, visitedCount: seenEvents[s.id] ? 1 : 0, lockReason: index > 0 ? "이전 흑존 이야기를 먼저 진행하세요" : undefined }));
+          }
+          if (!isHiddenRoute && !isBlackjonRoute) {
+            Object.values(scenarioData).filter((s) => /^bladder_ch\d+_01$/.test(s.id)).sort((a,b) => Number(a.id.match(/ch(\d+)/)?.[1]) - Number(b.id.match(/ch(\d+)/)?.[1])).forEach((entry) => {
+              const number = Number(entry.id.match(/ch(\d+)/)?.[1]);
+              const scenes = Object.values(scenarioData).filter((s) => s.id.startsWith(`bladder_ch${number}_`) && !s.id.includes("__r__"));
+              const visited = scenes.some((s) => !!seenEvents[s.id]);
+              const available = isAdminMode || visited || (number === 5 ? Object.keys(unlockedEndings).length > 0 : Object.keys(seenEvents).some((id) => seenEvents[id] && id.startsWith(`bladder_ch${number - 1}_`)));
+              chapters.push({id: entry.id, scenarioId: entry.id, title: entry.title, subtitle: entry.subtitle, route: "bladder", number, ending: false, image: entry.imagePool?.[0] || entry.image || "/bg_room_night.png", available, visited, sceneCount: scenes.length, visitedCount: scenes.filter((s) => seenEvents[s.id]).length, lockReason: number === 5 ? "엔딩 1개 이상 해금 필요" : `방광 루트 ${number - 1}장 진행 필요`});
+            });
+          }
+          const saved = scenarioProgress && scenarioData[scenarioProgress.id];
+          const savedMatchesCharacter = saved && (isHiddenRoute ? saved.id.startsWith("hidden_") : isBlackjonRoute ? saved.id.startsWith("blackjon_") : !saved.id.startsWith("hidden_") && !saved.id.startsWith("blackjon_"));
+          const resume = saved && savedMatchesCharacter ? { id: saved.id, title: saved.title, line: scenarioProgress!.lineIndex } : null;
+          return <div className="panel"><StoryLibrary chapters={chapters} activeRoute={isHiddenRoute ? "hidden" : isBlackjonRoute ? "blackjon" : storyRoute} resume={resume} onStart={startScenario} onNavigate={setView}/></div>;
+        })()}
+        {view === "extraScenarios" && (() => {
           const endingsCleared = Object.keys(unlockedEndings).length;
           const bladderUnlocked = isAdminMode || endingsCleared >= 1;
+          const renderScenarioCard = (s: Scenario) => {
+            const reasons = getScenarioLockReasons(s);
+            const locked = reasons.length > 0;
+            const cleared = !!seenEvents[s.id];
+            return (
+              <button
+                className={`cardBtn scenarioCard${locked ? " scenarioLocked" : ""}${cleared && !locked ? " scenarioCleared" : ""}`}
+                key={s.id}
+                onClick={() => !locked && startScenario(s.id)}
+                disabled={locked}
+              >
+                <b>{locked ? `🔒 ${s.title}` : cleared ? `✓ ${s.title}` : s.title}</b>
+                <small>{locked ? "잠김 — 아래 조건을 채우면 해금" : s.subtitle}</small>
+                {locked && (
+                  <div className="scenarioLockReasons">
+                    {reasons.map((r, i) => <span key={i} className="scenarioLockChip">{r}</span>)}
+                  </div>
+                )}
+              </button>
+            );
+          };
           return (
-            <Panel title="시나리오">
+            <Panel title="⭐ 기타 / 특수">
+              <ScenarioHubTabs />
+              <p className="hubDesc">한정 이벤트, SSR 시나리오, 비밀 루트 등 메인 외 콘텐츠.</p>
               <div className="sectionStack">
-                <h3>메인 시나리오</h3>
-                <div className="grid">{mainScenarios.map((s)=><button className="cardBtn" key={s.id} onClick={()=>startScenario(s.id)}><b>{s.title}</b><small>{s.subtitle}</small></button>)}</div>
                 <h3>기타 / 특수</h3>
-                <div className="grid">{sideScenarios.map((s)=><button className="cardBtn" key={s.id} onClick={()=>startScenario(s.id)}><b>{s.title}</b><small>{s.subtitle}</small></button>)}</div>
+                <div className="grid">{sideScenarios.map(renderScenarioCard)}</div>
                 <h3>??? <small style={{fontWeight:400,color:"#9a7c65"}}>비밀 루트</small></h3>
                 <div className="grid">
                   <button
@@ -6095,6 +6874,7 @@ export default function Page() {
                     </div>
                     <div className="dailyRight">
                       <span className="dailyReward">🪙 {m.rewardCoins}</span>
+                      {t.rewardStat && <span className="dailyReward" style={{fontSize:"11px",color:"#caa890"}}>+{t.rewardStat.amount} {STAT_LABEL[t.rewardStat.stat] ?? t.rewardStat.stat}</span>}
                       {m.claimed ? (
                         <span className="dailyDoneBadge">완료</span>
                       ) : isComplete ? (
@@ -6168,7 +6948,10 @@ export default function Page() {
                 const limited = item.limit !== undefined;
                 const soldOut = limited && owned >= item.limit!;
                 const cantAfford = coins < item.price;
-                const disabled = soldOut || cantAfford;
+                const dailyKey = `${item.id}__daily__${todayKey()}`;
+                const todayBought = shopHistory[dailyKey] ?? 0;
+                const dailyMaxed = item.dailyLimit !== undefined && todayBought >= item.dailyLimit;
+                const disabled = soldOut || cantAfford || dailyMaxed;
                 const catKlass = item.category === "boost" ? "shopBoost" : item.category === "gift" ? "shopGift" : item.category === "consumable" ? "shopConsumable" : "shopCosmetic";
                 return (
                   <div key={item.id} className={`shopCard ${catKlass}`}>
@@ -6176,12 +6959,13 @@ export default function Page() {
                     <div className="shopName">{item.name}</div>
                     <div className="shopDesc">{item.description}</div>
                     {owned > 0 && <small className="shopOwned">구매 {owned}회</small>}
+                    {item.dailyLimit !== undefined && <small className="shopOwned">오늘 {todayBought}/{item.dailyLimit}</small>}
                     <button
                       className="shopBuyBtn"
                       disabled={disabled}
                       onClick={() => buyShopItem(item)}
                     >
-                      {soldOut ? "품절" : cantAfford ? `🪙 ${item.price} (부족)` : `🪙 ${item.price}`}
+                      {soldOut ? "품절" : dailyMaxed ? "오늘 마감" : cantAfford ? `🪙 ${item.price} (부족)` : `🪙 ${item.price}`}
                     </button>
                   </div>
                 );
@@ -6231,7 +7015,7 @@ export default function Page() {
         {view === "codex" && (() => {
           const cgUnlocked = Object.keys(unlockedCGs).length;
           const cgTotal = (Object.values(imagePools) as string[][]).flat().length + Object.values(actionCGPools).flat().length;
-          const outfitUnlocked = getUnlockedOutfits(Object.fromEntries(Object.entries(seenEvents).filter(([,v])=>v)), storyRoute, stats.obsession, stats.bladderCharm).length;
+          const outfitUnlocked = getUnlockedOutfits(Object.fromEntries(Object.entries(seenEvents).filter(([,v])=>v)), storyRoute, stats.obsession, stats.bladderCharm, unlockedSpecials).length;
           const outfitTotal = OUTFITS.length;
           const petUnlocked = Object.keys(ownedPets).length;
           const petTotal = PETS.length;
@@ -6339,21 +7123,36 @@ export default function Page() {
                 const unlocked = unlockedLetters.includes(letter.id);
                 const read = letterReads[letter.id];
                 return (
-                  <div key={letter.id} className={`letterCard${unlocked ? "" : " letterLocked"}${unlocked && !read ? " letterUnread" : ""}`}>
+                  <div key={letter.id} className={`letterCard${unlocked ? "" : " letterLocked"}${unlocked && !read ? " letterUnread" : ""}${letter.triggerEvent ? " letterTriggered" : ""}`}>
                     {unlocked ? (
                       <>
                         <div className="letterHead">
-                          <span className="letterChip">Ch.{letter.chapter}{letter.route ? ` · ${letter.route === "pure" ? "순애" : "집착"}` : ""}</span>
+                          <span className="letterChip">{letter.triggerEvent ? "🩸 배드엔딩" : `Ch.${letter.chapter}${letter.route ? ` · ${letter.route === "pure" ? "순애" : "집착"}` : ""}`}</span>
                           <b>{letter.title}</b>
+                          {letter.sender && <span className="letterSender">from. {letter.sender}</span>}
                           {!read && <span className="letterNew">NEW</span>}
                         </div>
-                        <p className="letterContent" onClick={() => !read && setLetterReads((p) => ({ ...p, [letter.id]: true }))}>
-                          {letter.content}
-                        </p>
+                        {letter.triggerEvent ? (
+                          <button
+                            className="letterOpenBtn"
+                            onClick={() => {
+                              setReadingLetter({ id: letter.id, sender: letter.sender, title: letter.title, content: letter.content });
+                              if (!read) setLetterReads((p) => ({ ...p, [letter.id]: true }));
+                            }}
+                          >
+                            <span className="letterOpenIcon">✉️</span>
+                            <span className="letterOpenLabel">편지 열어보기</span>
+                            <small>클릭하여 전체 본문 읽기</small>
+                          </button>
+                        ) : (
+                          <p className="letterContent" onClick={() => !read && setLetterReads((p) => ({ ...p, [letter.id]: true }))}>
+                            {letter.content}
+                          </p>
+                        )}
                       </>
                     ) : (
                       <div className="letterLockedBody">
-                        🔒 Ch.{letter.chapter}{letter.route ? ` (${letter.route === "pure" ? "순애" : "집착"} 루트)` : ""} 클리어 시 도착
+                        🔒 {letter.triggerEvent ? "특정 엔딩 도달 시 도착" : `Ch.${letter.chapter}${letter.route ? ` (${letter.route === "pure" ? "순애" : "집착"} 루트)` : ""} 클리어 시 도착`}
                       </div>
                     )}
                   </div>
@@ -6438,100 +7237,6 @@ export default function Page() {
                   </div>
                 </div>
               )}
-            </Panel>
-          );
-        })()}
-        {view === "katalk" && (() => {
-          const open = katalkOpenChat;
-          const isGroup = open === "group";
-          const friend = open && open !== "group" ? FRIENDS.find((f) => f.id === open) : null;
-          const messages = isGroup ? groupChat : (open ? friendChats[open] ?? [] : []);
-          return (
-            <Panel title={open ? (isGroup ? "🍻 전진협 단톡" : `${friend?.emoji} ${friend?.name}`) : "💬 카톡 메뉴"}>
-              {!open && (
-                <div className="katalkList">
-                  <p className="katalkIntro">전진협 친구들. 들어가면 자동으로 메시지 옴 ㅋ</p>
-                  <button className="katalkRow katalkGroup" onClick={() => openKatalkChat("group")}>
-                    <span className="katalkEmoji">🍻</span>
-                    <div className="katalkRowBody">
-                      <b>전진협 단톡 (5명)</b>
-                      <small>{groupChat.length > 0 ? groupChat[groupChat.length - 1].text.slice(0, 50) : "들어가서 시끄럽게 시작하셈"}</small>
-                    </div>
-                    {groupChat.filter((m) => m.speaker !== "user" && m.time > (friendLastSeen["group"] ?? 0)).length > 0 && (
-                      <span className="katalkUnread">{groupChat.filter((m) => m.speaker !== "user" && m.time > (friendLastSeen["group"] ?? 0)).length}</span>
-                    )}
-                  </button>
-                  {FRIENDS.map((f) => {
-                    const msgs = friendChats[f.id] ?? [];
-                    const lastMsg = msgs[msgs.length - 1];
-                    const lastSeen = friendLastSeen[f.id] ?? 0;
-                    const unread = msgs.filter((m) => m.speaker === f.id && m.time > lastSeen).length;
-                    return (
-                      <button key={f.id} className="katalkRow" onClick={() => openKatalkChat(f.id)}>
-                        <span className="katalkEmoji">{f.emoji}</span>
-                        <div className="katalkRowBody">
-                          <b>{f.name} <small className="katalkAge">({f.age})</small></b>
-                          <small>{lastMsg ? lastMsg.text.slice(0, 50) : f.oneliner}</small>
-                          <small className="katalkRowFlavor">{f.flavor}</small>
-                        </div>
-                        {unread > 0 && <span className="katalkUnread">{unread}</span>}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-              {open && (
-                <div className="katalkChat">
-                  <button className="katalkBackBtn" onClick={() => setKatalkOpenChat(null)}>← 친구 목록</button>
-                  <div className="katalkMsgList">
-                    {messages.map((m) => {
-                      let speakerName = "??";
-                      let speakerEmoji = "❓";
-                      let isUser = false;
-                      let isMe = false;
-                      if (m.speaker === "user") { speakerName = "선생님"; isUser = true; }
-                      else if (m.speaker === "tteokjon") { speakerName = "근떡존"; speakerEmoji = "🦴"; isMe = true; }
-                      else {
-                        const fr = FRIENDS.find((f) => f.id === m.speaker);
-                        if (fr) { speakerName = fr.name; speakerEmoji = fr.emoji; }
-                      }
-                      return (
-                        <div key={m.id} className={`katalkMsg${isUser ? " katalkUser" : ""}${isMe ? " katalkMe" : ""}`}>
-                          {!isUser && <span className="katalkMsgSpeaker">{speakerEmoji} {speakerName}</span>}
-                          <div className="katalkMsgBubble">{m.text}</div>
-                        </div>
-                      );
-                    })}
-                    {messages.length === 0 && <p className="katalkEmpty">메시지 없음. 잠시만 기다리시면 옴 ㅋ</p>}
-                  </div>
-                  <KatalkInput onSend={(text) => sendKatalkReply(open, text)} />
-                  <div className="katalkActions">
-                    <button onClick={() => isGroup ? spawnGroupBurst() : spawnFriendMessage(open as FriendId)}>새 메시지 부르기 🔄</button>
-                  </div>
-                </div>
-              )}
-            </Panel>
-          );
-        })()}
-        {view === "fortune" && (() => {
-          const f = todayFortune;
-          if (!f) return <Panel title="요도니아 신탁 🔮"><p>신탁이 흐릿합니다. 잠시 후 다시 시도해주세요.</p></Panel>;
-          const tierLabel: Record<FortuneTier, string> = { great_luck: "대길 ✨", luck: "길", neutral: "평길", unluck: "흉", great_unluck: "대흉 ⚠️" };
-          return (
-            <Panel title="요도니아 신탁 🔮">
-              <p className="fortuneIntro">매일 자정에 자동 갱신. 신탁의 효과는 오늘 하루만 적용돼요.</p>
-              <div className={`fortuneCard fortuneTier-${f.tier}`}>
-                <div className="fortuneTier">{tierLabel[f.tier]}</div>
-                <div className="fortuneEmoji">{f.emoji}</div>
-                <h2 className="fortuneTitle">{f.title}</h2>
-                <p className="fortuneMessage">"{f.message}"</p>
-                {f.effect && <div className="fortuneEffect">📌 오늘 효과: <b>{f.effect.label}</b></div>}
-              </div>
-              <div className="fortuneActions">
-                <button className="fortuneRerollBtn" disabled={coins < 100} onClick={rerollFortune}>
-                  🪙 100 다시 뽑기 (오늘 {fortuneRerollsToday}회 재추첨)
-                </button>
-              </div>
             </Panel>
           );
         })()}
@@ -6742,59 +7447,6 @@ export default function Page() {
             )}
           </Panel>
         )}
-        {view === "seasonPass" && (() => {
-          const filteredRewards = SEASON_REWARDS;
-          return (
-            <Panel title="시즌 패스 🎟">
-              <div className="seasonHead">
-                <div>
-                  <h3>시즌 1 히로시마의 봄</h3>
-                  <small>현재 레벨: <b>Lv.{userLevel}</b> · 시즌 트랙 {Math.min(userLevel, 50)} / 50</small>
-                </div>
-                {!seasonPremium && (
-                  <button className="seasonBuyBtn" disabled={coins < SEASON_PREMIUM_PRICE} onClick={buySeasonPremium}>
-                    프리미엄 패스 🪙{SEASON_PREMIUM_PRICE}
-                  </button>
-                )}
-                {seasonPremium && <span className="seasonPremiumBadge">✨ 프리미엄 활성</span>}
-              </div>
-              <div className="seasonTrack">
-                {filteredRewards.map((r) => {
-                  const reached = userLevel >= r.lv;
-                  const freeClaimed = !!seasonClaimedFree[r.lv];
-                  const premiumClaimed = !!seasonClaimedPremium[r.lv];
-                  return (
-                    <div key={r.lv} className={`seasonRow${reached ? " seasonReached" : ""}${r.lv % 10 === 0 ? " seasonMilestone" : ""}`}>
-                      <div className="seasonLv">Lv.{r.lv}</div>
-                      <div className={`seasonBox seasonFree${freeClaimed ? " seasonClaimed" : reached ? " seasonReady" : ""}`}>
-                        <small>FREE</small>
-                        <div className="seasonReward">
-                          {r.free?.coins ? `🪙${r.free.coins}` : ""}
-                          {r.free?.tickets ? ` 🎫${r.free.tickets}` : ""}
-                          {r.free?.affinity ? ` 호감+${r.free.affinity}` : ""}
-                        </div>
-                        {reached && !freeClaimed && <button onClick={() => claimSeasonReward(r.lv, "free")}>받기</button>}
-                        {freeClaimed && <span className="seasonDone">✓</span>}
-                      </div>
-                      <div className={`seasonBox seasonPremiumBox${premiumClaimed ? " seasonClaimed" : reached && seasonPremium ? " seasonReady" : ""}${!seasonPremium ? " seasonLocked" : ""}`}>
-                        <small>PREMIUM ✨</small>
-                        <div className="seasonReward">
-                          {r.premium?.coins ? `🪙${r.premium.coins}` : ""}
-                          {r.premium?.tickets ? ` 🎫${r.premium.tickets}` : ""}
-                          {r.premium?.affinity ? ` 호감+${r.premium.affinity}` : ""}
-                          {r.premium?.cards ? ` 🃏×${r.premium.cards}` : ""}
-                        </div>
-                        {reached && seasonPremium && !premiumClaimed && <button onClick={() => claimSeasonReward(r.lv, "premium")}>받기</button>}
-                        {premiumClaimed && <span className="seasonDone">✓</span>}
-                        {!seasonPremium && <span className="seasonLockBadge">🔒</span>}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </Panel>
-          );
-        })()}
         {view === "sound" && (
           <Panel title="음향 설정 🔊">
             <p className="soundIntro">BGM과 SFX 켜기/끄기 + 볼륨 조절. 파일이 없어도 안전하게 작동.</p>
@@ -6957,7 +7609,7 @@ export default function Page() {
           const hpPct = boss ? (raidHp / boss.hpMax) * 100 : 0;
           return (
             <Panel title="주간 레이드 ⚔️">
-              <p className="raidIntro">매주 새 보스 등장. 채팅(10) / 선물(80) / 시나리오(150) 데미지로 깎아보셈 ㄱㄱ</p>
+              <p className="raidIntro">매주 새 보스 등장. 채팅(10) / 선물(80) / 시나리오(150) 데미지로 깎아보시긔 ㄱㄱ</p>
               {boss && (
                 <div className={`raidBossCard${raidCleared ? " raidCleared" : ""}`}>
                   <div className="raidBossHead">
@@ -6990,7 +7642,7 @@ export default function Page() {
         })()}
         {view === "pets" && (
           <Panel title="펫 동반자 🐹">
-            <p className="petsIntro">펫 1마리 활성화하면 보너스 받음. 채팅하거나 가챠 돌리면 친밀도 오름 ㅋ</p>
+            <p className="petsIntro">펫 1마리(똥강아지 아님!) 활성화하면 보너스 받음. 채팅하거나 가챠 돌리면 친밀도 오름 ㅋ</p>
             <div className="petsGrid">
               {PETS.map((pet) => {
                 const data = ownedPets[pet.id];
@@ -7057,7 +7709,7 @@ export default function Page() {
             </div>
             <div className="petFusionBox">
               <h3 className="petFusionTitle">🧬 펫 합성 실험실</h3>
-              <p className="petFusionDesc">펫 2마리 골라서 🪙500 태우면 친밀도 듬뿍 올라감 ㅋㅋ (같은 펫 2번은 ㄴㄴ)</p>
+              <p className="petFusionDesc">펫 2마리 골라서 🪙500 태우면 흩밤님 똥강아지 마냥 친밀도 듬뿍 올라가횸 ㅋ (같은 펫 2번은 ㄴㄴ)</p>
               <div className="petFusionSlots">
                 <select className="petFusionSelect" value={fusionPick1 ?? ""} onChange={(e) => setFusionPick1(e.target.value || null)}>
                   <option value="">슬롯 1 선택</option>
@@ -7090,11 +7742,21 @@ export default function Page() {
           const nextFreeH = Math.floor(nextFreeMs / 3600000);
           const nextFreeM = Math.floor((nextFreeMs % 3600000) / 60000);
           return (
-            <Panel title="요도니아의 룰렛 🎰">
-              <p className="gachaIntro">뽑으면 뭐가 나올지 모름 ㅋㅋ 운좋으면 SSR 나오자너 ㅇㅈ?</p>
+            <Panel title="요도니아의 룰렛^^">
+              <p className="gachaIntro">뽑으면 뭐가 나올지 모르긔 ㅋㅋ 운좋으면 SSR(샌디스크 아님!) 나와효! </p>
               <div className="gachaInfoBar">
                 <span>🪙 <b>{coins.toLocaleString()}</b></span>
                 <span>🎫 티켓 <b>{gachaTickets}</b></span>
+              </div>
+              <div className="gachaPityBar">
+                <div className="gachaPityHead">
+                  <span>💎 SSR 천장</span>
+                  <span className="gachaPityCount">{gachaPityCount} / {GACHA_PITY_LIMIT}</span>
+                </div>
+                <div className="gachaPityTrack">
+                  <div className="gachaPityFill" style={{ width: `${(gachaPityCount / GACHA_PITY_LIMIT) * 100}%` }} />
+                </div>
+                <small className="gachaPityHint">{gachaPityCount >= GACHA_PITY_LIMIT - 1 ? "🔥 다음 뽑기 SSR 보장!" : `${GACHA_PITY_LIMIT - gachaPityCount}회 안에 SSR 보장`}</small>
               </div>
               <div className="gachaPullBtns">
                 <button className={`gachaBtn gachaFree${freeReady ? "" : " gachaDisabled"}`} disabled={!freeReady} onClick={() => pullGacha("free")}>
@@ -7132,7 +7794,7 @@ export default function Page() {
         {view === "profile" && <Panel title="상태"><div className="profilePanel"><div className="profileOverview"><div className="profileIllustration"><img key={currentPortrait} className="portraitCrossfade" src={currentPortrait || getHomeCharacterImage(stats, storyRoute)} alt={`${profile.name} 초상`} onError={(e)=>{e.currentTarget.src="/oppa1.png"}}/></div><div className="profileSummary"><h3>{profile.name}</h3><p className="profileTag">Lv.{relLevel.lv} · {relLevel.displayName}</p><div className="profileStatsLine"><span>{routeLabel}</span><span>{currentChapter}장 진행</span>{currentScenario ? <span>{currentScenario.title}</span> : null}</div><div className="profileDetails"><span>나이 {profile.age}</span><span>키 {profile.height}</span><span>{profile.location}</span></div><div className="statusCards"><div className="statusCard"><strong>호감</strong><span>{stats.affinity}%</span><small>{getStatMood("affinity", stats.affinity)}</small></div><div className="statusCard"><strong>질투</strong><span>{stats.jealousy}%</span><small>{getStatMood("jealousy", stats.jealousy)}</small></div><div className="statusCard"><strong>집착</strong><span>{stats.obsession}%</span><small>{getStatMood("obsession", stats.obsession)}</small></div><div className="statusCard"><strong>신뢰</strong><span>{stats.trust}%</span><small>{getStatMood("trust", stats.trust)}</small></div>{stats.bladderCharm > 0 && <div className="statusCard bladderCharmCard"><strong>🚽 방광매력</strong><span>{stats.bladderCharm}</span><small>{stats.bladderCharm >= 800 ? "태평양방광 전 세계가 매료됨" : stats.bladderCharm >= 400 ? "K-방광 선생님이 진심으로 듬직해함" : stats.bladderCharm >= 100 ? "방광이 매력 포인트가 되기 시작함" : "선생님이 살짝 신경 쓰이기 시작"}</small></div>}</div><div className="statusNote"><b>{emotionState.label}</b><span>{emotionState.detail}</span><small>{getCurrentStatusText(stats, storyRoute)}</small></div></div></div><div className="memoryPanel"><div><strong>관계 기억 노트</strong><small>{memoryNotes.length}개 저장됨</small></div>{memoryNotes.length ? memoryNotes.slice(-8).reverse().map((note)=><p key={note.id}><b>{note.chapter}장</b>{note.text}</p>) : <p>아직 근떡존이 오래 붙잡고 있을 만한 기억은 없어요.</p>}</div><div className="profileTextBlock"><p>{profile.bio}</p><p>{profile.personality}</p></div><div className="profileMeta"><div><strong>좋아하는 것</strong><p>{profile.likes.join(" · ")}</p></div><div><strong>취미</strong><p>{profile.hobbies.join(" · ")}</p></div><div><strong>키워드</strong><p>{profile.tags.join(" · ")}</p></div></div></div></Panel>}
         {view === "gallery" && (
           <Panel title="CG 갤러리">
-            <div className="tabs">{(Object.keys(galleryTabLabels) as GalleryTab[]).filter((tab) => tab !== "bladder" || isAdminMode || Object.keys(unlockedEndings).length >= 1).map((tab)=><button key={tab} className={`${galleryTab===tab?"active":""}${tab==="bladder"?" bladderTab":""}`} onClick={()=>setGalleryTab(tab)}>{galleryTabLabels[tab]}</button>)}</div>
+            <div className="tabs galleryTabs">{(["all","favorites","ch1","ch2","ch3","ch4","ch5","ch6","pure","obsession","confine_a","confine_b","forced","bladder","hidden","ssr","special_lv","location","action"] as GalleryTab[]).filter((tab) => tab !== "bladder" || isAdminMode || Object.keys(unlockedEndings).length >= 1).map((tab)=><button key={tab} className={`${galleryTab===tab?"active":""}${tab==="bladder"?" bladderTab":""}${tab==="ssr"?" ssrTab":""}`} onClick={()=>setGalleryTab(tab)}>{galleryTabLabels[tab]}</button>)}</div>
             <div className="galleryProgress">
               <span>해금 진행도</span>
               <div className="galleryProgressBar"><div style={{width: `${galleryStats.total ? (galleryStats.unlocked / galleryStats.total) * 100 : 0}%`}}/></div>
@@ -7183,7 +7845,7 @@ export default function Page() {
             </div>
           </Panel>
         )}
-        {view === "events" && <Panel title="전진협 / 이벤트 도감"><div className="grid">{eventCatalog.map((s)=><button className="cardBtn" key={s.id} onClick={()=>(isAdminMode || seenEvents[s.id]) && startScenario(s.id)}><b>{(isAdminMode || seenEvents[s.id]) ? s.title : "미해금 · ???"}</b><small>{(isAdminMode || seenEvents[s.id]) ? s.subtitle : "해당 이벤트를 보면 도감에 기록돼요."}</small></button>)}</div></Panel>}
+        {view === "events" && <Panel title="💌 다시보기"><ScenarioHubTabs /><p className="hubDesc">이미 본 시나리오를 다시 볼 수 있어요. 한 번 본 시나리오만 표시됩니다.</p><div className="grid">{eventCatalog.map((s)=><button className="cardBtn" key={s.id} onClick={()=>(isAdminMode || seenEvents[s.id]) && startScenario(s.id)}><b>{(isAdminMode || seenEvents[s.id]) ? s.title : "미해금 · ???"}</b><small>{(isAdminMode || seenEvents[s.id]) ? s.subtitle : "해당 시나리오를 본 후 다시보기 가능해요."}</small></button>)}</div></Panel>}
         {view === "gift" && (
           <Panel title="선물하기">
             <div className="giftTabs">
@@ -7333,7 +7995,8 @@ export default function Page() {
             Object.fromEntries(Object.entries(seenEvents).filter(([, v]) => v)),
             storyRoute,
             stats.obsession,
-            stats.bladderCharm
+            stats.bladderCharm,
+            unlockedSpecials
           );
           return (
             <Panel title="옷장">
@@ -7594,7 +8257,8 @@ export default function Page() {
           const endingNodes = CHAPTER_MAP.filter((c) => c.isEnding);
 
           return (
-            <Panel title="스토리 맵">
+            <Panel title="📖 챕터 / 스토리 맵">
+              <ScenarioHubTabs />
               <p className="mapHint">근떡존과 함께한 이야기 흐름. 카드를 누르면 해당 챕터 첫 장면으로 이동해요.</p>
               <div className="mapLegend">
                 <span className="mapLegendItem"><b>★</b> 진행 중</span>
@@ -7664,12 +8328,13 @@ export default function Page() {
             description: string;
             unlockHint: string;
             unlocked: boolean;
-            scenarios: { id: string; title: string; subtitle: string; cleared: boolean }[];
+            scenarios: { id: string; title: string; subtitle: string; cleared: boolean; coinCost?: number }[];
           };
           const isCleared = (sid: string) => !!seenEvents[sid];
-          const pureClear = !!unlockedEndings.pure;
-          const obsessionClear = !!unlockedEndings.obsession;
-          const confinementClear = !!unlockedEndings.confinement;
+          // 진짜 엔딩 시나리오를 클리어한 경우만 후일담 해금. unlockedEndings는 호감 도달만으로 set되는 경우가 있어 부정확.
+          const pureClear = isCleared("pure_ending") || isCleared("pure_returning_ending");
+          const obsessionClear = isCleared("obsession_ending") || isCleared("obsession_ch10_04");
+          const confinementClear = isCleared("confine_a_ending") || isCleared("confine_b_ending");
           const groups: SubGroup[] = [
             {
               id: "pure_after",
@@ -7679,23 +8344,23 @@ export default function Page() {
               unlockHint: "순애 엔딩 클리어 후 해금",
               unlocked: pureClear || isAdminMode,
               scenarios: [
-                { id: "pure_sub_01", title: "1편: 결혼 첫날밤", subtitle: "평생 외롭지 않은 첫 밤", cleared: isCleared("pure_sub_01") },
-                { id: "pure_sub_kitchen", title: "2편: 새벽 4시의 부엌", subtitle: "외로움과의 작별", cleared: isCleared("pure_sub_kitchen") },
-                { id: "pure_sub_morning", title: "3편: 현관에서", subtitle: "출근시키는 아침", cleared: isCleared("pure_sub_morning") },
-                { id: "pure_sub_hanabi", title: "특별편: 하나비", subtitle: "불꽃보다 예뻤던 사람", cleared: isCleared("pure_sub_hanabi") },
+                { id: "pure_sub_01", title: "1편: 결혼 첫날밤", subtitle: "평생 외롭지 않은 첫 밤", cleared: isCleared("pure_sub_01"), coinCost: 2000 },
+                { id: "pure_sub_kitchen", title: "2편: 새벽 4시의 부엌", subtitle: "외로움과의 작별", cleared: isCleared("pure_sub_kitchen"), coinCost: 2000 },
+                { id: "pure_sub_morning", title: "3편: 현관에서", subtitle: "출근시키는 아침", cleared: isCleared("pure_sub_morning"), coinCost: 2000 },
+                { id: "pure_sub_hanabi", title: "특별편: 하나비", subtitle: "불꽃보다 예뻤던 사람", cleared: isCleared("pure_sub_hanabi"), coinCost: 3000 },
               ],
             },
             {
               id: "confine_a_marking",
               label: "감금 A · 체취 마킹",
               emoji: "🩸",
-              description: "24시간 감금 한 달 후. 떡존이 형의 후각에 자기 체취를 박아두는 결.",
+              description: "24시간 감금 한 달 후. 떡존이 형의 후각에 자기 체취를 각인시키는 자리.",
               unlockHint: "14장 confine_a 진입 후 자동 분기",
               unlocked: isCleared("confine_a_ch14_02") || isAdminMode,
               scenarios: [
-                { id: "confine_a_marking_01", title: "1편: 땀에 절어", subtitle: "첫 마킹", cleared: isCleared("confine_a_marking_01") },
-                { id: "confine_a_marking_02", title: "2편: 거부", subtitle: "형의 한 번 반항", cleared: isCleared("confine_a_marking_02") },
-                { id: "confine_a_marking_03", title: "3편: 익숙해지는 자리", subtitle: "학습된 후각", cleared: isCleared("confine_a_marking_03") },
+                { id: "confine_a_marking_01", title: "1편: 땀에 절어", subtitle: "첫 마킹", cleared: isCleared("confine_a_marking_01"), coinCost: 3000 },
+                { id: "confine_a_marking_02", title: "2편: 거부", subtitle: "형의 한 번 반항", cleared: isCleared("confine_a_marking_02"), coinCost: 3000 },
+                { id: "confine_a_marking_03", title: "3편: 익숙해지는 자리", subtitle: "학습된 후각", cleared: isCleared("confine_a_marking_03"), coinCost: 3000 },
               ],
             },
             {
@@ -7706,9 +8371,9 @@ export default function Page() {
               unlockHint: "9장 obsession 4편 클리어 시 자동 분기",
               unlocked: isCleared("obsession_ch9_04") || isAdminMode,
               scenarios: [
-                { id: "obsession_sub_lie_01", title: "1편: 첫 거짓말", subtitle: "자기 자신에게 풀어놓는 첫 한 마디", cleared: isCleared("obsession_sub_lie_01") },
-                { id: "obsession_sub_plot_01", title: "2편: 동선 작전", subtitle: "노트의 첫 줄", cleared: isCleared("obsession_sub_plot_01") },
-                { id: "obsession_sub_plot_02", title: "3편: 결심의 밤", subtitle: "마지막 한 마디", cleared: isCleared("obsession_sub_plot_02") },
+                { id: "obsession_sub_lie_01", title: "1편: 첫 거짓말", subtitle: "자기 자신에게 풀어놓는 첫 한 마디", cleared: isCleared("obsession_sub_lie_01"), coinCost: 3000 },
+                { id: "obsession_sub_plot_01", title: "2편: 동선 작전", subtitle: "노트의 첫 줄", cleared: isCleared("obsession_sub_plot_01"), coinCost: 3000 },
+                { id: "obsession_sub_plot_02", title: "3편: 결심의 밤", subtitle: "마지막 한 마디", cleared: isCleared("obsession_sub_plot_02"), coinCost: 3000 },
               ],
             },
             {
@@ -7719,22 +8384,22 @@ export default function Page() {
               unlockHint: "14장 forced 진입 후 자동 분기",
               unlocked: isCleared("forced_ch14_01") || isAdminMode,
               scenarios: [
-                { id: "forced_sub_01", title: "1편: 형 어머니 만난 날", subtitle: "다정한 협박의 첫 자리", cleared: isCleared("forced_sub_01") },
-                { id: "forced_sub_02", title: "2편: 직장 동료 만남", subtitle: "형의 외부 자리들", cleared: isCleared("forced_sub_02") },
-                { id: "forced_sub_03", title: "3편: 평생의 가면", subtitle: "무뎌진 다정함의 자리", cleared: isCleared("forced_sub_03") },
+                { id: "forced_sub_01", title: "1편: 형 어머니 만난 날", subtitle: "다정한 협박의 첫 자리", cleared: isCleared("forced_sub_01"), coinCost: 4000 },
+                { id: "forced_sub_02", title: "2편: 직장 동료 만남", subtitle: "형의 외부 자리들", cleared: isCleared("forced_sub_02"), coinCost: 4000 },
+                { id: "forced_sub_03", title: "3편: 평생의 가면", subtitle: "무뎌진 다정함의 자리", cleared: isCleared("forced_sub_03"), coinCost: 4000 },
               ],
             },
             {
               id: "confine_b_sub",
               label: "감금 B · 마조 디테일",
               emoji: "⛓️",
-              description: "도게자 한 달 후. 목줄을 만지는 손, 풀고 싶지 않은 결, 자기 부정의 평온.",
+              description: "도게자 한 달 후. 목줄을 만지는 손, 풀고 싶지 않은 마음, 자기 부정의 평온.",
               unlockHint: "13장 confine_b 03편 클리어 시 자동 분기",
               unlocked: isCleared("confine_b_ch13_03") || isAdminMode,
               scenarios: [
-                { id: "confine_b_sub_01", title: "1편: 매일의 의식", subtitle: "목줄을 만지는 손", cleared: isCleared("confine_b_sub_01") },
-                { id: "confine_b_sub_02", title: "2편: 작은 부정", subtitle: "풀고 싶지 않은 결", cleared: isCleared("confine_b_sub_02") },
-                { id: "confine_b_sub_03", title: "3편: 진짜 평온", subtitle: "자기 부정의 자리", cleared: isCleared("confine_b_sub_03") },
+                { id: "confine_b_sub_01", title: "1편: 매일의 의식", subtitle: "목줄을 만지는 손", cleared: isCleared("confine_b_sub_01"), coinCost: 4000 },
+                { id: "confine_b_sub_02", title: "2편: 작은 부정", subtitle: "풀고 싶지 않은 결", cleared: isCleared("confine_b_sub_02"), coinCost: 4000 },
+                { id: "confine_b_sub_03", title: "3편: 진짜 평온", subtitle: "자기 부정의 자리", cleared: isCleared("confine_b_sub_03"), coinCost: 4000 },
               ],
             },
             {
@@ -7742,22 +8407,63 @@ export default function Page() {
               label: "🔞 감금 A · 금지된 방",
               emoji: "⛓️",
               description: "쇠사슬 + 체취 각인 + 모든 액체. 광기의 절정. (성인 / 하드)",
-              unlockHint: "14장 confine_a 진입 또는 confine_a 엔딩 클리어 후",
-              unlocked: isCleared("confine_a_ch14_02") || !!unlockedEndings.confinement || isAdminMode,
+              unlockHint: "감금 A 엔딩 클리어 후 해금. 한 편당 500 코인.",
+              unlocked: isCleared("confine_a_ending") || isAdminMode,
               scenarios: [
-                { id: "confine_a_sub_forbidden_room", title: "금지된 방", subtitle: "모든 것을 통제당하는 자리", cleared: isCleared("confine_a_sub_forbidden_room") },
-                { id: "confine_a_sub_caged", title: "쇠창살 너머의 세계", subtitle: "케이지 안의 짐승, 자기 부정의 평온", cleared: isCleared("confine_a_sub_caged") },
-                { id: "confine_a_sub_thirst", title: "옅은 노란색", subtitle: "욕실의 컵, 학습된 갈증", cleared: isCleared("confine_a_sub_thirst") },
+                { id: "confine_a_sub_forbidden_room", title: "금지된 방", subtitle: "모든 것을 통제당하는 자리", cleared: isCleared("confine_a_sub_forbidden_room"), coinCost: 500 },
+                { id: "confine_a_sub_caged", title: "쇠창살 너머의 세계", subtitle: "케이지 안의 짐승, 자기 부정의 평온", cleared: isCleared("confine_a_sub_caged"), coinCost: 500 },
+                { id: "confine_a_sub_thirst", title: "옅은 노란색", subtitle: "욕실의 컵, 학습된 갈증", cleared: isCleared("confine_a_sub_thirst"), coinCost: 500 },
+              ],
+            },
+            {
+              id: "oppa_obsess_long",
+              label: "📖 감금 A 외전 (장편)",
+              emoji: "📖",
+              description: "폴라로이드 · CCTV · 작전 강화. 사이코패스 떡존이의 광기 17화 장편.",
+              unlockHint: "감금 A 엔딩 클리어 후 해금. 한 편당 500 코인.",
+              unlocked: isCleared("confine_a_ending") || isAdminMode,
+              scenarios: [
+                { id: "oppa_obsess_01", title: "1화: 너만 봐", subtitle: "사진 한구석의 손", cleared: isCleared("oppa_obsess_01"), coinCost: 500 },
+                { id: "oppa_obsess_02", title: "2화: 휴대폰", subtitle: "잠든 형 옆에서", cleared: isCleared("oppa_obsess_02"), coinCost: 500 },
+                { id: "oppa_obsess_03", title: "3화: 토요일", subtitle: "자연스럽게 끼어들기", cleared: isCleared("oppa_obsess_03"), coinCost: 500 },
+                { id: "oppa_obsess_04", title: "4화: 너만 봐", subtitle: "후배 앞에서", cleared: isCleared("oppa_obsess_04"), coinCost: 500 },
+                { id: "oppa_obsess_05", title: "5화: 노트", subtitle: "책상 서랍의 두 번째 자리", cleared: isCleared("oppa_obsess_05"), coinCost: 500 },
+                { id: "oppa_obsess_06", title: "6화: 첫 번째 흔적", subtitle: "폴라로이드 한 장", cleared: isCleared("oppa_obsess_06"), coinCost: 500 },
+                { id: "oppa_obsess_07", title: "7화: 두 번째 위협", subtitle: "형의 옛 동기", cleared: isCleared("oppa_obsess_07"), coinCost: 500 },
+                { id: "oppa_obsess_08", title: "8화: 너 없으면 죽을 만큼", subtitle: "첫 번째 협박", cleared: isCleared("oppa_obsess_08"), coinCost: 500 },
+                { id: "oppa_obsess_09", title: "9화: 도망치지 마", subtitle: "형의 미세한 거리", cleared: isCleared("oppa_obsess_09"), coinCost: 500 },
+                { id: "oppa_obsess_10", title: "10화: 카메라", subtitle: "자기 방의 새로운 자물쇠", cleared: isCleared("oppa_obsess_10"), coinCost: 500 },
+                { id: "oppa_obsess_11", title: "11화: 도망", subtitle: "형이 새벽에 짐을 챙긴 날", cleared: isCleared("oppa_obsess_11"), coinCost: 500 },
+                { id: "oppa_obsess_12", title: "12화: 호텔", subtitle: "형 앞에 다시 선 자리", cleared: isCleared("oppa_obsess_12"), coinCost: 500 },
+                { id: "oppa_obsess_13", title: "13화: 사슬", subtitle: "평생 옆에 둘 자리", cleared: isCleared("oppa_obsess_13"), coinCost: 500 },
+                { id: "oppa_obsess_14", title: "14화: 학습", subtitle: "평생 햇빛까지 내 손에서", cleared: isCleared("oppa_obsess_14"), coinCost: 500 },
+                { id: "oppa_obsess_15", title: "15화: 평생", subtitle: "메모벽 앞에서", cleared: isCleared("oppa_obsess_15"), coinCost: 500 },
+                { id: "oppa_obsess_16", title: "16화: 한 달 후", subtitle: "평생의 일상이 박힌 자리", cleared: isCleared("oppa_obsess_16"), coinCost: 500 },
+                { id: "oppa_obsess_17", title: "17화: 평생", subtitle: "마지막 자리", cleared: isCleared("oppa_obsess_17"), coinCost: 500 },
+              ],
+            },
+            {
+              id: "extreme_hard",
+              label: "🔞 극 하드물",
+              emoji: "⚠️",
+              description: "감금, 개조, 역전. 극한의 지배와 굴복. 성인 전용 / 극도의 하드 콘텐츠.",
+              unlockHint: "각 에피소드 10,000 코인으로 해금 가능 (성인 전용)",
+              unlocked: true,
+              scenarios: [
+                { id: "extreme_bangwak", title: "방광폭발", subtitle: "36시간 방광 트레이닝 · 요도 봉인", cleared: isCleared("extreme_bangwak"), coinCost: 10000 },
+                { id: "extreme_ddf_01", title: "발효되는 존엄 1편", subtitle: "한 달 샤워 금지 · 더 디플레이션", cleared: isCleared("extreme_ddf_01"), coinCost: 10000 },
+                { id: "extreme_ddf_02", title: "발효되는 존엄 2편", subtitle: "숙성되는 체취 · 완전한 굴복", cleared: isCleared("extreme_ddf_02"), coinCost: 10000 },
+                { id: "extreme_reverse_01", title: "역전 감금 1편", subtitle: "개조당한 근떡존 · 족쇄의 역전", cleared: isCleared("extreme_reverse_01"), coinCost: 10000 },
+                { id: "extreme_reverse_02", title: "역전 감금 2편", subtitle: "인형 개조 실험 · 뒤바뀐 지배자", cleared: isCleared("extreme_reverse_02"), coinCost: 10000 },
               ],
             },
           ];
           // 추가 예정 그룹 (placeholders)
-          const upcoming: { label: string; emoji: string; route: string }[] = [
-            { label: "방광 루트 서브", emoji: "🚽", route: "K-방광 후일담" },
-          ];
+          const upcoming: { label: string; emoji: string; route: string }[] = [];
 
           return (
             <Panel title="💝 후일담 / 서브 시나리오">
+              <ScenarioHubTabs />
               <p className="subIntro">엔딩 후의 잔잔한 결, 또는 본편 사이에 끼어드는 작은 시나리오들.</p>
               {groups.map((g) => {
                 const total = g.scenarios.length;
@@ -7782,19 +8488,62 @@ export default function Page() {
                           <div className="subGroupBarFill" style={{ width: `${pct}%` }}/>
                         </div>
                         <div className="subEpisodes">
-                          {g.scenarios.map((s) => (
-                            <button
-                              key={s.id}
-                              className={`subEpisode${s.cleared ? " subDone" : ""}`}
-                              onClick={() => startScenario(s.id)}
-                            >
-                              <div className="subEpisodeHead">
-                                <span className="subEpisodeIcon">{s.cleared ? "✓" : "▶"}</span>
-                                <b>{s.title}</b>
+                          {g.scenarios.map((s) => {
+                            const isPurchased = !!unlockedSubScenarios[s.id];
+                            const isAccessible = isAdminMode || s.cleared || isPurchased || !s.coinCost;
+                            const isPending = pendingSubUnlock === s.id;
+                            const canAfford = coins >= (s.coinCost ?? 0);
+                            return (
+                              <div
+                                key={s.id}
+                                className={`subEpisode${s.cleared ? " subDone" : isAccessible ? "" : " subEpisodeLocked"}`}
+                              >
+                                <div className="subEpisodeHead">
+                                  <span className="subEpisodeIcon">
+                                    {s.cleared ? "✓" : isAccessible ? "▶" : "🔒"}
+                                  </span>
+                                  <b>{s.title}</b>
+                                  {!isAccessible && s.coinCost && (
+                                    <span className="subEpCostBadge">🪙 {s.coinCost}</span>
+                                  )}
+                                </div>
+                                <small>{s.subtitle}</small>
+                                {isPending ? (
+                                  <div className="subUnlockConfirm">
+                                    {canAfford ? (
+                                      <>
+                                        <span>🪙 {s.coinCost}코인으로 해금할까요? (보유: {coins})</span>
+                                        <div className="subUnlockButtons">
+                                          <button className="subUnlockYes" onClick={() => {
+                                            setCoins((c) => c - (s.coinCost ?? 0));
+                                            setUnlockedSubScenarios((prev) => ({ ...prev, [s.id]: true }));
+                                            setPendingSubUnlock(null);
+                                            startScenario(s.id);
+                                          }}>해금하기</button>
+                                          <button className="subUnlockNo" onClick={() => setPendingSubUnlock(null)}>취소</button>
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <span>🪙 코인이 부족해요. (필요: {s.coinCost}, 보유: {coins})</span>
+                                        <button className="subUnlockNo" onClick={() => setPendingSubUnlock(null)}>닫기</button>
+                                      </>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <button
+                                    className="subEpisodePlayBtn"
+                                    onClick={() => {
+                                      if (isAccessible) { startScenario(s.id); return; }
+                                      setPendingSubUnlock(s.id);
+                                    }}
+                                  >
+                                    {s.cleared ? "다시 보기" : isAccessible ? "▶ 시작" : `🔓 해금 (${s.coinCost}코인)`}
+                                  </button>
+                                )}
                               </div>
-                              <small>{s.subtitle}</small>
-                            </button>
-                          ))}
+                            );
+                          })}
                         </div>
                       </>
                     )}
@@ -7915,14 +8664,22 @@ export default function Page() {
                 );
               })}
             </div>
+            <button className="bigBtn" style={{marginBottom:"8px"}} onClick={() => {
+              try { localStorage.removeItem(CHARACTER_KEY); } catch {}
+              setSelectedCharacter(null);
+            }}>🔄 캐릭터 변경</button>
             <button className="bigBtn dangerBtn" onClick={resetAll}>전체 초기화</button>
           </Panel>
         )}
-        {view === "settings" && <Panel title="액션"><div className="grid">{actionItems.map((item)=><button className="cardBtn" key={item.label} onClick={()=>runAction(item)}><b>{item.emoji} {item.label}</b><small>{item.text}</small></button>)}</div></Panel>}
+        {view === "settings" && <Panel title="⚡ 액션"><ScenarioHubTabs /><p className="hubDesc">근떡존에게 직접 접근하는 인터랙티브 액션. 호감/집착/방광매력 등에 영향.</p><div className="grid">{actionItems.map((item)=><button className="cardBtn" key={item.label} onClick={()=>runAction(item)}><b>{item.emoji} {item.label}</b><small>{item.text}</small></button>)}</div></Panel>}
 
         {view === "admin" && isAdminMode && (
           <Panel title="🔑 관리자 패널">
             <div className="adminPanel">
+              <div className="adminSection">
+                <h3 className="adminSectionTitle">🧠 떡존이 기억 (영구 메모리)</h3>
+                <MemoryAdminPanel />
+              </div>
               <div className="adminSection">
                 <h3 className="adminSectionTitle">🎛 수치 조정</h3>
                 <div className="adminStatRows">
@@ -7995,12 +8752,57 @@ export default function Page() {
                 </div>
               </div>
               <div className="adminSection">
+                <button className="adminLogoutBtn" onClick={() => {
+                  try { localStorage.removeItem(CHARACTER_KEY); } catch {}
+                  setSelectedCharacter(null);
+                }}>🔄 캐릭터 선택으로 돌아가기</button>
                 <button className="adminLogoutBtn" onClick={adminLogout}>🔒 관리자 모드 종료</button>
               </div>
             </div>
           </Panel>
         )}
 
+        {!selectedCharacter && (
+          <div className="charSelectOverlay">
+            <section className="charSelectCard">
+              <h2>누구랑 놀래요?</h2>
+              <div className="charSelectGrid">
+                <button className="charSelectBtn" onClick={() => {
+                  try { localStorage.setItem(CHARACTER_KEY, "geonddeokjon"); } catch {}
+                  setSelectedCharacter("geonddeokjon");
+                }}>
+                  <div className="charSelectImgWrap"><img src="/char_geonddeokjon.png" alt="근떡존" className="charSelectImg" onError={(e)=>{e.currentTarget.style.display="none"}}/></div>
+                  <b>근떡존</b>
+                  <small>금발 근육질 24세<br/>순종적이고 순한 눈매</small>
+                  <span className="charSelectTag">메인 루트</span>
+                </button>
+                <button className="charSelectBtn charSelectBtnGoat" onClick={() => {
+                  try { localStorage.setItem(CHARACTER_KEY, "hidden"); } catch {}
+                  setSelectedCharacter("hidden");
+                }}>
+                  <div className="charSelectImgWrap"><img src="/char_hidden.png" alt="히든" className="charSelectImg" onError={(e)=>{e.currentTarget.style.display="none"}}/></div>
+                  <b>히든 (염소인간)</b>
+                  <small>전직 교사<br/>세상을 런하기로 결심함</small>
+                  <span className="charSelectTag charSelectTagGoat">병맛 개그 루트</span>
+                </button>
+                <button
+                  className={`charSelectBtn charSelectBtnBlackjon${blackjonUnlocked ? "" : " locked"}`}
+                  disabled={!blackjonUnlocked}
+                  onClick={() => {
+                    if (!blackjonUnlocked) return;
+                    try { localStorage.setItem(CHARACTER_KEY, "blackjon"); } catch {}
+                    setSelectedCharacter("blackjon");
+                  }}
+                >
+                  <div className="charSelectImgWrap"><img src="/blackjon_profile_transparent.png" alt="흑존" className="charSelectImg" onError={(e)=>{e.currentTarget.style.display="none"}}/></div>
+                  <b>{blackjonUnlocked ? "흑존" : "???"}</b>
+                  <small>{blackjonUnlocked ? <>검은 머리의 근떡존<br/>짓궂고 능글맞은 어나더</> : <>메인 스토리 6장을 완료하면<br/>새로운 캐릭터가 해금됩니다</>}</small>
+                  <span className="charSelectTag charSelectTagBlackjon">{blackjonUnlocked ? "어나더 캐릭터" : "6장 완료 필요"}</span>
+                </button>
+              </div>
+            </section>
+          </div>
+        )}
         {showTutorial && <div className="tutorialOverlay"><section className="tutorialCard"><div>첫 플레이 안내 <span>{tutorialStep + 1} / {tutorialCards.length}</span></div><h2>{currentTutorial.title}</h2><p>{currentTutorial.body}</p><footer><button onClick={closeTutorial}>건너뛰기</button>{tutorialStep < tutorialCards.length - 1 ? <button onClick={()=>setTutorialStep((v)=>v+1)}>다음</button> : <button onClick={closeTutorial}>시작하기</button>}</footer></section></div>}
         {chapterTransition && <div className={`chapterTransition ${chapterTransition.mode}`}><section><span>{chapterTransition.eyebrow}</span><h2>{chapterTransition.title}</h2>{chapterTransition.subtitle && <p>{chapterTransition.subtitle}</p>}</section></div>}
         {cgUnlockToast && <div className="cgUnlockToast"><div className="cgUnlockIcon">🖼</div><div><b>CG 해금</b><span>「{cgUnlockToast.name}」</span><small>갤러리에 추가되었습니다.</small></div></div>}
@@ -8141,6 +8943,59 @@ export default function Page() {
           </div>
         )}
         {achievementToast && <div className="achToast"><div className="achToastIcon">{achievementToast.emoji}</div><div><b>업적 해금</b><span>「{achievementToast.title}」</span><small>{achievementToast.description}</small></div></div>}
+        {letterToast && (
+          <div className="letterToast" onClick={() => {
+            const found = LETTERS.find((l) => l.id === letterToast.id);
+            if (found) {
+              setReadingLetter({ id: found.id, sender: found.sender, title: found.title, content: found.content });
+              setLetterReads((p) => ({ ...p, [found.id]: true }));
+            } else {
+              setView("letters");
+            }
+            setLetterToast(null);
+          }}>
+            <div className="letterToastIcon">💌</div>
+            <div className="letterToastBody">
+              <span className="letterToastBadge">새 편지 도착</span>
+              <div className="letterToastTitle">{letterToast.sender}에게서 온 편지</div>
+              <div className="letterToastSub">탭해서 읽기 →</div>
+            </div>
+          </div>
+        )}
+        {readingLetter && (
+          <div className="letterReaderOverlay" onClick={() => setReadingLetter(null)}>
+            <div className="letterReader" onClick={(e) => e.stopPropagation()}>
+              <button className="letterReaderClose" onClick={() => setReadingLetter(null)}>✕</button>
+              <div className="letterReaderPaper">
+                <div className="letterReaderHead">
+                  {readingLetter.sender && <span className="letterReaderFrom">from. {readingLetter.sender}</span>}
+                  <h2 className="letterReaderTitle">{readingLetter.title}</h2>
+                  <div className="letterReaderDivider" />
+                </div>
+                <div className="letterReaderBody">{readingLetter.content}</div>
+                <div className="letterReaderFooter">
+                  <button className="letterReaderCloseBtn" onClick={() => setReadingLetter(null)}>편지를 다시 봉투에 넣는다</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {ssrUnlockToast && (
+          <div className="ssrUnlockToast">
+            {ssrUnlockToast.image && <img src={ssrUnlockToast.image} alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }} />}
+            <div className="ssrUnlockText">
+              <span className="ssrUnlockBadge">💎 SSR {ssrUnlockToast.isDupe ? "중복" : "해금"}</span>
+              <div className="ssrUnlockTitle">{ssrUnlockToast.title}</div>
+              <div className="ssrUnlockSub">
+                {ssrUnlockToast.isDupe
+                  ? "이미 가지고 있어 코인으로 환산"
+                  : ssrUnlockToast.kind === "cg" ? "갤러리에서 확인 가능"
+                  : ssrUnlockToast.kind === "outfit" ? "옷장에서 입을 수 있어요"
+                  : "시나리오 메뉴에서 진입 가능"}
+              </div>
+            </div>
+          </div>
+        )}
         {bladderPopup && (
           <div className="bladderPopupOverlay">
             <div className="bladderPopupCard">
@@ -8498,6 +9353,19 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .subEpisode small{font-size:11px;color:var(--text-soft);font-weight:600;line-height:1.4;padding-left:30px}
 .subEpisode.subDone{background:linear-gradient(135deg,rgba(163,199,133,0.18),rgba(123,166,90,0.12));border-color:rgba(123,166,90,0.4)}
 .subEpisode.subDone .subEpisodeIcon{background:linear-gradient(135deg,#a3c785,#7ba65a);color:#fff}
+/* 잠금 에피소드 */
+.subEpisode.subEpisodeLocked{opacity:0.75;background:linear-gradient(135deg,rgba(200,200,210,0.18),rgba(180,180,200,0.12));border-color:rgba(150,150,170,0.35)}
+.subEpisode.subEpisodeLocked .subEpisodeIcon{background:rgba(150,150,170,0.2);color:#888}
+.subEpCostBadge{margin-left:auto;font-size:11px;font-weight:900;color:var(--accent-gold);background:rgba(212,168,67,0.15);border:1px solid rgba(212,168,67,0.35);border-radius:20px;padding:2px 8px;white-space:nowrap;letter-spacing:0.02em}
+.subEpisodePlayBtn{margin-top:8px;width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border-card);background:linear-gradient(135deg,rgba(212,168,67,0.18),rgba(255,140,180,0.12));font-size:12.5px;font-weight:900;color:var(--accent-gold);cursor:pointer;font-family:inherit;transition:all .15s ease}
+.subEpisodePlayBtn:hover{background:linear-gradient(135deg,rgba(212,168,67,0.3),rgba(255,140,180,0.2));border-color:var(--accent-gold)}
+.subEpisodeLocked .subEpisodePlayBtn{color:#888;background:rgba(150,150,170,0.15);border-color:rgba(150,150,170,0.3)}
+.subEpisodeLocked .subEpisodePlayBtn:hover{background:rgba(212,168,67,0.15);border-color:rgba(212,168,67,0.4);color:var(--accent-gold)}
+.subUnlockConfirm{margin-top:8px;padding:10px 12px;background:rgba(212,168,67,0.1);border:1px solid rgba(212,168,67,0.4);border-radius:10px;font-size:12px;font-weight:700;color:var(--text-main);display:grid;gap:8px}
+.subUnlockButtons{display:flex;gap:8px}
+.subUnlockYes{flex:1;padding:6px 10px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--accent-gold),#e8a835);color:#fff;font-size:12.5px;font-weight:900;cursor:pointer;font-family:inherit;transition:opacity .15s}
+.subUnlockYes:hover{opacity:0.85}
+.subUnlockNo{padding:6px 12px;border-radius:8px;border:1px solid var(--border-card);background:rgba(0,0,0,0.05);color:var(--text-soft);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
 /* 추가 예정 섹션 */
 .subUpcoming{margin-top:28px;padding:20px;background:rgba(0,0,0,0.04);border:1px dashed var(--border-card);border-radius:16px}
 .subUpcoming h3{margin:0 0 14px;font-family:var(--font-display);font-size:16px;color:var(--text-soft);font-weight:900;letter-spacing:0.04em}
@@ -8638,9 +9506,10 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .app.theme-soft{background:linear-gradient(180deg,#faf0ef 0%,#f5e7e4 100%)}.app.theme-soft .side{background:linear-gradient(180deg,#34201d 0%,#281715 100%)}.app.theme-soft .homeView{background:linear-gradient(180deg,#fff9f7 0%,#f9ece8 50%,#f3dfdc 100%)}.app.theme-soft .homeView:before{background:radial-gradient(circle,rgba(255,198,185,.28),transparent 68%)}.app.theme-soft .chatArea{background:linear-gradient(180deg,#fffaf8 0%,#f7ece7 100%)}.app.theme-soft .msgRow.user .bubble{background:#d78661}.app.theme-soft .inputBar{background:#f4e7e3}
 .app.theme-pure{background:linear-gradient(180deg,#fff7fb 0%,#f9eaf0 48%,#f2dce6 100%)}.app.theme-pure .side{background:linear-gradient(180deg,#4f2935 0%,#2d171e 100%)}.app.theme-pure .homeView{background:linear-gradient(180deg,#fffafd 0%,#fff0f6 44%,#f7dfe9 100%)}.app.theme-pure .homeView:before{background:radial-gradient(circle,rgba(255,189,214,.34),transparent 69%)}.app.theme-pure .homeLogo span{color:#5f3040;text-shadow:0 3px 0 #ffe6ef,0 10px 22px rgba(111,54,84,.14)}.app.theme-pure .homeLogo small,.app.theme-pure .profileTag{background:rgba(255,241,247,.9);color:#9b5573;border-color:rgba(213,135,171,.36)}.app.theme-pure .nav button,.app.theme-pure .topBar button,.app.theme-pure .bigBtn{background:linear-gradient(135deg,#6d4453,#442733)}.app.theme-pure .nav button.active,.app.theme-pure .nav button:hover,.app.theme-pure .topBar button:hover{background:linear-gradient(135deg,#e18fad,#b16383)}.app.theme-pure .homeButtons button{background:linear-gradient(135deg,#d98da8,#8b546a)}.app.theme-pure .homeButtons button:hover{background:linear-gradient(135deg,#ebb2c6,#b36b88)}.app.theme-pure .chatArea{background:linear-gradient(180deg,#fffafb 0%,#fceff4 100%)}.app.theme-pure .bubble{background:#fffdfd}.app.theme-pure .msgRow.user .bubble{background:#d77f9a}.app.theme-pure .inputBar{background:#f7e7ee}.app.theme-pure .statusCard,.app.theme-pure .statusNote,.app.theme-pure .profileMeta div,.app.theme-pure .memoryPanel{background:#fff8fb;border-color:#ebcfdc}.app.theme-pure .homeBubble{background:linear-gradient(180deg,rgba(255,252,254,.98) 0%,rgba(255,245,249,.95) 100%);border:1px solid rgba(202,126,161,.62);color:#5a3340;box-shadow:0 18px 34px rgba(150,94,126,.12),0 0 0 1px rgba(255,255,255,.4) inset}.app.theme-pure .homeBubble:after{background:rgba(255,246,250,.98);border-left:1px solid rgba(202,126,161,.62);border-bottom:1px solid rgba(202,126,161,.62)}
 .app.theme-obsession{background:linear-gradient(180deg,#160f11 0%,#241317 42%,#0e090a 100%);color:#f6ece9}.app.theme-obsession .side{background:linear-gradient(180deg,#11090b 0%,#2a1115 58%,#090506 100%)}.app.theme-obsession .statsBox,.app.theme-obsession .emotionBox{background:rgba(255,240,240,.06);border-color:rgba(255,149,149,.12)}.app.theme-obsession .homeView{background:linear-gradient(180deg,#201518 0%,#2d171c 44%,#130b0d 100%);color:#f8edeb}.app.theme-obsession .homeView:before{background:radial-gradient(circle,rgba(138,26,38,.28),transparent 66%)}.app.theme-obsession .homeLogo span{color:#fff0ed;text-shadow:0 3px 0 rgba(109,27,37,.44),0 10px 22px rgba(0,0,0,.24)}.app.theme-obsession .homeLogo small{background:rgba(50,19,24,.72);color:#f0a5ad;border-color:rgba(195,92,104,.32)}.app.theme-obsession .nav button,.app.theme-obsession .topBar button,.app.theme-obsession .bigBtn{background:linear-gradient(135deg,#4a262d,#1e1114);border:1px solid rgba(255,151,151,.08)}.app.theme-obsession .nav button.active,.app.theme-obsession .nav button:hover,.app.theme-obsession .topBar button:hover{background:linear-gradient(135deg,#8f3a45,#52232b)}.app.theme-obsession .homeButtons button{background:linear-gradient(135deg,#6b2b35,#241215);box-shadow:0 14px 28px rgba(0,0,0,.24)}.app.theme-obsession .homeButtons button:hover{background:linear-gradient(135deg,#9d4754,#35181d)}.app.theme-obsession .chatArea{background:linear-gradient(180deg,#2a1a1d 0%,#1a1214 100%)}.app.theme-obsession .bubble{background:#fff9f7;color:#2a1618}.app.theme-obsession .msgRow.user .bubble{background:#8d3d47;color:#fff5f3}.app.theme-obsession .msgRow.narration .bubble{color:#d1b7b4}.app.theme-obsession .inputBar{background:linear-gradient(180deg,#26171a 0%,#190f12 100%);border-top:1px solid rgba(150,73,86,.32);box-shadow:0 -12px 30px rgba(0,0,0,.34)}.app.theme-obsession .inputBar input{background:linear-gradient(180deg,#fff7f5 0%,#f4e6e4 100%);border:1px solid #6e434a;color:#291517;box-shadow:inset 0 1px 0 rgba(255,255,255,.68),0 10px 20px rgba(0,0,0,.12)}.app.theme-obsession .inputBar input::placeholder{color:#8d6e73}.app.theme-obsession .inputBar input:focus{border-color:#9c5965;box-shadow:0 0 0 3px rgba(156,89,101,.22),0 10px 22px rgba(0,0,0,.2)}.app.theme-obsession .inputBar button{background:linear-gradient(135deg,#7d3744,#35171d);color:#fff7f6;border:1px solid rgba(255,181,181,.12);box-shadow:0 12px 26px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.05)}.app.theme-obsession .inputBar button:hover{background:linear-gradient(135deg,#944858,#461f29)}.app.theme-obsession .panel{background:linear-gradient(180deg,#fffaf8 0%,#f8efed 100%);color:#241517}.app.theme-obsession .panel h2,.app.theme-obsession .sectionStack h3{color:#3a2026}.app.theme-obsession .routeBox,.app.theme-obsession .statusCard,.app.theme-obsession .statusNote,.app.theme-obsession .profileTextBlock,.app.theme-obsession .profileMeta div,.app.theme-obsession .memoryPanel{background:#fffaf9;border-color:#e5d0ca}.app.theme-obsession .profileTag{background:#fff0f1;color:#8c404a;border:1px solid rgba(181,101,111,.28)}.app.theme-obsession .homeBubble{background:linear-gradient(180deg,rgba(30,18,21,.94) 0%,rgba(47,26,31,.92) 100%);border:1px solid rgba(169,82,96,.55);color:#f5e8e8;box-shadow:0 18px 34px rgba(0,0,0,.26),0 0 0 1px rgba(255,255,255,.03) inset}.app.theme-obsession .homeBubble:after{background:rgba(37,22,26,.96);border-left:1px solid rgba(169,82,96,.55);border-bottom:1px solid rgba(169,82,96,.55)}
-.homeView{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:auto 1fr auto;place-items:center;padding:26px;overflow:auto;background:linear-gradient(180deg,#fff8ef 0%,#f7e9d8 48%,#edd8c5 100%);font-family:"Trebuchet MS","Gowun Dodum","Malgun Gothic",system-ui,sans-serif}.homeView:before{content:"";position:absolute;inset:-10% -5% auto auto;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(255,207,147,.34),transparent 66%);filter:blur(18px);pointer-events:none}.homeHeader{text-align:center;z-index:1;align-self:end}.homeLogo{display:inline-grid;gap:4px;place-items:center;padding:8px 22px 10px}.homeLogo span{font-size:clamp(36px,5vw,58px);font-weight:1000;line-height:1;color:#4a2d24;text-shadow:0 3px 0 #ffe7bf,0 8px 18px rgba(91,48,24,.12);letter-spacing:.02em}.homeLogo small{font-size:14px;color:#bf7a3c;font-weight:1000;letter-spacing:.12em;padding:.34rem .95rem;border-radius:999px;background:rgba(255,247,234,.8);border:1px solid rgba(223,159,94,.38)}.homeStage{position:relative;z-index:1;display:grid;place-items:end center;align-self:center;width:min(1080px,100%);height:min(64dvh,720px);margin-top:12px;overflow:visible}.homeCharacterCard{grid-area:1/1;z-index:1;align-self:end;justify-self:center;border:0;background:transparent;padding:0;transform-style:preserve-3d;transform:rotateX(var(--tilt-x)) rotateY(var(--tilt-y));transition:transform .16s ease;cursor:pointer}.homeCharacterCard img{display:block;width:min(54vw,440px);max-height:60dvh;object-fit:contain;background:transparent;filter:drop-shadow(0 22px 22px rgba(54,28,16,.18));animation:idle 3.2s ease-in-out infinite}.homeBubble{position:absolute;z-index:2;top:12%;left:60%;width:clamp(150px,13vw,210px);min-height:0;background:linear-gradient(180deg,rgba(255,253,250,.98) 0%,rgba(249,241,233,.95) 100%);border:1px solid rgba(181,124,72,.62);border-radius:18px;padding:11px 13px 12px 14px;box-shadow:0 18px 34px rgba(55,28,15,.12),0 0 0 1px rgba(255,255,255,.35) inset;font-family:"Trebuchet MS","Gowun Dodum","Malgun Gothic",sans-serif;font-size:10px;line-height:1.45;font-weight:700;color:#4a2d24;text-align:left;letter-spacing:0;animation:bubblePop .22s ease;pointer-events:none}.homeBubble:after{content:"";position:absolute;left:18px;bottom:-7px;width:12px;height:12px;background:rgba(250,242,235,.98);border-left:1px solid rgba(181,124,72,.62);border-bottom:1px solid rgba(181,124,72,.62);transform:rotate(45deg)}.homeButtons{z-index:1;width:min(700px,100%);display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px}.homeButtons button{border:0;border-radius:20px;padding:18px;background:linear-gradient(135deg,#4a342d,#241715);color:white;font-weight:1000;box-shadow:0 12px 26px rgba(53,31,18,.16)}.homeButtons button:hover{background:linear-gradient(135deg,#e59a47,#9d4e2f)}
-.topBar{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:14px 12px;flex:none;-webkit-overflow-scrolling:touch}.topBar button{flex:0 0 auto;white-space:nowrap;font-size:13px;line-height:1.4;padding:10px 14px;border-radius:18px;background:#3a2d29;color:white;border:1px solid rgba(255,255,255,.08)}.chatArea{flex:1;min-height:0;overflow:auto;padding:18px 20px;display:flex;flex-direction:column;gap:6px}.msgRow{display:flex;align-items:flex-start;gap:8px;margin:8px 0}.msgRow.assistant{justify-content:flex-start}.msgRow.user{justify-content:flex-end;align-items:flex-end}.msgRow.narration{justify-content:center}.chatAvatar{width:38px;height:38px;border-radius:14px;object-fit:cover;margin-right:8px}.bubble{max-width:min(84vw,720px);background:white;border-radius:22px;padding:16px 20px;box-shadow:0 10px 24px rgba(0,0,0,.08);font-size:16px;line-height:1.72;word-break:break-word;display:inline-flex;flex-direction:column}.msgRow.user .bubble{background:#df842c;color:white;margin-left:10px}.msgRow.assistant .bubble{margin-left:0}.msgRow.narration .bubble{max-width:min(760px,88%);background:transparent;box-shadow:none;color:#7b6253;font-style:italic;text-align:center;padding:10px 14px;border-radius:0}.msgRow.narration .bubble small{align-self:center;color:#b39b89}.bubble small{display:block;margin-top:8px;color:#9c8d84;font-size:12px}.inputBar{height:72px;display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:8px;padding:12px;background:#f2e7dd;flex:none;align-items:center;transition:background .24s ease,box-shadow .24s ease,border-color .24s ease}.inputBar input{min-width:0;height:48px;border:1px solid #ddd0c5;border-radius:24px;padding:0 18px;font-size:16px;background:#fffaf6;color:#2a1a14;outline:none;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease,color .2s ease}.inputBar input:focus{border-color:#d59653;box-shadow:0 0 0 3px rgba(217,129,49,.18)}.inputBar input::placeholder{color:#9b8b81;opacity:1}.inputBar button{min-width:56px;height:48px;border:0;border-radius:18px;background:#8d8178;color:white;font-weight:900;padding:0 14px;line-height:1;display:flex;align-items:center;justify-content:center;white-space:nowrap;font-size:14px;transition:background .2s ease,box-shadow .2s ease,transform .15s ease}.inputBar button:hover{transform:translateY(-1px);background:#7a6f67}.inputBar .photoBtn{min-width:48px;width:48px;padding:0;font-size:20px;background:#fffaf6;color:#5a4438;border:1px solid #ddd0c5;border-radius:50%}.inputBar .photoBtn:hover{background:#fff3e6;border-color:#d59653}
-.scenarioOverlay{position:fixed;inset:0;z-index:9999;color:white;overflow:auto;pointer-events:auto}.scenarioOverlay::before{content:"";position:absolute;inset:0;background-image:var(--bg-url);background-size:cover;background-position:center;filter:blur(16px) saturate(1.05);opacity:1}.scenarioOverlay::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.75));}.scenarioActive .side,.scenarioActive .topBar,.scenarioActive .homeButtons,.scenarioActive .inputBar,.scenarioActive .panel{visibility:hidden !important;pointer-events:none !important}.scenarioActive .content{overflow:hidden !important}.vnImageStage{position:absolute;inset:0;display:grid;place-items:center;z-index:1;padding-bottom:110px}.vnImageStage img{max-width:100%;max-height:calc(100vh - 220px);object-fit:contain;filter:drop-shadow(0 24px 50px rgba(0,0,0,.55))}.vnTextbox{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:min(900px,calc(100vw - 44px));z-index:2;max-height:55vh;padding-bottom:0;overflow:auto;box-sizing:border-box}.vnTitleRow{display:flex;justify-content:space-between;font-size:12px;font-weight:900;margin-bottom:8px;text-shadow:0 2px 8px #000}.vnName{display:inline-block;background:#d98131;padding:10px 18px;border-radius:8px 8px 0 0;font-weight:900}.vnDialogue{width:100%;min-height:120px;text-align:left;border:1px solid rgba(255,222,167,.26);border-radius:8px;background:rgba(13,9,10,.86);color:white;padding:22px 24px;cursor:pointer;backdrop-filter:blur(12px);max-height:calc(55vh - 120px);overflow:auto}.typeText{white-space:pre-line;line-height:1.75;font-size:18px;margin:0}.vnControls{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}.vnControls button,.vnChoices button{border:0;border-radius:8px;background:#2f221e;color:white;padding:12px 16px;font-weight:900}.vnChoices{display:grid;gap:10px;margin-top:12px}
+.homeView{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:auto 1fr auto;place-items:center;padding:26px;overflow:auto;background:linear-gradient(180deg,#fff8ef 0%,#f7e9d8 48%,#edd8c5 100%);font-family:"Trebuchet MS","Gowun Dodum","Malgun Gothic",system-ui,sans-serif}.homeView:before{content:"";position:absolute;inset:-10% -5% auto auto;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(255,207,147,.34),transparent 66%);filter:blur(18px);pointer-events:none}.homeHeader{text-align:center;z-index:1;align-self:end}.homeLogo{display:inline-grid;gap:4px;place-items:center;padding:8px 22px 10px}.homeLogo span{font-size:clamp(36px,5vw,58px);font-weight:1000;line-height:1;color:#4a2d24;text-shadow:0 3px 0 #ffe7bf,0 8px 18px rgba(91,48,24,.12);letter-spacing:.02em}.homeLogo small{font-size:14px;color:#bf7a3c;font-weight:1000;letter-spacing:.12em;padding:.34rem .95rem;border-radius:999px;background:rgba(255,247,234,.8);border:1px solid rgba(223,159,94,.38)}.homeStage{position:relative;z-index:1;display:grid;place-items:end center;align-self:center;width:min(1080px,100%);height:min(64dvh,720px);margin-top:12px;overflow:visible}.homeCharacterCard{grid-area:1/1;z-index:1;align-self:end;justify-self:center;border:0;background:transparent;padding:0;transform-style:preserve-3d;transform:rotateX(var(--tilt-x)) rotateY(var(--tilt-y));transition:transform .16s ease;cursor:pointer}.homeCharacterCard img{display:block;width:min(54vw,440px);max-height:60dvh;object-fit:contain;background:transparent;filter:drop-shadow(0 22px 22px rgba(54,28,16,.18));animation:idle 3.2s ease-in-out infinite}.homeBubble{position:absolute;z-index:2;top:12%;left:60%;width:clamp(150px,13vw,210px);min-height:0;background:linear-gradient(180deg,rgba(255,253,250,.98) 0%,rgba(249,241,233,.95) 100%);border:1px solid rgba(181,124,72,.62);border-radius:18px;padding:11px 13px 12px 14px;box-shadow:0 18px 34px rgba(55,28,15,.12),0 0 0 1px rgba(255,255,255,.35) inset;font-family:"Trebuchet MS","Gowun Dodum","Malgun Gothic",sans-serif;font-size:10px;line-height:1.45;font-weight:700;color:#4a2d24;text-align:left;letter-spacing:0;animation:bubblePop .22s ease;pointer-events:none}.homeBubble:after{content:"";position:absolute;left:18px;bottom:-7px;width:12px;height:12px;background:rgba(250,242,235,.98);border-left:1px solid rgba(181,124,72,.62);border-bottom:1px solid rgba(181,124,72,.62);transform:rotate(45deg)}.homeStageActions{position:absolute;right:18px;bottom:18px;z-index:4;display:flex;flex-direction:column;align-items:stretch;gap:8px}.homeStageActions button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:42px;padding:9px 14px;border:1px solid rgba(100,61,43,.18);border-radius:14px;background:rgba(255,250,244,.9);color:#4a2d24;font:800 13px/1 "Trebuchet MS","Gowun Dodum","Malgun Gothic",sans-serif;box-shadow:0 8px 20px rgba(62,35,22,.12);backdrop-filter:blur(10px);cursor:pointer}.homeStageActions button:hover{background:#fff;color:#b65e2b;transform:translateY(-1px)}.homeCharacterSwitch span:first-child{font-size:19px;line-height:1}.homeButtons{z-index:1;width:min(700px,100%);display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px}.homeButtons button{border:0;border-radius:20px;padding:18px;background:linear-gradient(135deg,#4a342d,#241715);color:white;font-weight:1000;box-shadow:0 12px 26px rgba(53,31,18,.16)}.homeButtons button:hover{background:linear-gradient(135deg,#e59a47,#9d4e2f)}
+.topBar{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:14px 12px;flex:none;-webkit-overflow-scrolling:touch}.topBar button{flex:0 0 auto;white-space:nowrap;font-size:13px;line-height:1.4;padding:10px 14px;border-radius:18px;background:#3a2d29;color:white;border:1px solid rgba(255,255,255,.08)}.chatArea{flex:1;min-height:0;overflow:auto;padding:18px 20px;display:flex;flex-direction:column;gap:12px}.msgRow{display:flex;align-items:flex-start;gap:8px;margin:10px 0}.msgRow.assistant{justify-content:flex-start}.msgRow.user{justify-content:flex-end;align-items:flex-end}.msgRow.narration{justify-content:center;margin:18px 0}.msgRow.narration + .msgRow:not(.narration){margin-top:14px}.msgRow:not(.narration) + .msgRow.narration{margin-top:14px}.chatAvatar{width:38px;height:38px;border-radius:14px;object-fit:cover;margin-right:8px}.bubble{max-width:min(84vw,720px);background:white;border-radius:22px;padding:16px 20px;box-shadow:0 10px 24px rgba(0,0,0,.08);font-size:16px;line-height:1.72;word-break:break-word;display:inline-flex;flex-direction:column}.msgRow.user .bubble{background:#df842c;color:white;margin-left:10px}.msgRow.assistant .bubble{margin-left:0}.msgRow.narration .bubble{max-width:min(760px,88%);background:transparent;box-shadow:none;color:#7b6253;font-style:italic;text-align:center;padding:14px 18px;border-radius:0;border-top:1px solid rgba(123,98,83,.12);border-bottom:1px solid rgba(123,98,83,.12)}.msgRow.narration .bubble small{align-self:center;color:#b39b89}.bubble small{display:block;margin-top:8px;color:#9c8d84;font-size:12px}.inputBar{height:72px;display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:8px;padding:12px;background:#f2e7dd;flex:none;align-items:center;transition:background .24s ease,box-shadow .24s ease,border-color .24s ease}.inputBar input{min-width:0;height:48px;border:1px solid #ddd0c5;border-radius:24px;padding:0 18px;font-size:16px;background:#fffaf6;color:#2a1a14;outline:none;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease,color .2s ease}.inputBar input:focus{border-color:#d59653;box-shadow:0 0 0 3px rgba(217,129,49,.18)}.inputBar input::placeholder{color:#9b8b81;opacity:1}.inputBar button{min-width:56px;height:48px;border:0;border-radius:18px;background:#8d8178;color:white;font-weight:900;padding:0 14px;line-height:1;display:flex;align-items:center;justify-content:center;white-space:nowrap;font-size:14px;transition:background .2s ease,box-shadow .2s ease,transform .15s ease}.inputBar button:hover{transform:translateY(-1px);background:#7a6f67}.inputBar .photoBtn{min-width:48px;width:48px;padding:0;font-size:20px;background:#fffaf6;color:#5a4438;border:1px solid #ddd0c5;border-radius:50%}.inputBar .photoBtn:hover{background:#fff3e6;border-color:#d59653}
+.scenarioOverlay{position:fixed;inset:0;z-index:9999;color:white;overflow:auto;pointer-events:auto;background:#050303}.scenarioOverlay::before{content:"";position:absolute;inset:0;background-image:var(--bg-url);background-size:cover;background-position:center;filter:blur(24px) saturate(1.05);opacity:.95}.scenarioOverlay::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.45),rgba(0,0,0,.88));}.scenarioActive .side,.scenarioActive .topBar,.scenarioActive .homeButtons,.scenarioActive .inputBar,.scenarioActive .panel,.scenarioActive footer,.scenarioActive .messages,.scenarioActive .bsbWrap,.scenarioActive .homeView,.scenarioActive .homeHeader,.scenarioActive .homeStage,.scenarioActive .userLevelBar,.scenarioActive .relBadge,.scenarioActive .statsBox,.scenarioActive .sideHeader,.scenarioActive .profileHead{display:none !important}.scenarioActive .content{overflow:hidden !important}.app.scenarioActive{overflow:hidden !important;height:100vh}.vnImageStage{position:absolute;inset:0;display:grid;place-items:center;z-index:1;padding-bottom:110px}.vnImageStage img{max-width:100%;max-height:calc(100vh - 220px);object-fit:contain;filter:drop-shadow(0 24px 50px rgba(0,0,0,.55))}.vnTextbox{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:min(900px,calc(100vw - 44px));z-index:2;max-height:55vh;padding-bottom:0;overflow:auto;box-sizing:border-box}.vnTitleRow{display:flex;justify-content:space-between;font-size:12px;font-weight:900;margin-bottom:8px;text-shadow:0 2px 8px #000}.vnName{display:inline-block;background:#d98131;padding:10px 18px;border-radius:8px 8px 0 0;font-weight:900;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.5)}.vnName-tteok{background:linear-gradient(135deg,#f6c84a 0%,#c98438 60%,#7d4a1f 100%)}.vnName-blackjon{background:linear-gradient(135deg,#596170 0%,#282d37 58%,#101319 100%);border:1px solid rgba(194,211,239,.28)}.vnName-hidden{background:linear-gradient(135deg,#7a5cd6 0%,#5847b8 55%,#2e2868 100%)}.vnName-narr{background:linear-gradient(135deg,#4a4a4a 0%,#2c2c2c 100%);font-style:italic}.vnName-etc{background:linear-gradient(135deg,#888 0%,#555 100%)}.vnDialogue{width:100%;min-height:120px;text-align:left;border:1px solid rgba(255,222,167,.26);border-radius:8px;background:rgba(13,9,10,.86);color:white;padding:22px 24px;cursor:pointer;backdrop-filter:blur(12px);max-height:calc(55vh - 120px);overflow:auto}.typeText{white-space:pre-line;line-height:1.75;font-size:18px;margin:0}.vnControls{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}.vnControls button,.vnChoices button{border:0;border-radius:8px;background:#2f221e;color:white;padding:12px 16px;font-weight:900}.vnRestartBtn{background:#1c2840 !important;color:#90b8f0 !important;font-size:12px !important;padding:10px 12px !important}.vnExitPrompt{margin-top:10px;padding:14px 16px;background:rgba(20,14,12,0.92);border:1px solid rgba(255,180,80,.35);border-radius:12px;backdrop-filter:blur(8px)}.vnExitMsg{display:block;font-size:13px;font-weight:700;color:#e8c88a;margin-bottom:10px;text-align:center}.vnExitButtons{display:flex;gap:8px;justify-content:center}.vnExitSave{padding:10px 18px;border-radius:8px;border:none;background:linear-gradient(135deg,#d4a843,#e8831a);color:#fff;font-size:13px;font-weight:900;cursor:pointer;font-family:inherit}.vnExitSave:hover{opacity:.88}.vnExitDrop{padding:10px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:#ccc;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}.vnExitDrop:hover{background:rgba(255,255,255,.12)}.vnExitCancel{padding:10px 14px;border-radius:8px;border:1px solid rgba(255,100,100,.3);background:rgba(255,80,80,.08);color:#f09090;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}.vnExitCancel:hover{background:rgba(255,80,80,.16)}.vnChoices{display:grid;gap:10px;margin-top:12px}
+.charSelectOverlay{position:fixed;inset:0;z-index:2000;display:grid;place-items:center;background:linear-gradient(135deg,#0d0a0e 0%,#1a1020 100%);overflow:auto;padding:28px 0}.charSelectCard{width:min(780px,calc(100vw - 32px));text-align:center;color:white}.charSelectCard h2{font-size:clamp(26px,4vw,40px);font-weight:1000;margin-bottom:28px;letter-spacing:.04em}.charSelectGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.charSelectBtn{border:2px solid rgba(255,255,255,.15);border-radius:20px;background:rgba(255,255,255,.06);color:white;padding:28px 18px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:10px;transition:all .18s ease}.charSelectBtn:hover{border-color:rgba(255,180,80,.6);background:rgba(255,180,80,.1);transform:translateY(-3px)}.charSelectBtnGoat{border-color:rgba(120,220,120,.2)}.charSelectBtnGoat:hover{border-color:rgba(120,220,120,.6);background:rgba(120,220,120,.1)}.charSelectBtnBlackjon{border-color:rgba(150,170,210,.34);background:linear-gradient(180deg,rgba(31,36,48,.9),rgba(13,15,21,.92))}.charSelectBtnBlackjon:hover{border-color:rgba(180,202,242,.72);background:linear-gradient(180deg,rgba(48,56,73,.94),rgba(18,21,29,.96))}.charSelectBtn.locked{cursor:not-allowed;filter:grayscale(1);opacity:.48}.charSelectBtn.locked:hover{transform:none}.charSelectImgWrap{width:100%;height:160px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}.charSelectImg{width:auto;height:160px;max-width:100%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 8px 16px rgba(0,0,0,.4))}.charSelectBtnGoat .charSelectImg{height:185px}.charSelectBtnBlackjon .charSelectImg{width:100%;height:170px;object-fit:cover;object-position:50% 24%;border-radius:13px}.charSelectBtn b{font-size:18px;font-weight:1000}.charSelectBtn small{font-size:12px;color:rgba(255,255,255,.6);line-height:1.5}.charSelectTag{font-size:11px;font-weight:900;letter-spacing:.08em;padding:4px 12px;border-radius:999px;background:rgba(255,180,80,.2);color:#ffb850}.charSelectTagGoat{background:rgba(120,220,120,.2);color:#78dc78}.charSelectTagBlackjon{background:rgba(151,177,222,.18);color:#b8cdf1}@media(max-width:720px){.charSelectGrid{grid-template-columns:1fr}.charSelectCard{width:min(360px,calc(100vw - 28px))}.charSelectBtn{padding:18px}.charSelectImgWrap{height:130px}.charSelectImg,.charSelectBtnGoat .charSelectImg,.charSelectBtnBlackjon .charSelectImg{height:140px}}
 .tutorialOverlay,.chapterTransition{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:rgba(8,5,4,.72);backdrop-filter:blur(9px)}.tutorialCard,.chapterTransition section{width:min(430px,calc(100vw - 32px));background:#fff8ef;border-radius:12px;padding:24px;color:#1b1210;box-shadow:0 28px 80px rgba(0,0,0,.35)}.tutorialCard footer{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}.tutorialCard button{border:0;border-radius:10px;background:#d98131;color:white;padding:12px 16px;font-weight:900}.chapterTransition{color:white;background:rgba(0,0,0,.86);animation:fadeChapter 2.3s ease forwards}.chapterTransition section{background:transparent;color:white;text-align:center;border-top:1px solid rgba(244,214,169,.34);border-bottom:1px solid rgba(244,214,169,.24);box-shadow:none}.chapterTransition h2{font-size:clamp(34px,5vw,68px);margin:12px 0}.chapterTransition span{color:#f0b76b;font-weight:900;letter-spacing:.22em;text-transform:uppercase}
 @keyframes idle{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-12px) scale(1.018)}}@keyframes aura{0%,100%{transform:scale(.96);opacity:.7}50%{transform:scale(1.05);opacity:1}}@keyframes bubblePop{0%{opacity:0;transform:translateY(8px) scale(.96)}100%{opacity:1;transform:translateY(-2px) scale(1)}}@keyframes fadeChapter{0%{opacity:0}14%,76%{opacity:1}100%{opacity:0}}
 .cgUnlockToast{position:fixed;top:24px;right:24px;z-index:9999;display:flex;align-items:center;gap:14px;background:rgba(14,9,8,.94);border:1px solid rgba(255,205,130,.32);border-radius:20px;padding:14px 20px 14px 16px;color:white;backdrop-filter:blur(14px);box-shadow:0 20px 44px rgba(0,0,0,.38),0 0 0 1px rgba(255,255,255,.04) inset;min-width:220px;animation:cgToastIn .32s cubic-bezier(.2,.8,.4,1) forwards;pointer-events:none}.cgUnlockIcon{font-size:28px;flex:none}.cgUnlockToast b{display:block;font-size:10px;letter-spacing:.12em;color:#f0c060;text-transform:uppercase;margin-bottom:3px}.cgUnlockToast span{display:block;font-size:15px;font-weight:800;color:#fff8f0;margin-bottom:2px}.cgUnlockToast small{font-size:12px;color:#a09080}
@@ -8812,8 +9681,78 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .shopBuyBtn:disabled{background:#d9c8b5;color:#8a7a6f;cursor:not-allowed}
 /* ─ 가챠 ─ */
 .gachaIntro{margin:0 0 14px;padding:12px 14px;background:linear-gradient(135deg,#ffd97a,#e8993b);border-radius:12px;color:#3a2017;font-weight:900;font-size:14px;text-align:center;text-shadow:0 1px 0 rgba(255,255,255,.3)}
-.gachaInfoBar{display:flex;justify-content:space-around;padding:14px;background:#2a1f10;border-radius:14px;color:#ffd97a;font-weight:900;margin-bottom:18px}
+.gachaInfoBar{display:flex;justify-content:space-around;padding:14px;background:#2a1f10;border-radius:14px;color:#ffd97a;font-weight:900;margin-bottom:12px}
 .gachaInfoBar b{color:#fff;font-size:18px;margin-left:4px}
+.scenarioHubTabs{display:flex;gap:6px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:10px;margin:0 0 16px;scrollbar-width:thin;border-bottom:1px solid rgba(255,210,100,.18)}
+.scenarioHubTabs::-webkit-scrollbar{height:6px}
+.scenarioHubTabs::-webkit-scrollbar-thumb{background:rgba(255,210,100,.3);border-radius:3px}
+.scenarioHubTabs button{flex-shrink:0;white-space:nowrap;padding:9px 16px;font-size:13px;font-weight:900;border-radius:99px 99px 0 0;background:rgba(255,255,255,.04);color:#caa890;border:1px solid transparent;border-bottom:none;cursor:pointer;transition:all .15s ease}
+.scenarioHubTabs button:hover{background:rgba(255,210,100,.08);color:#ffd97a}
+.scenarioHubTabs button.active{background:linear-gradient(135deg,#3a2418,#5a3622);color:#ffd97a;border-color:rgba(255,210,100,.35)}
+.hubDesc{margin:0 0 16px;font-size:13px;color:#caa890;line-height:1.5;font-style:italic}
+.galleryTabs{display:flex;gap:6px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:8px;margin-bottom:14px;scrollbar-width:thin}
+.galleryTabs::-webkit-scrollbar{height:6px}
+.galleryTabs::-webkit-scrollbar-thumb{background:rgba(255,210,100,.3);border-radius:3px}
+.galleryTabs button{flex-shrink:0;white-space:nowrap;padding:8px 14px;font-size:12px;font-weight:800;border-radius:99px}
+.galleryTabs button.ssrTab{background:linear-gradient(135deg,rgba(180,120,255,.2),rgba(255,120,210,.15));border-color:rgba(180,120,255,.5);color:#d090ff}
+.galleryTabs button.ssrTab.active{background:linear-gradient(135deg,#a070ff,#ff70d0);color:#fff}
+.scenarioCard.scenarioLocked{opacity:.62;cursor:not-allowed;background:linear-gradient(135deg,rgba(40,30,20,.6),rgba(60,40,30,.4))}
+.scenarioCard.scenarioLocked b{color:#9a7c65}
+.scenarioCard.scenarioLocked small{color:#7a6450;font-style:italic}
+.scenarioCard.scenarioCleared b::before{color:#7fce7f}
+.scenarioLockReasons{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.scenarioLockChip{display:inline-block;font-size:11px;font-weight:800;color:#ffd97a;background:rgba(60,40,20,.7);border:1px solid rgba(255,210,100,.35);padding:3px 9px;border-radius:99px;letter-spacing:.02em}
+.gachaPityBar{padding:12px 14px;background:linear-gradient(135deg,#1a0d20,#2a1530);border:1px solid rgba(180,120,255,.35);border-radius:14px;margin-bottom:18px}
+.gachaPityHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;color:#e0c8ff;font-weight:900;font-size:13px}
+.gachaPityCount{color:#fff;font-size:14px;letter-spacing:.04em}
+.gachaPityTrack{height:8px;background:rgba(0,0,0,.4);border-radius:99px;overflow:hidden;margin-bottom:6px}
+.gachaPityFill{height:100%;background:linear-gradient(90deg,#a070ff,#ff70d0);transition:width .4s ease;box-shadow:0 0 12px rgba(180,120,255,.6)}
+.gachaPityHint{display:block;font-size:11px;color:#caa890;text-align:center}
+.letterCard.letterTriggered{background:linear-gradient(135deg,#3a1a1a,#5a2828);border:1px solid rgba(212,80,80,.5);color:#ffe8e0}
+.letterCard.letterTriggered b{color:#fff}
+.letterCard.letterTriggered .letterChip{background:linear-gradient(135deg,#8d2828,#5a1818);color:#ffd0d0}
+.letterCard.letterTriggered .letterSender{color:#ffb8b8}
+.letterSender{font-size:11px;font-weight:800;color:#caa890;font-style:italic;margin-left:auto}
+.letterContent{white-space:pre-wrap;line-height:1.85;cursor:pointer}
+.letterOpenBtn{margin-top:14px;width:100%;display:flex;flex-direction:column;align-items:center;gap:4px;padding:24px 18px;background:linear-gradient(135deg,#fff8e8,#f4e6c8);border:2px dashed rgba(170,90,40,.5);border-radius:14px;color:#5a3018;font-weight:900;cursor:pointer;transition:all .15s ease}
+.letterOpenBtn:hover{background:linear-gradient(135deg,#fffce8,#fae8b8);border-color:#aa5a28;transform:translateY(-2px);box-shadow:0 8px 18px rgba(170,90,40,.25)}
+.letterOpenIcon{font-size:36px;line-height:1}
+.letterOpenLabel{font-size:15px;font-weight:1000;letter-spacing:.04em}
+.letterOpenBtn small{color:#8a5028;font-size:11px;font-weight:700;font-style:italic}
+/* 편지 풀스크린 리더 */
+.letterReaderOverlay{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px;animation:letterFadeIn .3s ease}
+.letterReader{position:relative;width:100%;max-width:680px;max-height:92vh;display:flex;flex-direction:column;animation:letterRise .45s cubic-bezier(.18,1.2,.4,1)}
+.letterReaderClose{position:absolute;top:-44px;right:0;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.5);color:#fff;font-size:18px;cursor:pointer;z-index:2;display:flex;align-items:center;justify-content:center;font-weight:900}
+.letterReaderClose:hover{background:rgba(255,255,255,.15);border-color:#fff}
+.letterReaderPaper{flex:1;min-height:0;overflow-y:auto;background:linear-gradient(180deg,#fdf6e3 0%,#f8eed2 50%,#f3e4be 100%);background-image:linear-gradient(180deg,#fdf6e3 0%,#f8eed2 50%,#f3e4be 100%),repeating-linear-gradient(90deg,transparent 0,transparent 40px,rgba(150,100,50,.04) 40px,rgba(150,100,50,.04) 41px);border-radius:6px;padding:48px 56px 40px;color:#3a2a1a;font-family:'Nanum Myeongjo','Noto Serif KR',serif;box-shadow:0 24px 80px rgba(0,0,0,.6),0 0 0 1px rgba(170,120,70,.3),inset 0 0 60px rgba(180,140,80,.15)}
+.letterReaderPaper::-webkit-scrollbar{width:8px}
+.letterReaderPaper::-webkit-scrollbar-track{background:rgba(170,120,70,.08)}
+.letterReaderPaper::-webkit-scrollbar-thumb{background:rgba(170,120,70,.4);border-radius:4px}
+.letterReaderHead{margin-bottom:32px;text-align:center}
+.letterReaderFrom{display:inline-block;font-size:13px;color:#7a5028;font-style:italic;letter-spacing:.06em;margin-bottom:8px}
+.letterReaderTitle{font-size:22px;font-weight:900;color:#2a1a0a;margin:0 0 16px;letter-spacing:.02em;line-height:1.4}
+.letterReaderDivider{width:60px;height:1px;background:linear-gradient(90deg,transparent,#aa784a,transparent);margin:0 auto}
+.letterReaderBody{white-space:pre-wrap;line-height:2.05;font-size:16.5px;color:#3a2a1a;letter-spacing:.01em;text-align:left}
+.letterReaderFooter{margin-top:36px;padding-top:24px;border-top:1px dashed rgba(170,120,70,.35);text-align:center}
+.letterReaderCloseBtn{padding:12px 24px;background:transparent;border:1px solid #aa784a;border-radius:8px;color:#5a3018;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s ease}
+.letterReaderCloseBtn:hover{background:rgba(170,120,70,.12)}
+@keyframes letterFadeIn{0%{opacity:0}100%{opacity:1}}
+@keyframes letterRise{0%{opacity:0;transform:translateY(40px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:850px){.letterReader{max-width:100%}.letterReaderPaper{padding:32px 24px;font-size:15.5px}.letterReaderTitle{font-size:18px}}
+.letterToast{position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:1500;background:linear-gradient(135deg,#2a1f15,#3d2c1c);border:2px solid #d4a843;border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 12px 40px rgba(212,168,67,.4),0 0 60px rgba(212,168,67,.2);max-width:360px;cursor:pointer;animation:ssrUnlockIn .5s cubic-bezier(.18,1.5,.4,1);transition:transform .12s ease}
+.letterToast:hover{transform:translateX(-50%) scale(1.03)}
+.letterToastIcon{font-size:32px;flex-shrink:0}
+.letterToastBody{flex:1;min-width:0}
+.letterToastBadge{display:inline-block;font-size:10px;font-weight:900;color:#2a1f15;background:linear-gradient(135deg,#ffd97a,#d4a843);padding:2px 8px;border-radius:6px;letter-spacing:.06em;margin-bottom:4px}
+.letterToastTitle{color:#fff;font-weight:900;font-size:14px;margin-bottom:2px}
+.letterToastSub{color:#d4a843;font-size:11px;font-weight:700}
+.ssrUnlockToast{position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:1500;background:linear-gradient(135deg,#2a1530,#3a1f50);border:2px solid #d090ff;border-radius:18px;padding:14px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 12px 40px rgba(180,90,255,.5),0 0 60px rgba(180,90,255,.3);max-width:380px;animation:ssrUnlockIn .5s cubic-bezier(.18,1.5,.4,1)}
+.ssrUnlockToast img{width:60px;height:60px;border-radius:10px;object-fit:cover;background:#1a0d20;border:1px solid rgba(255,255,255,.15)}
+.ssrUnlockToast .ssrUnlockText{flex:1;min-width:0}
+.ssrUnlockToast .ssrUnlockBadge{display:inline-block;font-size:11px;font-weight:900;color:#3a1f50;background:linear-gradient(135deg,#ffd97a,#ff70d0);padding:2px 8px;border-radius:6px;letter-spacing:.06em;margin-bottom:4px}
+.ssrUnlockToast .ssrUnlockTitle{color:#fff;font-weight:900;font-size:14px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ssrUnlockToast .ssrUnlockSub{color:#e0c8ff;font-size:11px}
+@keyframes ssrUnlockIn{0%{opacity:0;transform:translateX(-50%) translateY(-30px) scale(.8)}100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
 .gachaPullBtns{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:20px}
 .gachaBtn{display:grid;gap:4px;border:0;border-radius:14px;padding:18px 16px;font-weight:1000;cursor:pointer;text-align:center;transition:all .2s}
 .gachaBtn:hover:not(:disabled){transform:translateY(-2px)}
@@ -8939,23 +9878,6 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .mgQuizOption.mgQuizWrong{background:#f5a3a3;color:#fff;border-color:#d56666}
 .mgQuizOption:disabled{cursor:not-allowed}
 .mgQuizExplain{padding:10px;background:#fff5d6;border-radius:8px;font-size:12px;color:#5a3d12;font-weight:700;margin-top:10px}
-/* ─ 시즌 패스 ─ */
-.seasonHead{display:flex;justify-content:space-between;align-items:center;padding:14px;background:linear-gradient(135deg,#3a2d29,#5a4036);border-radius:14px;color:#fff;margin-bottom:14px;flex-wrap:wrap;gap:10px}
-.seasonHead h3{margin:0;font-size:16px;font-weight:1000}
-.seasonPremiumBuy{border:0;border-radius:10px;padding:10px 16px;background:linear-gradient(135deg,#ffd97a,#df842c);color:#fff;font-weight:1000;font-size:13px;cursor:pointer}
-.seasonPremiumBuy:disabled{opacity:.5;cursor:not-allowed}
-.seasonPremiumActive{padding:8px 14px;background:linear-gradient(135deg,#ffd97a,#df842c);color:#fff;border-radius:10px;font-weight:1000;font-size:12px}
-.seasonTrack{display:grid;gap:6px;max-height:600px;overflow-y:auto;padding:8px;background:#f8efe2;border-radius:12px}
-.seasonRow{display:grid;grid-template-columns:50px 1fr 1fr;gap:8px;align-items:center;padding:8px;background:#fff;border-radius:10px;border:1px solid #e6d2b8}
-.seasonRowMile{background:linear-gradient(135deg,#fff7d6,#ffd97a);border-color:#df842c}
-.seasonLv{font-size:14px;font-weight:1000;color:#3a2017;text-align:center}
-.seasonBox,.seasonPremiumBox{padding:8px;border-radius:8px;background:#f8efe2;display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:700}
-.seasonPremiumBox{background:linear-gradient(135deg,#fff7d6,#ffe9a8);border:1px dashed #df842c}
-.seasonRewards{font-size:11px;color:#5a3d12;font-weight:900}
-.seasonClaimBtn{border:0;border-radius:6px;padding:5px 8px;background:#7ba65a;color:#fff;font-weight:1000;font-size:10px;cursor:pointer;margin-top:2px}
-.seasonClaimBtn:disabled{opacity:.4;cursor:not-allowed;background:#aaa}
-.seasonClaimedTag{font-size:10px;color:#7ba65a;font-weight:1000;text-align:center}
-.seasonLockedTag{font-size:10px;color:#999;font-weight:700;text-align:center}
 /* ─ 음향 ─ */
 .soundCard{padding:16px;background:#fff;border:1px solid #e6d2b8;border-radius:14px;margin-bottom:12px;display:grid;gap:10px}
 .soundCardTitle{margin:0;font-size:15px;font-weight:1000;color:#3a2017}
@@ -9051,24 +9973,6 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .raidDmgFloater{position:fixed;top:50%;right:24px;z-index:9998;color:#ff5577;font-weight:1000;font-size:28px;text-shadow:0 0 14px rgba(255,90,80,.9),0 2px 4px rgba(0,0,0,.6);pointer-events:none;animation:raidDmgAnim 1s cubic-bezier(.2,.6,.3,1) forwards}
 @keyframes raidDmgAnim{0%{opacity:0;transform:translateY(20px) scale(.7)}30%{opacity:1;transform:translateY(0) scale(1.15)}100%{opacity:0;transform:translateY(-50px) scale(1)}}
 /* ─ 신탁 ─ */
-.fortuneIntro{margin:0 0 14px;padding:10px 14px;background:#fff8ef;border:1px solid #e8c99e;border-radius:10px;font-size:12px;color:#7a5e4a;text-align:center;font-style:italic}
-.fortuneCard{padding:32px 28px;border-radius:24px;text-align:center;display:grid;gap:14px;justify-items:center;color:#fff;position:relative;overflow:hidden;animation:fortuneCardIn .6s cubic-bezier(.2,1.2,.3,1) both}
-@keyframes fortuneCardIn{0%{opacity:0;transform:scale(.85) rotate(-2deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
-.fortuneTier-great_luck{background:linear-gradient(135deg,#ffd97a 0%,#e8993b 50%,#df5e88 100%);box-shadow:0 0 40px rgba(255,210,100,.5)}
-.fortuneTier-luck{background:linear-gradient(135deg,#a3c785,#7ba65a)}
-.fortuneTier-neutral{background:linear-gradient(135deg,#bcb0a0,#8a7a6f)}
-.fortuneTier-unluck{background:linear-gradient(135deg,#7a4a4a,#5a2a2a)}
-.fortuneTier-great_unluck{background:linear-gradient(135deg,#3a1525,#1a0510);border:2px solid rgba(255,80,80,.4)}
-.fortuneTier{font-size:14px;font-weight:1000;letter-spacing:.18em;opacity:.92;text-transform:uppercase}
-.fortuneEmoji{font-size:72px;line-height:1;filter:drop-shadow(0 4px 12px rgba(0,0,0,.4))}
-.fortuneTitle{margin:0;font-size:36px;font-weight:1000;text-shadow:0 2px 8px rgba(0,0,0,.4);letter-spacing:.04em}
-.fortuneMessage{margin:0;font-size:14px;font-style:italic;line-height:1.65;max-width:480px;text-shadow:0 1px 3px rgba(0,0,0,.4)}
-.fortuneEffect{padding:10px 16px;background:rgba(0,0,0,.32);border-radius:12px;font-size:13px;font-weight:900}
-.fortuneEffect b{color:#ffd97a}
-.fortuneActions{margin-top:18px;display:flex;justify-content:center}
-.fortuneRerollBtn{border:0;border-radius:14px;padding:12px 22px;background:linear-gradient(135deg,#3a2510,#5a3a18);color:#ffd97a;font-weight:1000;font-size:14px;cursor:pointer}
-.fortuneRerollBtn:disabled{opacity:.5;cursor:not-allowed}
-.fortuneRerollBtn:hover:not(:disabled){background:linear-gradient(135deg,#5a3a18,#7a5128)}
 /* ─ 다이어리 ─ */
 .journalIntro{margin:0 0 8px;padding:12px 14px;background:linear-gradient(135deg,#fff5fa,#fce0ec);border:1px solid #e8c9d8;border-radius:12px;color:#7b3a52;font-size:13px;font-weight:700;text-align:center}
 .journalCount{margin:0 0 14px;text-align:right;font-size:12px;color:#9a7c65}
@@ -9124,38 +10028,6 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .mgResultBanner button{border:0;border-radius:8px;padding:8px 14px;background:rgba(255,255,255,.25);color:#fff;font-weight:900;cursor:pointer}
 .mgResultBanner.mgWin{background:linear-gradient(135deg,#a3c785,#7ba65a)}
 .mgResultBanner.mgLose{background:linear-gradient(135deg,#7a4a4a,#5a2a2a)}
-/* ─ 카톡 ─ */
-.katalkIntro{margin:0 0 14px;padding:11px 14px;background:#fff8ef;border:1px solid #e8c99e;border-radius:10px;color:#7a5e4a;font-size:13px;text-align:center;font-style:italic}
-.katalkList{display:grid;gap:8px}
-.katalkRow{display:flex;align-items:center;gap:14px;padding:14px 16px;background:#fff;border:1px solid #e6d2b8;border-radius:14px;cursor:pointer;text-align:left;transition:all .15s;border:0;width:100%}
-.katalkRow:hover{background:#fff8ef;transform:translateX(2px)}
-.katalkRow.katalkGroup{background:linear-gradient(135deg,#fff7d6,#ffe9a8);border:1px solid #d9a656}
-.katalkEmoji{font-size:34px;flex:none}
-.katalkRowBody{flex:1;display:grid;gap:2px;min-width:0}
-.katalkRowBody b{font-size:14px;color:#2a1a14;font-weight:1000}
-.katalkAge{font-size:11px;color:#9a7c65;font-weight:700;margin-left:4px}
-.katalkRowBody small{font-size:12px;color:#7a5e4a;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.katalkRowFlavor{font-style:italic;color:#9a7c65 !important;font-size:11px !important;margin-top:2px}
-.katalkUnread{background:#df5e88;color:#fff;font-size:11px;font-weight:1000;padding:3px 8px;border-radius:99px;flex:none}
-.katalkChat{display:grid;gap:12px}
-.katalkBackBtn{align-self:flex-start;border:0;border-radius:10px;padding:8px 14px;background:#3a2d29;color:#fff;font-weight:900;font-size:12px;cursor:pointer}
-.katalkMsgList{display:grid;gap:10px;max-height:520px;overflow-y:auto;padding:14px;background:#fff8ef;border-radius:14px;border:1px solid #e8c99e}
-.katalkEmpty{text-align:center;color:#9a7c65;font-style:italic;padding:30px}
-.katalkMsg{display:grid;gap:3px}
-.katalkMsg.katalkUser{justify-items:flex-end}
-.katalkMsg.katalkMe{justify-items:flex-start}
-.katalkMsgSpeaker{font-size:11px;color:#7a5e4a;font-weight:900;padding:0 8px}
-.katalkMsgBubble{display:inline-block;max-width:80%;padding:10px 14px;border-radius:16px;background:#fff;color:#3a2017;font-size:14px;line-height:1.55;word-break:break-word;box-shadow:0 2px 6px rgba(0,0,0,.06)}
-.katalkUser .katalkMsgBubble{background:#df842c;color:#fff}
-.katalkMe .katalkMsgBubble{background:#7a5e4a;color:#fff}
-.katalkInputRow{display:flex;gap:8px}
-.katalkInputRow input{flex:1;border:2px solid #d9a656;border-radius:12px;padding:11px 14px;font-size:14px;background:#fff8ef}
-.katalkInputRow input:focus{outline:none;border-color:#df842c;background:#fff}
-.katalkInputRow button{border:0;border-radius:12px;padding:11px 18px;background:#df842c;color:#fff;font-weight:1000;cursor:pointer}
-.katalkInputRow button:hover{background:#c8731f}
-.katalkActions{display:flex;justify-content:center}
-.katalkActions button{border:0;border-radius:10px;padding:8px 16px;background:#fff8ef;color:#5a3520;font-weight:900;font-size:12px;cursor:pointer;border:1px solid #d9a656}
-.katalkActions button:hover{background:#fff5d6}
 /* ─ 러브 미터 (사이드바) ─ */
 .loveMeter{padding:9px 11px;margin:0 0 12px;background:linear-gradient(135deg,#3a1525,#5a2540);border:1px solid rgba(255,140,180,.25);border-radius:14px;color:#fff}
 .loveMeterHead{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:900;color:#ffb0d0;margin-bottom:5px}
@@ -9274,7 +10146,7 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .secretRouteCard{position:relative;overflow:hidden;transition:transform .15s ease,box-shadow .2s ease}.secretRouteCard.secretUnlocked{background:linear-gradient(135deg,#fff7d6 0%,#ffe9a8 60%,#ffd17a 100%);border:1px solid #d9a656;color:#5a3d12;box-shadow:0 8px 24px rgba(217,166,86,.28)}.secretRouteCard.secretUnlocked:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(217,166,86,.4)}.secretRouteCard.secretUnlocked b{color:#3a2510}.secretRouteCard.secretUnlocked small{color:#7b5318}.secretRouteCard.secretLocked{background:repeating-linear-gradient(135deg,#2a201b 0px,#2a201b 14px,#22191a 14px,#22191a 28px);color:#7a6b62;border:1px dashed #5a4a40;cursor:not-allowed;opacity:.85}.secretRouteCard.secretLocked b{color:#8a7a6f;letter-spacing:.18em}.secretRouteCard.secretLocked small{color:#6b5b50;font-style:italic}.secretRouteCard.secretLocked:hover{transform:none;box-shadow:none}
 .saveSlotGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:18px}.saveSlotCard{background:#fff8ef;border:1px solid #e8c99e;border-radius:18px;padding:16px;display:grid;gap:12px;color:#3a2017;box-shadow:0 8px 22px rgba(91,48,24,.08);transition:transform .15s ease,box-shadow .2s ease}.saveSlotCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.saveSlotCard.ssEmpty{background:#f6efe5;border-style:dashed;border-color:#cdb89a;opacity:.85}.saveSlotCard.ssRoutePure{background:linear-gradient(180deg,#fff5f8 0%,#fce6ee 100%);border-color:#ecc4d6}.saveSlotCard.ssRouteObsession{background:linear-gradient(180deg,#2a1517 0%,#1a0d0e 100%);border-color:#5d2a30;color:#f4dadd}.saveSlotCard.ssRouteObsession .ssTime,.saveSlotCard.ssRouteObsession .ssPreview{color:#b89a9d}.saveSlotCard.ssRouteObsession .ssStats span{background:rgba(255,200,200,.08);color:#f4dadd}.saveSlotCard.ssRouteObsession .ssThumb{border-color:rgba(255,170,170,.2)}.ssHead{display:flex;align-items:center;justify-content:space-between;gap:8px}.ssNum{font-size:14px;font-weight:1000;letter-spacing:.04em;color:inherit}.ssRouteBadge{font-size:11px;font-weight:900;padding:4px 10px;border-radius:99px;background:rgba(91,48,24,.12);color:#7b4f2f}.ssRoutePure .ssRouteBadge{background:rgba(220,120,160,.18);color:#a14872}.ssRouteObsession .ssRouteBadge{background:rgba(220,80,80,.22);color:#ffaab2}.ssBody{display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:start}.ssThumb{width:84px;height:84px;border-radius:14px;object-fit:cover;border:1px solid rgba(91,48,24,.18);background:#ead7c7}.ssMeta{display:grid;gap:6px;min-width:0}.ssScene{margin:0;font-size:14px;font-weight:900;color:inherit;line-height:1.4}.ssPreview{margin:0;font-size:12px;font-style:italic;color:#7a5e4a;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.ssStats{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}.ssStats span{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:99px;background:rgba(91,48,24,.1);color:#5b3520;letter-spacing:.02em}.ssTime{color:#9a7c65;font-size:11px;font-weight:700;margin-top:2px}.ssEmptyBody{text-align:center;padding:24px 12px;color:#876953}.ssEmptyIcon{font-size:36px;display:block;margin-bottom:8px;opacity:.6}.ssEmptyBody p{margin:0 0 4px;font-size:14px;font-weight:900}.ssEmptyBody small{font-size:11px;color:#a78a72}.ssActions{display:flex;gap:6px}.ssActions button{flex:1;border:0;border-radius:12px;padding:10px 8px;font-size:13px;font-weight:900;cursor:pointer;transition:background .15s ease,transform .12s ease}.ssActions button:hover{transform:translateY(-1px)}.ssBtnLoad{background:#df842c;color:#fff}.ssBtnLoad:hover{background:#c8731f}.ssBtnSave{background:#3a2d29;color:#fff}.ssBtnSave:hover{background:#5a4338}.ssBtnDel{background:transparent;color:#c44;border:1px solid #c44 !important}.ssBtnDel:hover{background:rgba(196,68,68,.1)}
 .cgReaction{display:grid;grid-template-columns:86px minmax(0,1fr) auto;gap:14px;align-items:center;margin:0 0 18px;padding:14px;border-radius:20px;background:#fff8ef;border:1px solid #e8c99e;box-shadow:0 12px 32px rgba(91,48,24,.08)}.cgReaction>img{width:86px;height:86px;border-radius:18px;object-fit:cover;background:#ead7c7}.cgReactionBody{display:grid;gap:6px;min-width:0}.cgReactionBody p{margin:0;color:#4a342a;line-height:1.65;font-weight:800}.cgSourceCaption{color:#9a7c65;font-size:12px;font-weight:700}.cgReactionActions{display:flex;gap:6px;align-items:center}.cgReaction button{border:0;border-radius:999px;background:#3a2d29;color:white;padding:10px 14px;font-weight:900}.favBtn{background:#fff;color:#c44}.favBtn.favOn{background:#c44;color:#fff}.cgCard{position:relative;border:0;text-align:center;cursor:pointer;transition:transform .15s ease,box-shadow .2s ease}.cgCard:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(91,48,24,.14)}.cgCardLocked{cursor:default;background:#1f1714}.cgCardLocked:hover{transform:none}.cgSilhouette{filter:brightness(.18) blur(6px) saturate(.5)}.cgLockedBadge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;color:rgba(255,210,150,.55);text-shadow:0 2px 12px rgba(0,0,0,.6);pointer-events:none}.cgFavMark{position:absolute;top:8px;right:10px;font-size:18px;color:#ff5577;text-shadow:0 2px 6px rgba(0,0,0,.45);pointer-events:none}.cgCardCaption{position:absolute;left:0;right:0;bottom:0;padding:6px 10px;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.74) 100%);color:#fff7e8;font-size:11px;font-weight:800;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;text-align:left}.galleryProgress{display:flex;align-items:center;gap:12px;margin:0 0 18px;padding:12px 16px;background:#fff8ef;border:1px solid #e8c99e;border-radius:14px;color:#5a3928}.galleryProgress span{font-size:12px;font-weight:900;letter-spacing:.06em;color:#7b4f2f}.galleryProgressBar{flex:1;min-width:80px;height:8px;background:rgba(91,48,24,.15);border-radius:99px;overflow:hidden}.galleryProgressBar div{height:100%;background:linear-gradient(90deg,#df842c,#e8993b);border-radius:99px;transition:width .35s ease}.galleryProgress strong{font-size:14px;color:#3a2017;font-weight:900}.tabs button.active{background:#df842c}.tabs button.bladderTab{background:linear-gradient(135deg,#d9a656,#b8843a);color:#fff;font-weight:1000}.tabs button.bladderTab.active{background:linear-gradient(135deg,#ffc94f,#d9a656);box-shadow:0 4px 12px rgba(217,166,86,.4)}.tabs button.bladderTab:hover{background:linear-gradient(135deg,#e8b563,#c89540)}
-@media(max-width:850px){.app{height:auto;min-height:100vh;display:flex;flex-direction:column;overflow:visible}.side{position:sticky;top:0;z-index:20;padding:8px 10px;display:grid;grid-template-columns:1fr;gap:8px;max-height:none;overflow:visible;flex:none;background:#21130f}.profileHead{display:none}.statsBox{margin:0;padding:6px 8px;border-radius:12px}.statBar{margin:3px 0}.statBar div{font-size:10px}.statBar i{height:5px}.nav{display:flex;overflow-x:auto;overflow-y:hidden;gap:8px;flex-wrap:nowrap;padding-bottom:2px}.nav button{white-space:nowrap;padding:10px 13px;border-radius:14px;flex:none}.content{height:auto;min-height:0;flex:1}.coverImg{width:100%;max-width:none;max-height:90dvh;object-position:center center}.coverStartBtn{bottom:48px;font-size:20px;padding:16px 38px}.homeView{padding:18px 14px 24px;display:block;overflow:auto}.homeHeader{margin-bottom:10px}.homeStage{width:100%;height:auto;min-height:min(58dvh,540px);display:grid;place-items:end center}.homeCharacterCard img{width:min(88vw,400px);max-height:48dvh}.homeButtons{grid-template-columns:repeat(2,1fr);gap:10px}.homeButtons button{padding:15px}.homeBubble{top:10px;left:auto;right:4%;width:min(138px,37vw);padding:7px 9px 8px 10px;font-size:8.5px;border-radius:20px}.homeBubble:after{left:14px;bottom:-6px;width:10px;height:10px}.chatArea{padding:16px;display:flex;flex-direction:column;gap:8px}.topBar{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:12px 10px;flex:none}.topBar button{font-size:13px;min-width:120px;padding:10px 13px;white-space:nowrap;flex:0 0 auto}.bubble{font-size:16px;max-width:84%}.msgRow{display:flex;align-items:flex-start;gap:8px;margin:6px 0}.msgRow.assistant{justify-content:flex-start}.msgRow.user{justify-content:flex-end;align-items:flex-end}.inputBar{position:sticky;bottom:0;z-index:3;grid-template-columns:auto 44px minmax(0,1fr) auto;gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom));height:auto}.inputBar input{font-size:16px;height:44px;padding:0 14px}.inputBar button{min-width:48px;height:44px;padding:0 12px;font-size:13px;border-radius:16px}.inputBar .photoBtn{min-width:44px;width:44px;height:44px;padding:0;font-size:18px}.vnTextbox{bottom:10px;width:calc(100vw - 18px)}.vnDialogue{min-height:118px;max-height:32dvh;overflow:auto;padding:17px}.typeText{font-size:16px}.vnImageStage img{width:100%;height:100%;object-fit:contain}.panel{padding:16px}.panel h2{font-size:26px}.grid{grid-template-columns:1fr}.profileOverview{grid-template-columns:1fr !important}.profileIllustration{width:100%;max-width:none}.profileIllustration img{min-height:auto;max-height:none;height:auto}.profileDetails{flex-direction:column}.statusCards{grid-template-columns:1fr}.profileMeta{grid-template-columns:1fr}}
+@media(max-width:850px){.app{height:auto;min-height:100vh;display:flex;flex-direction:column;overflow:visible}.side{position:sticky;top:0;z-index:20;padding:8px 10px;display:grid;grid-template-columns:1fr;gap:8px;max-height:none;overflow:visible;flex:none;background:#21130f}.profileHead{display:none}.statsBox{margin:0;padding:6px 8px;border-radius:12px}.statBar{margin:3px 0}.statBar div{font-size:10px}.statBar i{height:5px}.nav{display:flex;overflow-x:auto;overflow-y:hidden;gap:8px;flex-wrap:nowrap;padding-bottom:2px}.nav button{white-space:nowrap;padding:10px 13px;border-radius:14px;flex:none}.content{height:auto;min-height:0;flex:1}.coverImg{width:100%;max-width:none;max-height:90dvh;object-position:center center}.coverStartBtn{bottom:48px;font-size:20px;padding:16px 38px}.homeView{padding:18px 14px 24px;display:block;overflow:auto}.homeHeader{margin-bottom:10px}.homeStage{width:100%;height:auto;min-height:min(58dvh,540px);display:grid;place-items:end center}.homeCharacterCard img{width:min(88vw,400px);max-height:48dvh}.homeStageActions{right:4px;bottom:8px;gap:6px}.homeStageActions button{min-height:36px;padding:7px 10px;border-radius:12px;font-size:11px}.homeButtons{grid-template-columns:repeat(2,1fr);gap:10px}.homeButtons button{padding:15px}.homeBubble{top:10px;left:auto;right:4%;width:min(138px,37vw);padding:7px 9px 8px 10px;font-size:8.5px;border-radius:20px}.homeBubble:after{left:14px;bottom:-6px;width:10px;height:10px}.chatArea{padding:16px;display:flex;flex-direction:column;gap:12px}.topBar{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:12px 10px;flex:none}.topBar button{font-size:13px;min-width:120px;padding:10px 13px;white-space:nowrap;flex:0 0 auto}.bubble{font-size:16px;max-width:84%}.msgRow{display:flex;align-items:flex-start;gap:8px;margin:10px 0}.msgRow.assistant{justify-content:flex-start}.msgRow.user{justify-content:flex-end;align-items:flex-end}.msgRow.narration{margin:16px 0}.inputBar{position:sticky;bottom:0;z-index:3;grid-template-columns:auto 44px minmax(0,1fr) auto;gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom));height:auto}.inputBar input{font-size:16px;height:44px;padding:0 14px}.inputBar button{min-width:48px;height:44px;padding:0 12px;font-size:13px;border-radius:16px}.inputBar .photoBtn{min-width:44px;width:44px;height:44px;padding:0;font-size:18px}.vnTextbox{bottom:10px;width:calc(100vw - 18px)}.vnDialogue{min-height:118px;max-height:32dvh;overflow:auto;padding:17px}.typeText{font-size:16px}.vnImageStage img{width:100%;height:100%;object-fit:contain}.panel{padding:16px}.panel h2{font-size:26px}.grid{grid-template-columns:1fr}.profileOverview{grid-template-columns:1fr !important}.profileIllustration{width:100%;max-width:none}.profileIllustration img{min-height:auto;max-height:none;height:auto}.profileDetails{flex-direction:column}.statusCards{grid-template-columns:1fr}.profileMeta{grid-template-columns:1fr}}
 @media(max-width:850px){.side{padding:4px 7px;gap:4px}.sideHeader{display:flex;align-items:center;gap:8px;min-width:0}.relBadge{flex:0 0 auto;min-width:0}.relBadgeTop{gap:5px;font-size:9px}.relLvLabel{font-size:11px}.relLvName{font-size:9px}.relProgressTrack{height:3px;margin-top:2px}.statsBox{flex:1;min-width:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 8px;padding:4px 6px;border-radius:8px;margin:0}.statBar{margin:0;min-width:0}.statBar div{font-size:8px;line-height:1.1;gap:2px}.statBar i{height:3px;margin-top:2px}.nav{gap:5px;padding-bottom:1px}.nav button{padding:7px 9px;border-radius:10px;font-size:11px;line-height:1;min-height:30px}.topBar{padding:6px 7px}.topBar button{min-width:auto;padding:7px 10px;font-size:12px;border-radius:13px}.chatArea{padding-top:8px}}
 .app.theme-pure .inputBar{background:linear-gradient(180deg,#fff5f6 0%,#fdecef 100%);border-top:1px solid rgba(234,177,191,.45);box-shadow:0 -10px 28px rgba(214,148,166,.12)}.app.theme-pure .inputBar input{background:linear-gradient(180deg,#fffefe 0%,#fff8fa 100%);border:1px solid #efc6d0;color:#6b3f49;box-shadow:0 8px 18px rgba(231,175,190,.12),inset 0 1px 0 rgba(255,255,255,.92)}.app.theme-pure .inputBar input::placeholder{color:#c2919b}.app.theme-pure .inputBar input:focus{border-color:#e29bad;box-shadow:0 0 0 3px rgba(235,170,183,.22),0 10px 22px rgba(214,148,166,.16)}.app.theme-pure .inputBar button{background:linear-gradient(135deg,#f1aab9,#d97f96);color:#fff;border:1px solid rgba(255,255,255,.28);box-shadow:0 10px 22px rgba(213,125,149,.22)}.app.theme-pure .inputBar button:hover{background:linear-gradient(135deg,#f5b7c4,#e18ea2)}
 .app.theme-obsession .inputBar{background:linear-gradient(180deg,#26171a 0%,#190f12 100%);border-top:1px solid rgba(150,73,86,.32);box-shadow:0 -12px 30px rgba(0,0,0,.34)}.app.theme-obsession .inputBar input{background:linear-gradient(180deg,#fff7f5 0%,#f4e6e4 100%);border:1px solid #6e434a;color:#291517;box-shadow:inset 0 1px 0 rgba(255,255,255,.68),0 10px 20px rgba(0,0,0,.12)}.app.theme-obsession .inputBar input::placeholder{color:#8d6e73}.app.theme-obsession .inputBar input:focus{border-color:#9c5965;box-shadow:0 0 0 3px rgba(156,89,101,.22),0 10px 22px rgba(0,0,0,.2)}.app.theme-obsession .inputBar button{background:linear-gradient(135deg,#7d3744,#35171d);color:#fff7f6;border:1px solid rgba(255,181,181,.12);box-shadow:0 12px 26px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.05)}.app.theme-obsession .inputBar button:hover{background:linear-gradient(135deg,#944858,#461f29)}
@@ -9389,6 +10261,41 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .adminConfirmBtn{flex:2;border:0;border-radius:14px;background:linear-gradient(135deg,#c8a020,#7a6000);color:white;padding:12px;font-weight:900;cursor:pointer}
 .adminPanel{display:grid;gap:28px}
 .adminSection{display:grid;gap:12px}
+
+/* 메모리 관리 패널 */
+.memoryAdmin{display:grid;gap:14px;font-size:13px}
+.memoryAdminHint{margin:0;color:rgba(255,255,255,.7);line-height:1.5}
+.memoryAdminHint code{background:rgba(255,255,255,.08);padding:1px 6px;border-radius:4px;font-size:12px}
+.memoryAdminToolbar{display:flex;gap:8px;align-items:center}
+.memoryAdminCount{margin-left:auto;color:rgba(255,255,255,.5);font-size:12px}
+.memoryAdminError{padding:8px 12px;background:rgba(255,80,80,.15);border:1px solid rgba(255,80,80,.4);border-radius:8px;color:#ffb0b0;font-size:12px}
+.memoryAdminTokenRow{display:flex;gap:8px}
+.memoryAdminInput{flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:10px;color:white;padding:8px 12px;font-size:13px;outline:none}
+.memoryAdminInput:focus{border-color:rgba(255,210,60,.5)}
+.memoryAdminTextarea{width:100%;box-sizing:border-box;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:10px;color:white;padding:10px 12px;font-size:13px;outline:none;resize:vertical;font-family:inherit;line-height:1.5}
+.memoryAdminTextarea:focus{border-color:rgba(255,210,60,.5)}
+.memoryAdminBtn{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);color:rgba(255,255,255,.85);padding:7px 14px;border-radius:10px;font-weight:700;cursor:pointer;font-size:12px;white-space:nowrap}
+.memoryAdminBtn:hover{background:rgba(255,255,255,.12)}
+.memoryAdminBtn:disabled{opacity:.5;cursor:not-allowed}
+.memoryAdminBtn.primary{background:linear-gradient(135deg,#c8a020,#7a6000);border-color:transparent;color:white}
+.memoryAdminBtn.ghost{background:transparent}
+.memoryAdminBtn.danger{background:rgba(220,80,80,.18);border-color:rgba(220,80,80,.45);color:#ffb0b0}
+.memoryAdminBtn.danger:hover{background:rgba(220,80,80,.3)}
+.memoryAdminBtn.small{padding:5px 10px;font-size:11px}
+.memoryAdminAddForm{display:grid;gap:8px;padding:12px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.18);border-radius:12px}
+.memoryAdminAddRow{display:flex;gap:8px;align-items:center}
+.memoryList{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.memoryEmpty{padding:18px;text-align:center;color:rgba(255,255,255,.4);font-size:12px;background:rgba(255,255,255,.03);border-radius:10px}
+.memoryItem{padding:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;display:grid;gap:8px}
+.memoryItemMeta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.memoryBadge{padding:2px 8px;border-radius:6px;font-size:10px;font-weight:800;letter-spacing:.3px}
+.memoryBadge.auto{background:rgba(80,160,255,.18);color:#a8c8ff;border:1px solid rgba(80,160,255,.35)}
+.memoryBadge.manual{background:rgba(255,160,80,.18);color:#ffd4a8;border:1px solid rgba(255,160,80,.35)}
+.memoryBadge.kind{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.16)}
+.memoryDate{margin-left:auto;font-size:11px;color:rgba(255,255,255,.4)}
+.memoryItemText{margin:0;color:rgba(255,255,255,.95);line-height:1.55;font-size:13px;word-break:keep-all}
+.memoryItemActions{display:flex;gap:6px;justify-content:flex-end}
+.memoryEditRow{display:grid;gap:8px}
 .adminSectionTitle{margin:0;font-size:14px;font-weight:900;letter-spacing:.06em;color:#7b4f2f;text-transform:uppercase}
 .adminStatRows{display:grid;gap:10px}
 .adminStatRow{display:grid;grid-template-columns:60px 1fr 50px auto;gap:8px;align-items:center}
@@ -9749,6 +10656,9 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .lvupParticle:nth-child(7){background:#f0c060;animation:lvupFly 1.0s ease-out .22s both;--tx:-90px;--ty:0px}
 .lvupParticle:nth-child(8){background:#ff9f40;animation:lvupFly .9s ease-out .06s both;--tx:-64px;--ty:-64px}
 @keyframes lvupFly{0%{opacity:1;transform:translate(-50%,-50%) scale(1.4)}50%{opacity:.9}100%{opacity:0;transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(.2)}}
+/* Character portrait framing in the selection screen. */
+.charSelectBtnBlackjon .charSelectImg{width:auto;height:160px;max-width:100%;object-fit:contain;object-position:bottom;border-radius:0}
+@media(max-width:720px){.charSelectBtnBlackjon .charSelectImg{height:140px}}
 /* ========= 레벨 티어별 UI 변화 ========= */
 /* early (Lv1~2): 단정하고 잔잔한 톤 */
 .app.relTier-early .relBadge{background:rgba(255,255,255,.05)}

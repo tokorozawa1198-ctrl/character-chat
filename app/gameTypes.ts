@@ -1,11 +1,17 @@
 "use client";
 
 export type Role = "user" | "assistant" | "narration";
-export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests" | "shop" | "gacha" | "pets" | "adventure" | "sns" | "raid" | "fortune" | "journal" | "minigames" | "katalk" | "calendar30" | "codex" | "stats" | "letters" | "quote" | "cards" | "seasonPass" | "sound" | "subScenarios";
-export type ScenarioKind = "normal" | "jealousy" | "obsession" | "confinement" | "yandere";
+export type View = "chat" | "scenarioMenu" | "profile" | "gallery" | "save" | "settings" | "endings" | "events" | "gift" | "checkin" | "wardrobe" | "diary" | "achievements" | "storyMap" | "miniMap" | "quests" | "shop" | "gacha" | "pets" | "adventure" | "sns" | "raid" | "journal" | "minigames" | "calendar30" | "codex" | "stats" | "letters" | "quote" | "cards" | "sound" | "subScenarios" | "extraScenarios";
+export type ScenarioKind = "normal" | "jealousy" | "obsession" | "confinement" | "yandere" | "comedy" | "bad_ending" | "bad_ending_intro";
 export type ScenarioCategory = "main" | "action" | "special" | "after" | "side";
 export type StatKey = "affinity" | "jealousy" | "obsession" | "trust" | "bladderCharm";
-export type GalleryTab = "all" | "normal" | "jealousy" | "obsession" | "confinement" | "yandere" | "action" | "bladder";
+export type GalleryTab =
+  | "all" | "favorites"
+  | "ch1" | "ch2" | "ch3" | "ch4" | "ch5" | "ch6"
+  | "pure" | "obsession" | "confine_a" | "confine_b" | "forced"
+  | "bladder" | "hidden" | "ssr" | "special_lv" | "location" | "action"
+  // 레거시 호환 (저장본)
+  | "normal" | "jealousy" | "yandere" | "confinement";
 export type EndingRoute = "none" | "pure" | "obsession" | "confinement" | "jealousy" | "bad";
 export type EndingKey = "pure" | "obsession" | "confinement" | "jealousy" | "bad";
 export type OutfitKey = "black_tanktop" | "hoodie" | "gym" | "convenience_store" | "winter_coat" | "party_shirt" | "obsession_shirt" | "k_bladder_suit";
@@ -14,6 +20,7 @@ export type Message = { id: string; role: Role; content: string; time: string; i
 export type Stats = { affinity: number; jealousy: number; obsession: number; trust: number; bladderCharm: number };
 export type StatDelta = Partial<Record<StatKey, number>>;
 export type StoryRoute = "common" | "pure" | "obsession";
+export type CharacterKey = "geonddeokjon" | "hidden" | "blackjon";
 export type MemoryNote = {
   id: string;
   text: string;
@@ -36,8 +43,9 @@ export type Choice = {
   route?: StoryRoute;
   condition?: ChoiceCondition;  // 잠금 조건: 미충족 시 회색 잠금
   flag?: string;                // 분기 플래그 (예: "confine_A_seed") — 추후 라우팅/분석용
+  result?: string;              // 선택 후 한 페이지 결과 텍스트 (있으면 임시 시나리오로 보여주고 next로 진행)
 };
-export type VNLine = { speaker: "나레이션" | "근떡존" | "히든" | "메시지"; text: string };
+export type VNLine = { speaker: "나레이션" | "근떡존" | "흑존" | "히든" | "메시지" | "기타"; text: string };
 export type TouchTarget = {
   label: string;          // "손을 잡는다"
   hint?: string;          // 이미지 위에 표시할 이모지: "✋"
@@ -106,6 +114,9 @@ export type SaveData = {
   cgFavorites?: Record<string, boolean>; // CG 즐겨찾기
   completedQuests?: Record<string, boolean>; // 보상 받은 퀘스트
   unlockedMilestones?: Record<string, boolean>; // 도달한 호감 마일스톤
+  unlockedSubScenarios?: Record<string, boolean>; // 코인으로 해금한 서브 시나리오 에피소드
+  scenarioProgress?: { id: string; lineIndex: number } | null; // 읽다 나간 시나리오 진행 상황
+  selectedCharacter?: CharacterKey; // 선택한 캐릭터
   lastRandomMessage?: number; // 마지막 깜짝 메시지 timestamp
   coins?: number; // 코인 잔액
   dailyState?: DailyState; // 데일리 미션 / 카운터
@@ -116,6 +127,7 @@ export type SaveData = {
   lastFreeGacha?: number; // 마지막 무료 가챠 timestamp
   gachaTickets?: number; // 가챠 티켓 수 (콤보/이벤트 보상)
   gachaHistory?: Record<string, number>; // 가챠 결과 누적
+  gachaPityCount?: number; // SSR 천장: 연속 비-SSR 카운트
   comboCount?: number; // 채팅 콤보
   lastComboTime?: number; // 마지막 채팅 timestamp
   comboMilestonesReached?: Record<number, boolean>; // 도달한 콤보 마일스톤
@@ -136,21 +148,12 @@ export type SaveData = {
   raidCleared?: boolean;
   raidDamageDealt?: number;
   // 신탁
-  lastFortuneDate?: string;
-  todayFortuneId?: string;
-  fortuneRerollsToday?: number;
   // 다이어리 (저널)
   journalEntries?: { id: string; date: string; templateId: string; liked: boolean }[];
   lastJournalDate?: string;
   // 미니게임
   minigameClickerHigh?: number;
   minigameWordHigh?: number;
-  // 전진협 친구 시스템
-  friendChats?: Record<string, FriendChatMessage[]>;
-  groupChat?: FriendChatMessage[];
-  friendLastSeen?: Record<string, number>;
-  friendLastSpawn?: Record<string, number>;
-  groupLastSpawn?: number;
   // 메가/콜렉션 패키지
   loveMeterPoints?: number;
   loveMeterDate?: string;
@@ -166,22 +169,11 @@ export type SaveData = {
   bladderMarathonWeek?: string;
   bladderMarathonScore?: number;
   monthlyCalendarClaims?: Record<string, boolean>; // "day_7", "day_14" etc
-  // 시즌 패스
-  seasonId?: string;
-  seasonClaimedFree?: Record<number, boolean>;
-  seasonClaimedPremium?: Record<number, boolean>;
-  seasonPremium?: boolean;
   // 음향
   soundBgmEnabled?: boolean;
   soundSfxEnabled?: boolean;
   soundBgmVolume?: number;
   soundSfxVolume?: number;
-};
-export type FriendChatMessage = {
-  id: string;
-  speaker: string; // friend id, "user", or "tteokjon"
-  text: string;
-  time: number;
 };
 export type DailyMission = {
   templateId: string;
