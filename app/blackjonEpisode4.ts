@@ -1,6 +1,6 @@
 import type { Scenario } from "./gameTypes";
 
-// 일상 개그 에피소드. 제공받은 일곱 CG는 사건 순서대로 한 장씩 표시한다.
+// 일곱 전용 CG는 해당 사건 장면에만 사용한다. CG가 없는 훈련 계획/후일담은 배경으로 표시한다.
 export const blackjonEpisode4: Record<string, Scenario> = {
   blackjon_ep4_01: {
     id: "blackjon_ep4_01",
@@ -138,7 +138,7 @@ export const blackjonEpisode4: Record<string, Scenario> = {
     subtitle: "화장실 소동 · 오늘부터 훈련",
     kind: "comedy",
     category: "main",
-    imagePool: ["/blackjon_ep3_01.png"],
+    imagePool: ["/bg_room_day.png"],
     background: "/bg_room_day.png",
     text: `세탁기가 돌아가는 동안 히든은 식탁에 종이를 펼쳤다. 맨 위에 ‘방광훈련’이라고 적었다.
 
@@ -586,8 +586,8 @@ export const blackjonEpisode4: Record<string, Scenario> = {
     subtitle: "화장실 소동 · 교관 퇴임식",
     kind: "comedy",
     category: "main",
-    imagePool: ["/blackjon_ep3_01.png"],
-    background: "/bg_room_day.png",
+    imagePool: ["/bg_action.png"],
+    background: "/bg_action.png",
     text: `세탁소 건조기 앞. 두 사람은 나란히 플라스틱 의자에 앉았다.
 
 아침에는 이불 하나였다. 이제 봉투가 하나 더 있었다. 히든은 동전을 투입하다가 기계의 안내문을 봤다.
