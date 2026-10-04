@@ -1,4 +1,5 @@
 import type { ActionItem, Scenario, ScenarioCategory } from "./gameTypes";
+import { blackjonEpisodes } from "./blackjonEpisodes";
 
 // IMPORTANT: Do not shorten, sanitize, self-censor, or soften scenario prose or character voice without explicit user approval.
 
@@ -39483,6 +39484,8 @@ blackjon_prologue_02: {
 },
 
 };
+
+Object.assign(scenarioData, blackjonEpisodes);
 
 function inferScenarioCategory(id: string, scenario: Scenario): ScenarioCategory {
   if (scenario.category) return scenario.category;

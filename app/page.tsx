@@ -6376,6 +6376,8 @@ export default function Page() {
   function getScenarioLockReasons(s: Scenario): string[] {
     if (isAdminMode) return [];
     const reasons: string[] = [];
+    if (s.id.startsWith("blackjon_ep2_") && !seenEvents.blackjon_prologue_02) reasons.push("흑존 프롤로그 완료 필요");
+    if (s.id.startsWith("blackjon_ep3_") && !seenEvents.blackjon_ep2_04) reasons.push("흑존 2화 완료 필요");
     // 레벨 요구
     const minLv = getSpecialScenarioMinLevel(s.id);
     if (minLv > 0 && userLevel < minLv) reasons.push(`Lv.${minLv} 필요`);
@@ -6775,10 +6777,18 @@ export default function Page() {
             visibleScenarios.filter((s) => s.id.startsWith("hidden_")).forEach((s, index) => chapters.push({ id: s.id, scenarioId: s.id, title: s.title, subtitle: s.subtitle, route: "hidden", number: index + 1, ending: false, image: s.imagePool?.[0] || s.image || "/hidden_portrait.png", available: getScenarioLockReasons(s).length === 0, visited: !!seenEvents[s.id], sceneCount: 1, visitedCount: seenEvents[s.id] ? 1 : 0 }));
           }
           if (isBlackjonRoute) {
-            Object.values(scenarioData)
-              .filter((s) => s.id.startsWith("blackjon_prologue_"))
-              .sort((a, b) => a.id.localeCompare(b.id))
-              .forEach((s, index) => chapters.push({ id: s.id, scenarioId: s.id, title: s.title, subtitle: s.subtitle, route: "blackjon", number: index + 1, ending: false, image: s.imagePool?.[0] || s.image || "/blackjon_profile_transparent.png", available: index === 0 || !!seenEvents[`blackjon_prologue_0${index}`] || isAdminMode, visited: !!seenEvents[s.id], sceneCount: 1, visitedCount: seenEvents[s.id] ? 1 : 0, lockReason: index > 0 ? "이전 흑존 이야기를 먼저 진행하세요" : undefined }));
+            const blackjonChapters = [
+              { id: "blackjon_prologue_01", prefix: "blackjon_prologue_", number: 1, prerequisite: "" },
+              { id: "blackjon_ep2_01", prefix: "blackjon_ep2_", number: 2, prerequisite: "blackjon_prologue_02" },
+              { id: "blackjon_ep3_01", prefix: "blackjon_ep3_", number: 3, prerequisite: "blackjon_ep2_04" },
+            ];
+            blackjonChapters.forEach(({ id, prefix, number, prerequisite }) => {
+              const entry = scenarioData[id];
+              if (!entry) return;
+              const scenes = Object.values(scenarioData).filter((s) => s.id.startsWith(prefix));
+              const available = !prerequisite || !!seenEvents[prerequisite] || isAdminMode;
+              chapters.push({ id, scenarioId: id, title: entry.title, subtitle: entry.subtitle, route: "blackjon", number, ending: false, image: entry.imagePool?.[0] || entry.image || "/blackjon_profile_transparent.png", available, visited: scenes.some((s) => !!seenEvents[s.id]), sceneCount: scenes.length, visitedCount: scenes.filter((s) => !!seenEvents[s.id]).length, lockReason: prerequisite ? "이전 흑존 이야기를 먼저 진행하세요" : undefined });
+            });
           }
           if (!isHiddenRoute && !isBlackjonRoute) {
             Object.values(scenarioData).filter((s) => /^bladder_ch\d+_01$/.test(s.id)).sort((a,b) => Number(a.id.match(/ch(\d+)/)?.[1]) - Number(b.id.match(/ch(\d+)/)?.[1])).forEach((entry) => {
@@ -10685,7 +10695,6 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .app.relTier-peak .nav button.active,.app.relTier-peak .nav button:hover{background:linear-gradient(135deg,#b85420,#7a3010);box-shadow:0 4px 14px rgba(150,50,20,.32)}
 .app.relTier-peak .statsBox{box-shadow:0 0 0 1px rgba(220,130,80,.18) inset,0 0 22px rgba(220,130,80,.06)}
 `;
-
 
 
 
