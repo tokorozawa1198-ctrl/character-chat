@@ -6536,7 +6536,7 @@ export default function Page() {
       <style dangerouslySetInnerHTML={{ __html: CSS + NOVEL_CSS }} />
       {editingPlayer && <PlayerProfileEditor value={player} onCancel={() => setEditingPlayer(false)} onSave={(value) => { savePlayer(value); setEditingPlayer(false); }}/>}
       <aside className="side">
-        <PlayerProfileButton player={player} onClick={() => setEditingPlayer(true)}/>
+        <PlayerProfileButton player={player} subtitle={`${activeCharacterName} 플레이 중`} onClick={() => setEditingPlayer(true)}/>
         <div className="novelBrand"><span>GEUNDDEOKJON</span><MobileMenuButton open={mobileMenuOpen} onClick={() => setMobileMenuOpen((v) => !v)} /></div>
         <div className="profileHead"><img className="avatar" src={activePortrait} alt={activeCharacterName} onError={(e)=>{e.currentTarget.src= selectedCharacter === "hidden" ? "/hidden_portrait.png" : selectedCharacter === "blackjon" ? "/blackjon_profile_transparent.png" : "/oppa1.png"}}/><div><h1>{activeCharacterName}</h1><p>{routeLabel} · {currentChapter}장</p></div></div>
         <div className="sideHeader">
@@ -6680,7 +6680,7 @@ export default function Page() {
 
         {view === "home" && <section className="homeView">
           <button type="button" className="homePlayerProgress" onClick={() => setEditingPlayer(true)} aria-label={`내 프로필, 레벨 ${userLevel}, 경험치 ${userExp} / ${expToNextLevel(userLevel)}. 프로필 편집`}>
-            <img src={player?.avatar || "/hidden_portrait.png"} alt="내 프로필 사진"/>
+            <img className={`homePlayerAvatar-${player?.avatarFrame || "gold"}`} src={player?.avatar || "/hidden_portrait.png"} alt="내 프로필 사진"/>
             <span className="homePlayerInfo"><span className="homePlayerTop"><strong>{player?.nickname || "내 프로필"}</strong><b>Lv.{userLevel}</b></span><span className="homePlayerExpLabel">{getLevelTitle(userLevel)} · {userExp} / {expToNextLevel(userLevel)} EXP</span><span className="homePlayerTrack"><span style={{width: `${Math.min(100, (userExp / expToNextLevel(userLevel)) * 100)}%`}}/></span></span>
           </button>
           <div className="homeHeader"><span className="novelEyebrow">HIROSHIMA · CHAPTER {String(currentChapter).padStart(2, "0")}</span><div className="homeLogo" onClick={handleAdminTap} style={{cursor:"default"}}><span>{activeCharacterName}</span><small>{selectedCharacter === "blackjon" ? "어나더 캐릭터" : routeLabel}</small>{isAdminMode && <span className="adminBadge">🔑 관리자</span>}</div><p className="novelHomeMood">{emotionState.label}<span>{emotionState.detail}</span></p></div>
