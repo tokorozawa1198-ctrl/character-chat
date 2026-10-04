@@ -140,6 +140,25 @@ html,body{background:#151719;letter-spacing:0}
 .novelApp .ssStats span,.novelApp .ssRouteBadge{background:var(--surface);color:var(--muted);border-radius:3px}.novelApp .ssThumb{border-radius:4px;border:0}
 .novelApp .saveSlotGrid{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
 .novelApp .panel :is(.questGrid,.shopGrid,.giftGrid,.wardrobeGrid,.petsGrid,.achGrid,.mgGrid,.advGrid,.dailyGrid,.codexGrid){gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+.novelApp .petsIntro{background:#29251f;border:1px solid #a98a55;color:#fff0d1;font-size:14px;line-height:1.6}
+.novelApp .petCard{gap:11px;padding:16px;border:1px solid #56605f!important}
+.novelApp .petCard.petActive{border:2px solid #85bd92!important}
+.novelApp .petCard.petLocked{opacity:1}
+.novelApp .petArtFrame{max-width:320px}
+.novelApp .petName{font-size:17px!important}
+.novelApp .petFlavor{color:#d3d0ca;font-size:13px;line-height:1.55;min-height:0}
+.novelApp .petEffect{background:#263c31;color:#eaf6e9;border:1px solid #5f936e;font-size:13px;line-height:1.5;padding:8px 12px}
+.novelApp .petLvLine{font-size:13px}
+.novelApp .petLvBadge{font-size:12px;color:#142617;background:#a9db96;padding:5px 9px}
+.novelApp .petAff{font-size:13px;color:#f4e2e1}
+.novelApp .petAffBar{height:8px;background:#3d4545}
+.novelApp .petActiveBtn,.novelApp .petFeedBtn,.novelApp .petFeedBigBtn{min-height:44px;font-size:13px;line-height:1.25}
+.novelApp .petActiveBtn{background:#dde7df;color:#193223}
+.novelApp .petActiveBtn.petIsActive{background:#3a8655;color:#fff}
+.novelApp .petFeedBtn{background:#fff0c6;color:#51380c}
+.novelApp .petFeedBigBtn{background:#e7a344;color:#38220b}
+.novelApp .petFeedBtn:disabled,.novelApp .petFeedBigBtn:disabled{opacity:.6}
+@media(max-width:600px){.novelApp .petArtFrame{max-width:260px}.novelApp .petCard{padding:14px 12px}}
 .novelApp .topBar,.novelApp .scenarioHubTabs,.novelApp .galleryTabs{scrollbar-width:none}.novelApp .topBar::-webkit-scrollbar,.novelApp .scenarioHubTabs::-webkit-scrollbar,.novelApp .galleryTabs::-webkit-scrollbar{display:none}
 .novelApp .panel{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 .novelApp .bigBtn{border-radius:5px;background:var(--accent)!important;color:var(--accent-ink)!important;box-shadow:none!important;font-size:13px}
