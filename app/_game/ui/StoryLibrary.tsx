@@ -34,7 +34,7 @@ export function StoryLibrary({ chapters, activeRoute, resume, onStart, onNavigat
     : [];
   const readCount = chapters.filter((c) => c.route === selected && c.visited).length;
   const routeGuide = activeRoute === "blackjon"
-    ? ["프롤로그", "2화", "3화", "4화"]
+    ? chapters.filter((chapter) => chapter.route === "blackjon").sort((a, b) => a.number - b.number).map((chapter) => chapter.number === 1 ? "프롤로그" : `${chapter.number}화`)
     : activeRoute === "hidden"
       ? ["히든 이야기", "다음 에피소드"]
       : ["공통 1~6장", "6장의 선택", activeRoute === "common" ? "순애 / 집착" : `${ROUTES[activeRoute] || activeRoute} 루트`, "후속 분기와 엔딩"];
