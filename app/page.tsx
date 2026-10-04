@@ -43,6 +43,7 @@ const CHARACTER_KEY = "떡존이_selected_character";
 const STORAGE_KEY = "geuntteokjon_single_file_vn_v9";
 const HIDDEN_STORAGE_KEY = "geuntteokjon_hidden_v1";
 const BLACKJON_STORAGE_KEY = "geuntteokjon_blackjon_v1";
+const BLACKJON_COMPLETE_SCENES = ["pure_ch7_01", "obsession_ch7_01"];
 const TUTORIAL_KEY = `${STORAGE_KEY}_tutorial_seen`;
 const SLOT_KEY = (slot: number) => `${STORAGE_KEY}_slot_${slot}`;
 const PUSH_SEEN_KEY = `${STORAGE_KEY}_seen_push_ids`;
@@ -3984,7 +3985,7 @@ export default function Page() {
   const [selectedCharacter, setSelectedCharacter] = useState<CharacterKey | null>(() => {
     try { return (localStorage.getItem(CHARACTER_KEY) as CharacterKey) || null; } catch { return null; }
   });
-  const [blackjonUnlocked, setBlackjonUnlocked] = useState(false);
+  const [characterUnlocks, setCharacterUnlocks] = useState({ hidden: false, blackjon: false });
   const activePortrait = selectedCharacter === "hidden"
     ? "/hidden_portrait.png"
     : selectedCharacter === "blackjon"
@@ -4002,18 +4003,29 @@ export default function Page() {
     }
   }, [selectedCharacter]);
   useEffect(() => {
-    if (isAdminMode) {
-      setBlackjonUnlocked(true);
-      return;
-    }
+    let mainLevel = 1;
+    let mainSeenEvents: Record<string, boolean> = {};
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       const mainSave = raw ? JSON.parse(raw) as Partial<SaveData> : null;
-      setBlackjonUnlocked(Object.keys(mainSave?.seenEvents ?? {}).some((id) => id.startsWith("main_ch6")));
-    } catch {
-      setBlackjonUnlocked(false);
+      mainLevel = mainSave?.userLevel ?? 1;
+      mainSeenEvents = mainSave?.seenEvents ?? {};
+    } catch {}
+    // Only the main character's progress unlocks the alternate characters.
+    if (selectedCharacter === "geonddeokjon") {
+      mainLevel = userLevel;
+      mainSeenEvents = seenEvents;
     }
-  }, [selectedCharacter, isAdminMode]);
+    const next = {
+      hidden: isAdminMode || mainLevel >= 30,
+      blackjon: isAdminMode || BLACKJON_COMPLETE_SCENES.some((id) => !!mainSeenEvents[id]),
+    };
+    setCharacterUnlocks(next);
+    if ((selectedCharacter === "hidden" && !next.hidden) || (selectedCharacter === "blackjon" && !next.blackjon)) {
+      localStorage.removeItem(CHARACTER_KEY);
+      setSelectedCharacter(null);
+    }
+  }, [selectedCharacter, isAdminMode, userLevel, seenEvents]);
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
   const [chapterTransition, setChapterTransition] = useState<ChapterTransition | null>(null);
@@ -6667,6 +6679,10 @@ export default function Page() {
         </div>}
 
         {view === "home" && <section className="homeView">
+          <button type="button" className="homePlayerProgress" onClick={() => setEditingPlayer(true)} aria-label={`내 프로필, 레벨 ${userLevel}, 경험치 ${userExp} / ${expToNextLevel(userLevel)}. 프로필 편집`}>
+            <img src={player?.avatar || "/hidden_portrait.png"} alt="내 프로필 사진"/>
+            <span className="homePlayerInfo"><span className="homePlayerTop"><strong>{player?.nickname || "내 프로필"}</strong><b>Lv.{userLevel}</b></span><span className="homePlayerExpLabel">{getLevelTitle(userLevel)} · {userExp} / {expToNextLevel(userLevel)} EXP</span><span className="homePlayerTrack"><span style={{width: `${Math.min(100, (userExp / expToNextLevel(userLevel)) * 100)}%`}}/></span></span>
+          </button>
           <div className="homeHeader"><span className="novelEyebrow">HIROSHIMA · CHAPTER {String(currentChapter).padStart(2, "0")}</span><div className="homeLogo" onClick={handleAdminTap} style={{cursor:"default"}}><span>{activeCharacterName}</span><small>{selectedCharacter === "blackjon" ? "어나더 캐릭터" : routeLabel}</small>{isAdminMode && <span className="adminBadge">🔑 관리자</span>}</div><p className="novelHomeMood">{emotionState.label}<span>{emotionState.detail}</span></p></div>
           <div className="homeStage">
             <div className="homeBubble">{homeBubble}</div>
@@ -8792,29 +8808,30 @@ export default function Page() {
                   <small>금발 근육질 24세<br/>순종적이고 순한 눈매</small>
                   <span className="charSelectTag">메인 루트</span>
                 </button>
-                <button className="charSelectBtn charSelectBtnGoat" onClick={() => {
-                  try { localStorage.setItem(CHARACTER_KEY, "hidden"); } catch {}
-                  setSelectedCharacter("hidden");
-                }}>
-                  <div className="charSelectImgWrap"><img src="/char_hidden.png" alt="히든" className="charSelectImg" onError={(e)=>{e.currentTarget.style.display="none"}}/></div>
-                  <b>히든 (염소인간)</b>
-                  <small>전직 교사<br/>세상을 런하기로 결심함</small>
-                  <span className="charSelectTag charSelectTagGoat">병맛 개그 루트</span>
-                </button>
-                <button
-                  className={`charSelectBtn charSelectBtnBlackjon${blackjonUnlocked ? "" : " locked"}`}
-                  disabled={!blackjonUnlocked}
-                  onClick={() => {
-                    if (!blackjonUnlocked) return;
+                <div className="charSelectOption" tabIndex={characterUnlocks.hidden ? undefined : 0} aria-label={characterUnlocks.hidden ? undefined : "히든 잠김: 근떡존 레벨 30 달성 필요"}>
+                  <button className={`charSelectBtn charSelectBtnGoat${characterUnlocks.hidden ? "" : " locked"}`} disabled={!characterUnlocks.hidden} onClick={() => {
+                    try { localStorage.setItem(CHARACTER_KEY, "hidden"); } catch {}
+                    setSelectedCharacter("hidden");
+                  }}>
+                    <div className="charSelectImgWrap"><img src="/char_hidden.png" alt="히든" className="charSelectImg" onError={(e)=>{e.currentTarget.style.display="none"}}/>{!characterUnlocks.hidden && <span className="charSelectLock" aria-hidden="true">🔒</span>}</div>
+                    <b>히든 (염소인간)</b>
+                    <small>전직 교사<br/>세상을 런하기로 결심함</small>
+                    <span className="charSelectTag charSelectTagGoat">{characterUnlocks.hidden ? "병맛 개그 루트" : "근떡존 Lv.30 필요"}</span>
+                  </button>
+                  {!characterUnlocks.hidden && <span className="charUnlockHint" role="note">근떡존으로 플레이어 레벨 30 달성 시 해금</span>}
+                </div>
+                <div className="charSelectOption" tabIndex={characterUnlocks.blackjon ? undefined : 0} aria-label={characterUnlocks.blackjon ? undefined : "흑존 잠김: 근떡존 메인 스토리 6장 완주 필요"}>
+                  <button className={`charSelectBtn charSelectBtnBlackjon${characterUnlocks.blackjon ? "" : " locked"}`} disabled={!characterUnlocks.blackjon} onClick={() => {
                     try { localStorage.setItem(CHARACTER_KEY, "blackjon"); } catch {}
                     setSelectedCharacter("blackjon");
-                  }}
-                >
-                  <div className="charSelectImgWrap"><img src="/blackjon_profile_transparent.png" alt="흑존" className="charSelectImg" onError={(e)=>{e.currentTarget.style.display="none"}}/></div>
-                  <b>{blackjonUnlocked ? "흑존" : "???"}</b>
-                  <small>{blackjonUnlocked ? <>검은 머리의 근떡존<br/>짓궂고 능글맞은 어나더</> : <>메인 스토리 6장을 완료하면<br/>새로운 캐릭터가 해금됩니다</>}</small>
-                  <span className="charSelectTag charSelectTagBlackjon">{blackjonUnlocked ? "어나더 캐릭터" : "6장 완료 필요"}</span>
-                </button>
+                  }}>
+                    <div className="charSelectImgWrap"><img src="/blackjon_profile_transparent.png" alt="흑존" className="charSelectImg" onError={(e)=>{e.currentTarget.style.display="none"}}/>{!characterUnlocks.blackjon && <span className="charSelectLock" aria-hidden="true">🔒</span>}</div>
+                    <b>흑존</b>
+                    <small>검은 머리의 근떡존<br/>짓궂고 능글맞은 어나더</small>
+                    <span className="charSelectTag charSelectTagBlackjon">{characterUnlocks.blackjon ? "어나더 캐릭터" : "근떡존 6장 완주 필요"}</span>
+                  </button>
+                  {!characterUnlocks.blackjon && <span className="charUnlockHint" role="note">근떡존 메인 스토리 6장 완주 시 해금</span>}
+                </div>
               </div>
             </section>
           </div>
@@ -10701,4 +10718,3 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .app.relTier-peak .nav button.active,.app.relTier-peak .nav button:hover{background:linear-gradient(135deg,#b85420,#7a3010);box-shadow:0 4px 14px rgba(150,50,20,.32)}
 .app.relTier-peak .statsBox{box-shadow:0 0 0 1px rgba(220,130,80,.18) inset,0 0 22px rgba(220,130,80,.06)}
 `;
-
