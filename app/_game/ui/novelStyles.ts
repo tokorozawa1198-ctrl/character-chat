@@ -303,6 +303,11 @@ html,body{background:#151719;letter-spacing:0}
  .novelApp[data-view="subScenarios"] .subGroup{padding:16px!important}.novelApp[data-view="subScenarios"] .subGroupHead{grid-template-columns:42px minmax(0,1fr) auto;gap:10px}.novelApp[data-view="subScenarios"] .subGroupEmoji{width:42px;height:42px;font-size:25px}.novelApp[data-view="subScenarios"] .subGroupLabel{font-size:16px}.novelApp[data-view="subScenarios"] .subGroupCount{font-size:18px}.novelApp[data-view="subScenarios"] .subEpisodes{grid-template-columns:1fr}
  .novelApp[data-view="extraScenarios"] .grid{grid-template-columns:1fr}.novelApp[data-view="extraScenarios"] .cardBtn{min-height:0}
  .novelApp[data-view="admin"] .adminSection{padding:16px}.novelApp[data-view="admin"] .memoryAdminAddRow{flex-wrap:wrap}.novelApp[data-view="admin"] .memoryAdminAddRow .memoryAdminInput{flex:1 1 100%}.novelApp[data-view="admin"] .adminStatRow{grid-template-columns:54px minmax(0,1fr) 42px}.novelApp[data-view="admin"] .adminStatBtns{grid-column:1/-1;justify-content:flex-end}
+ .novelApp[data-view="subScenarios"] .subGroupDesc,.novelApp[data-view="subScenarios"] .subEpisode small,.novelApp[data-view="extraScenarios"] .cardBtn small,.novelApp[data-view="admin"] .memoryAdminHint,.novelApp[data-view="admin"] .memoryItemText{font-size:14px!important;line-height:1.6}
+ .novelApp[data-view="subScenarios"] .subEpisode{padding:18px!important;gap:9px}.novelApp[data-view="subScenarios"] .subEpisode b,.novelApp[data-view="extraScenarios"] .cardBtn b{font-size:16px!important;line-height:1.5}
+ .novelApp[data-view="subScenarios"] .subEpisodePlayBtn,.novelApp[data-view="admin"] .memoryAdminBtn,.novelApp:is([data-view="subScenarios"],[data-view="extraScenarios"],[data-view="admin"]) .scenarioHubTabs button{min-height:44px;font-size:14px}.novelApp[data-view="extraScenarios"] .cardBtn{padding:18px!important;min-height:88px}
+ .novelApp[data-view="admin"] .memoryAdminInput,.novelApp[data-view="admin"] .memoryAdminTextarea{font-size:16px;line-height:1.5}
+ .novelApp .homeStageActions button{min-height:44px;font-size:13px}
 }
 @media(prefers-reduced-motion:reduce){.novelApp *,.novelTitle *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 `;
