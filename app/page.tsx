@@ -4065,7 +4065,7 @@ export default function Page() {
   // imagePool에 여러 컷이 있으면 vnLineIndex 진행도에 따라 순차 노출
   const vnSceneImage = useMemo(() => {
     const pool = currentScenario?.imagePool;
-    if (!pool || pool.length <= 1) return activePortrait;
+    if (!pool || pool.length <= 1) return pool?.[0] ?? currentScenario?.image ?? activePortrait;
     const segmentSize = Math.max(1, Math.ceil(vnLines.length / pool.length));
     const segmentIdx = Math.min(pool.length - 1, Math.floor(safeVNLineIndex / segmentSize));
     return pool[segmentIdx] ?? activePortrait;
@@ -6378,6 +6378,7 @@ export default function Page() {
     const reasons: string[] = [];
     if (s.id.startsWith("blackjon_ep2_") && !seenEvents.blackjon_prologue_02) reasons.push("흑존 프롤로그 완료 필요");
     if (s.id.startsWith("blackjon_ep3_") && !seenEvents.blackjon_ep2_04) reasons.push("흑존 2화 완료 필요");
+    if (s.id.startsWith("blackjon_ep4_") && !seenEvents.blackjon_ep3_05) reasons.push("흑존 3화 완료 필요");
     // 레벨 요구
     const minLv = getSpecialScenarioMinLevel(s.id);
     if (minLv > 0 && userLevel < minLv) reasons.push(`Lv.${minLv} 필요`);
@@ -6781,6 +6782,7 @@ export default function Page() {
               { id: "blackjon_prologue_01", prefix: "blackjon_prologue_", number: 1, prerequisite: "" },
               { id: "blackjon_ep2_01", prefix: "blackjon_ep2_", number: 2, prerequisite: "blackjon_prologue_02" },
               { id: "blackjon_ep3_01", prefix: "blackjon_ep3_", number: 3, prerequisite: "blackjon_ep2_04" },
+              { id: "blackjon_ep4_01", prefix: "blackjon_ep4_", number: 4, prerequisite: "blackjon_ep3_05" },
             ];
             blackjonChapters.forEach(({ id, prefix, number, prerequisite }) => {
               const entry = scenarioData[id];
@@ -10695,7 +10697,5 @@ html,body{font-family:var(--font-body);color:var(--text-main)}
 .app.relTier-peak .nav button.active,.app.relTier-peak .nav button:hover{background:linear-gradient(135deg,#b85420,#7a3010);box-shadow:0 4px 14px rgba(150,50,20,.32)}
 .app.relTier-peak .statsBox{box-shadow:0 0 0 1px rgba(220,130,80,.18) inset,0 0 22px rgba(220,130,80,.06)}
 `;
-
-
 
 
