@@ -39174,7 +39174,7 @@ blackjon_prologue_01: {
   subtitle: "어나더 캐릭터 · 익숙한 얼굴, 다른 태도",
   kind: "normal",
   category: "main",
-  imagePool: ["/blackjon_prologue_encounter.png"],
+  imagePool: ["/blackjon_prologue_encounter_v2.png"],
   background: "/bg_room_day.png",
   text: `6장이 끝난 뒤 며칠이 지났다.
 
