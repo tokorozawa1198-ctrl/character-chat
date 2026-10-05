@@ -6393,6 +6393,7 @@ export default function Page() {
     if (s.id.startsWith("blackjon_ep4_") && !seenEvents.blackjon_ep3_05) reasons.push("흑존 3화 완료 필요");
     if (s.id.startsWith("blackjon_ep5_") && !seenEvents.blackjon_ep4_09) reasons.push("흑존 4화 완료 필요");
     if (s.id.startsWith("blackjon_ep6_") && !seenEvents.blackjon_ep5_10) reasons.push("흑존 5화 완료 필요");
+    if (s.id.startsWith("blackjon_ep7_") && !seenEvents.blackjon_ep6_12) reasons.push("흑존 6화 완료 필요");
     // 레벨 요구
     const minLv = getSpecialScenarioMinLevel(s.id);
     if (minLv > 0 && userLevel < minLv) reasons.push(`Lv.${minLv} 필요`);
@@ -6803,6 +6804,7 @@ export default function Page() {
               { id: "blackjon_ep4_01", prefix: "blackjon_ep4_", number: 4, prerequisite: "blackjon_ep3_05" },
               { id: "blackjon_ep5_01", prefix: "blackjon_ep5_", number: 5, prerequisite: "blackjon_ep4_09" },
               { id: "blackjon_ep6_01", prefix: "blackjon_ep6_", number: 6, prerequisite: "blackjon_ep5_10" },
+              { id: "blackjon_ep7_01", prefix: "blackjon_ep7_", number: 7, prerequisite: "blackjon_ep6_12" },
             ];
             blackjonChapters.forEach(({ id, prefix, number, prerequisite }) => {
               const entry = scenarioData[id];
