@@ -8,8 +8,8 @@ export const blackjonEpisode7: Record<string, Scenario> = {
     subtitle: "출장 둘째 날 · 일곱 시 반",
     kind: "normal",
     category: "main",
-    imagePool: ["/blackjon_ep7_breakfast.png"],
-    background: "/bg_room_day.png",
+    imagePool: ["/blackjon_ep7_morning.png"],
+    background: "/blackjon_ep7_morning.png",
     text: `알람이 울리기도 전에 흑존이 눈을 떴다. 형의 손은 밤새 놓친 적이 없는 것처럼 아직 이불 안에 있었다.
 
 히든: 몇 시냐.
@@ -50,8 +50,8 @@ export const blackjonEpisode7: Record<string, Scenario> = {
     subtitle: "호텔 식당 · 빈 의자 하나",
     kind: "jealousy",
     category: "main",
-    imagePool: ["/blackjon_ep7_breakfast.png"],
-    background: "/bg_room_day.png",
+    imagePool: ["/blackjon_ep7_breakfast_v2.png"],
+    background: "/blackjon_ep7_breakfast_v2.png",
     text: `식당은 바빴다. 히든이 접시 두 개를 들고 돌아오자 흑존은 이미 창가 자리를 골라 두었다. 형이 햇빛을 등지지 않도록 반대편 의자도 바꿔 놓았다.
 
 히든: 의자까지 네가 고르면 나중엔 출근도 대신 하겠다.
@@ -96,8 +96,8 @@ export const blackjonEpisode7: Record<string, Scenario> = {
     subtitle: "호텔 로비 · 세 사람이 서 있는 자리",
     kind: "jealousy",
     category: "main",
-    imagePool: ["/blackjon_ep7_lobby.png"],
-    background: "/blackjon_ep7_lobby.png",
+    imagePool: ["/blackjon_ep7_lobby_v2.png"],
+    background: "/blackjon_ep7_lobby_v2.png",
     text: `로비에서 그 동료가 커피 두 잔을 들고 기다리고 있었다. 히든이 가까이 가자 자연스럽게 한 잔을 내밀었다.
 
 기타: 어제 드신 걸로 샀어요. 오늘은 안 틀렸죠?
@@ -136,8 +136,8 @@ export const blackjonEpisode7: Record<string, Scenario> = {
     subtitle: "로비 한쪽 · 듣지 못한 척할 수 없는 말",
     kind: "obsession",
     category: "main",
-    imagePool: ["/blackjon_ep7_lobby.png"],
-    background: "/blackjon_ep7_lobby.png",
+    imagePool: ["/blackjon_ep7_lobby_v2.png"],
+    background: "/blackjon_ep7_lobby_v2.png",
     text: `화분 뒤편은 로비의 소음에서 조금 비켜나 있었다. 히든은 커피를 난간 위에 놓았다.
 
 히든: 내 폰 봤어?
@@ -180,8 +180,8 @@ export const blackjonEpisode7: Record<string, Scenario> = {
     subtitle: "로비 · 한 걸음 더 가까이",
     kind: "obsession",
     category: "main",
-    imagePool: ["/blackjon_ep7_lobby.png"],
-    background: "/blackjon_ep7_lobby.png",
+    imagePool: ["/blackjon_ep7_lobby_v2.png"],
+    background: "/blackjon_ep7_lobby_v2.png",
     text: `동료가 다시 다가왔다. 서둘러야 할 시간이었다.
 
 기타: 죄송한데 차가 왔어요. 자료는 제가 먼저 싣겠습니다.
@@ -226,8 +226,8 @@ export const blackjonEpisode7: Record<string, Scenario> = {
     subtitle: "호텔 출입구 · 질투가 입 밖으로 나온 뒤",
     kind: "obsession",
     category: "main",
-    imagePool: ["/blackjon_ep7_lobby.png"],
-    background: "/blackjon_ep7_lobby.png",
+    imagePool: ["/blackjon_ep7_lobby_v2.png"],
+    background: "/blackjon_ep7_lobby_v2.png",
     text: `자동문이 열렸다 닫혔다. 히든은 차 앞까지 가지 않고 흑존과 출입구 안쪽에 섰다.
 
 히든: 아까 뭘 하려던 건데.
@@ -270,8 +270,8 @@ export const blackjonEpisode7: Record<string, Scenario> = {
     subtitle: "차 앞 · 형에게 보이지 않는 선택",
     kind: "jealousy",
     category: "main",
-    imagePool: ["/blackjon_ep7_lobby.png"],
-    background: "/blackjon_ep7_lobby.png",
+    imagePool: ["/blackjon_ep7_lobby_v2.png"],
+    background: "/blackjon_ep7_lobby_v2.png",
     text: `흑존은 자기가 먼저 사과하겠다며 동료에게 다가갔다. 히든은 조금 떨어진 곳에 있었다. 무슨 말을 하는지 듣지 못했다.
 
 흑존: 아까 무례했습니다. 형 짐인데 제 마음대로 가져갔어요. 죄송합니다.
@@ -316,8 +316,8 @@ export const blackjonEpisode7: Record<string, Scenario> = {
     subtitle: "오사카의 낮 · 가까이 가지 않기로 한 거리",
     kind: "obsession",
     category: "main",
-    imagePool: ["/blackjon_ep7_cafe.png"],
-    background: "/bg_room_day.png",
+    imagePool: ["/blackjon_ep7_cafe_v2.png"],
+    background: "/blackjon_ep7_cafe_v2.png",
     text: `차가 모퉁이를 돌아 사라졌다. 흑존은 한동안 출입구에 서 있었다. 동료가 형에게 뭐라고 말할지, 차 안에서 둘이 얼마나 웃을지, 오늘 커피를 또 누가 사 줄지. 생각은 하나를 밀어내면 다른 모양으로 돌아왔다.
 
 휴대폰의 지도 앱에는 형이 간 행사장까지의 길이 남아 있었다. 아침에 검색한 경로였다. ‘우연히 근처를 지나다’라는 문장도 떠올릴 수 있었다. 그러면 형이 알아챌 것이다. 못 알아채도 자신은 알 것이다.
@@ -352,8 +352,8 @@ export const blackjonEpisode7: Record<string, Scenario> = {
     subtitle: "저녁 · 사과 뒤에도 남는 마음",
     kind: "normal",
     category: "main",
-    imagePool: ["/blackjon_ep6_04.png"],
-    background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep7_evening.png"],
+    background: "/blackjon_ep7_evening.png",
     text: `해가 저문 뒤 히든에게서 전화가 왔다. 흑존은 세 번 울릴 때까지 기다렸다가 받았다.
 
 히든: 왜 안 받아. 손가락 퇴근함?
