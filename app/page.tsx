@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { actionCGImages, actionCGPools, actionItems, imagePools, profile, quickReplies, scenarioData } from "./gameData";
 import { MemoryAdminPanel } from "./_game/ui/MemoryAdminPanel";
 import { NovelTitle, MobileMenuButton, ViewIcon, ArrowRight, Camera, House } from "./_game/ui/NovelChrome";
-import { PlayerProfileEditor, PlayerProfileButton, usePlayerProfile } from "./_game/ui/PlayerProfile";
+import { PlayerProfileEditor, PlayerProfileButton, usePlayerProfile, getProfileTitle } from "./_game/ui/PlayerProfile";
 import { StoryLibrary, StoryChapter } from "./_game/ui/StoryLibrary";
 import { playerText } from "./_game/playerText";
 import { CollectionTrophies } from "./_game/ui/CollectionTrophies";
@@ -6680,9 +6680,9 @@ export default function Page() {
         </div>}
 
         {view === "home" && <section className="homeView">
-          <button type="button" className="homePlayerProgress" onClick={() => setEditingPlayer(true)} aria-label={`내 프로필, 레벨 ${userLevel}, 경험치 ${userExp} / ${expToNextLevel(userLevel)}. 프로필 편집`}>
+          <button type="button" className={`homePlayerProgress playerProfileTheme-${player?.theme || "midnight"}`} onClick={() => setEditingPlayer(true)} aria-label={`내 프로필, 레벨 ${userLevel}, 경험치 ${userExp} / ${expToNextLevel(userLevel)}. 프로필 꾸미기`}>
             <img className={`homePlayerAvatar-${player?.avatarFrame || "gold"}`} src={player?.avatar || "/hidden_portrait.png"} alt="내 프로필 사진"/>
-            <span className="homePlayerInfo"><span className="homePlayerTop"><strong>{player?.nickname || "내 프로필"}</strong><b>Lv.{userLevel}</b></span><span className="homePlayerExpLabel">{getLevelTitle(userLevel)} · {userExp} / {expToNextLevel(userLevel)} EXP</span><span className="homePlayerTrack"><span style={{width: `${Math.min(100, (userExp / expToNextLevel(userLevel)) * 100)}%`}}/></span></span>
+            <span className="homePlayerInfo"><span className="homePlayerTop"><span className="homePlayerName"><strong>{player?.nickname || "내 프로필"}</strong>{player?.title && player.title !== "none" && <small>{getProfileTitle(player.title)}</small>}</span><b>Lv.{userLevel}</b></span><span className="homePlayerExpLabel">{getLevelTitle(userLevel)} · {userExp} / {expToNextLevel(userLevel)} EXP</span><span className="homePlayerTrack"><span style={{width: `${Math.min(100, (userExp / expToNextLevel(userLevel)) * 100)}%`}}/></span></span>
           </button>
           <div className="homeHeader"><span className="novelEyebrow">HIROSHIMA · CHAPTER {String(currentChapter).padStart(2, "0")}</span><div className="homeLogo" onClick={handleAdminTap} style={{cursor:"default"}}><span>{activeCharacterName}</span><small>{selectedCharacter === "blackjon" ? "어나더 캐릭터" : routeLabel}</small>{isAdminMode && <span className="adminBadge">🔑 관리자</span>}</div><p className="novelHomeMood">{emotionState.label}<span>{emotionState.detail}</span></p></div>
           <div className="homeStage">
