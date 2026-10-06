@@ -36,7 +36,7 @@ export function StoryLibrary({ chapters, activeRoute, resume, onStart, onNavigat
   const routeGuide = activeRoute === "blackjon"
     ? chapters.filter((chapter) => chapter.route === "blackjon").sort((a, b) => a.number - b.number).map((chapter) => chapter.number === 1 ? "프롤로그" : `${chapter.number}화`)
     : activeRoute === "hidden"
-      ? ["히든 이야기", "다음 에피소드"]
+      ? chapters.filter((chapter) => chapter.route === "hidden").sort((a, b) => a.number - b.number).map((chapter) => `${chapter.number}화`)
       : ["공통 1~6장", "6장의 선택", activeRoute === "common" ? "순애 / 집착" : `${ROUTES[activeRoute] || activeRoute} 루트`, "후속 분기와 엔딩"];
   return <div className="storyLibrary"><style dangerouslySetInnerHTML={{ __html: STYLES }}/>
     <header className="storyLibraryHeading"><div><span>STORY ARCHIVE</span><h2>이야기 따라가기</h2></div><p><GitBranch size={15}/>{ROUTES[activeRoute] || activeRoute} 루트</p></header>

@@ -6388,6 +6388,7 @@ export default function Page() {
   function getScenarioLockReasons(s: Scenario): string[] {
     if (isAdminMode) return [];
     const reasons: string[] = [];
+    if ((s.id === "hidden_ch04" || s.id.startsWith("hidden_ch04_")) && !seenEvents.hidden_ch03_end) reasons.push("히든 3화 완료 필요");
     if (s.id.startsWith("blackjon_ep2_") && !seenEvents.blackjon_prologue_02) reasons.push("흑존 프롤로그 완료 필요");
     if (s.id.startsWith("blackjon_ep3_") && !seenEvents.blackjon_ep2_04) reasons.push("흑존 2화 완료 필요");
     if (s.id.startsWith("blackjon_ep4_") && !seenEvents.blackjon_ep3_05) reasons.push("흑존 3화 완료 필요");
@@ -6795,7 +6796,11 @@ export default function Page() {
             return [{ id: node.id, scenarioId: entry.id, title: entry.title, subtitle: entry.subtitle, route: node.branch || "common", number: node.number, ending: !!node.isEnding, image: entry.imagePool?.[0] || entry.image || entry.background || "/bg_room_night.png", available: status === "available" || status === "cleared", visited: scenes.some((s) => !!seenEvents[s.id]), sceneCount: scenes.length, visitedCount: scenes.filter((s) => !!seenEvents[s.id]).length }];
           });
           if (isHiddenRoute) {
-            visibleScenarios.filter((s) => s.id.startsWith("hidden_")).forEach((s, index) => chapters.push({ id: s.id, scenarioId: s.id, title: s.title, subtitle: s.subtitle, route: "hidden", number: index + 1, ending: false, image: s.imagePool?.[0] || s.image || "/hidden_portrait.png", available: getScenarioLockReasons(s).length === 0, visited: !!seenEvents[s.id], sceneCount: 1, visitedCount: seenEvents[s.id] ? 1 : 0 }));
+            visibleScenarios.filter((s) => /^hidden_ch\d+$/.test(s.id)).sort((a, b) => Number(a.id.slice(9)) - Number(b.id.slice(9))).forEach((entry) => {
+              const scenes = Object.values(scenarioData).filter((s) => (s.id === entry.id || s.id.startsWith(`${entry.id}_`)) && !s.id.includes("__r__"));
+              const reasons = getScenarioLockReasons(entry);
+              chapters.push({ id: entry.id, scenarioId: entry.id, title: entry.title, subtitle: entry.subtitle, route: "hidden", number: Number(entry.id.slice(9)), ending: false, image: entry.imagePool?.[0] || entry.image || "/hidden_portrait.png", available: reasons.length === 0, visited: scenes.some((s) => !!seenEvents[s.id]), sceneCount: scenes.length, visitedCount: scenes.filter((s) => !!seenEvents[s.id]).length, lockReason: reasons.join(" · ") || undefined });
+            });
           }
           if (isBlackjonRoute) {
             const blackjonChapters = [

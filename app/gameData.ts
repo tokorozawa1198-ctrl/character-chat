@@ -1,5 +1,6 @@
 import type { ActionItem, Scenario, ScenarioCategory } from "./gameTypes";
 import { blackjonEpisodes } from "./blackjonEpisodes";
+import { hiddenEpisode4 } from "./hiddenEpisode4";
 
 // IMPORTANT: Do not shorten, sanitize, self-censor, or soften scenario prose or character voice without explicit user approval.
 
@@ -38908,17 +38909,7 @@ hidden_ch03_end: {
   ],
 },
 
-hidden_ch04: {
-  id: "hidden_ch04",
-  title: "4화: 준비 중",
-  subtitle: "히든 루트 · 4화",
-  kind: "comedy",
-  category: "main",
-  imagePool: ["/hidden_selfie.png"],
-  background: "/bg_chat.png",
-  text: `(4화 시나리오 준비 중입니다.)`,
-  choices: [{ label: "계속", end: true }],
-},
+...hiddenEpisode4,
 
 // ========== 극 하드물 ==========
 
