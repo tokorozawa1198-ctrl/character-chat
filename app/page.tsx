@@ -6389,6 +6389,7 @@ export default function Page() {
     if (isAdminMode) return [];
     const reasons: string[] = [];
     if ((s.id === "hidden_ch04" || s.id.startsWith("hidden_ch04_")) && !seenEvents.hidden_ch03_end) reasons.push("히든 3화 완료 필요");
+    if ((s.id === "hidden_ch05" || s.id.startsWith("hidden_ch05_")) && !seenEvents.hidden_ch04_end) reasons.push("히든 4화 완료 필요");
     if (s.id.startsWith("blackjon_ep2_") && !seenEvents.blackjon_prologue_02) reasons.push("흑존 프롤로그 완료 필요");
     if (s.id.startsWith("blackjon_ep3_") && !seenEvents.blackjon_ep2_04) reasons.push("흑존 2화 완료 필요");
     if (s.id.startsWith("blackjon_ep4_") && !seenEvents.blackjon_ep3_05) reasons.push("흑존 3화 완료 필요");

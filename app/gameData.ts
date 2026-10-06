@@ -1,6 +1,7 @@
 import type { ActionItem, Scenario, ScenarioCategory } from "./gameTypes";
 import { blackjonEpisodes } from "./blackjonEpisodes";
 import { hiddenEpisode4 } from "./hiddenEpisode4";
+import { hiddenEpisode5 } from "./hiddenEpisode5";
 
 // IMPORTANT: Do not shorten, sanitize, self-censor, or soften scenario prose or character voice without explicit user approval.
 
@@ -38910,6 +38911,7 @@ hidden_ch03_end: {
 },
 
 ...hiddenEpisode4,
+...hiddenEpisode5,
 
 // ========== 극 하드물 ==========
 
