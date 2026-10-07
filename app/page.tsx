@@ -6,6 +6,7 @@ import { MemoryAdminPanel } from "./_game/ui/MemoryAdminPanel";
 import { NovelTitle, MobileMenuButton, ViewIcon, ArrowRight, Camera, House } from "./_game/ui/NovelChrome";
 import { PlayerProfileEditor, PlayerProfileButton, usePlayerProfile, getProfileTitle } from "./_game/ui/PlayerProfile";
 import { StoryLibrary, StoryChapter } from "./_game/ui/StoryLibrary";
+import { SceneIllustration } from "./_game/ui/SceneIllustration";
 import { playerText } from "./_game/playerText";
 import { CollectionTrophies } from "./_game/ui/CollectionTrophies";
 import { NOVEL_CSS } from "./_game/ui/novelStyles";
@@ -4074,14 +4075,19 @@ export default function Page() {
   const safeVNLineIndex = Math.min(vnLineIndex, Math.max(0, vnLines.length - 1));
   const currentVNLine = vnLines[safeVNLineIndex] ?? { speaker: "나레이션" as VNLine["speaker"], text: "" };
   const isVNLastLine = safeVNLineIndex >= vnLines.length - 1;
+  const vnVisualCue = useMemo(() => {
+    const readText = vnLines.slice(0, safeVNLineIndex + 1).map((line) => line.text).join("\n");
+    return currentScenario?.visualCues?.filter((cue) => readText.includes(cue.afterText)).at(-1);
+  }, [currentScenario?.visualCues, vnLines, safeVNLineIndex]);
   // imagePool에 여러 컷이 있으면 vnLineIndex 진행도에 따라 순차 노출
   const vnSceneImage = useMemo(() => {
+    if (vnVisualCue) return vnVisualCue.image;
     const pool = currentScenario?.imagePool;
     if (!pool || pool.length <= 1) return pool?.[0] ?? currentScenario?.image ?? activePortrait;
     const segmentSize = Math.max(1, Math.ceil(vnLines.length / pool.length));
     const segmentIdx = Math.min(pool.length - 1, Math.floor(safeVNLineIndex / segmentSize));
     return pool[segmentIdx] ?? activePortrait;
-  }, [currentScenario?.id, currentScenario?.imagePool, vnLines.length, safeVNLineIndex, activePortrait]);
+  }, [currentScenario?.id, currentScenario?.imagePool, vnLines.length, safeVNLineIndex, activePortrait, vnVisualCue]);
   const routeLabel = storyRoute === "pure" ? "순애 루트" : storyRoute === "obsession" ? "집착 루트" : "공통 루트";
   const currentChapter = getMainChapterNumber(currentScenarioId) || Math.max(1, ...Object.keys(seenEvents).map(getMainChapterNumber));
   const emotionState = getEmotionState(stats, storyRoute, currentChapter, silenceLevel);
@@ -6635,7 +6641,7 @@ export default function Page() {
         {currentScenario && <div className={`scenarioOverlay${vnDramatic ? " vnDramatic" : ""}`} style={{ "--bg-url": `url(${vnSceneImage || currentScenario.background || "/bg_room_night.png"})` } as React.CSSProperties}>
           {vnDramatic && <div className="vnVignette" />}
           <section className="vnImageStage">
-            <img key={vnSceneImage} src={vnSceneImage} alt={currentScenario.title} className="vnSceneImg" onError={(e)=>{e.currentTarget.src="/oppa1.png"}}/>
+            <SceneIllustration key={vnSceneImage} image={vnSceneImage} video={vnVisualCue?.video} title={currentScenario.title} />
             {isVNLastLine && vnTextRevealed && currentScenario.mission && currentScenario.mission.targets.map((target, idx) => (
               <button key={idx} className="missionTarget" style={{ left: `${target.x}%`, top: `${target.y}%`, width: `${(target.radius ?? 12) * 2}%`, height: `${(target.radius ?? 12) * 2}%` }} onClick={() => handleMissionTap(target)} title={target.label}>
                 {target.hint ?? "✋"}

@@ -70,6 +70,8 @@ export type Scenario = {
   min?: Partial<Stats>;
   image?: string;
   imagePool?: string[];
+  // 본문 문구가 등장한 페이지부터 적용. 페이지 수가 바뀌어도 장면과 그림을 맞춘다.
+  visualCues?: { afterText: string; image: string; video?: string }[];
   background?: string;
   choices: Choice[];
   storyRoute?: StoryRoute;

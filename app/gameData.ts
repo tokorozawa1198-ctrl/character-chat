@@ -38105,6 +38105,11 @@ hidden_ch01: {
   kind: "comedy",
   category: "main",
   imagePool: ["/hidden_before.png", "/hidden_awakening.png", "/hidden_selfie.png"],
+  visualCues: [
+    { afterText: "", image: "/hidden_before.png" },
+    { afterText: "[각성]", image: "/hidden_awakening.png", video: "/hidden_awakening.mp4" },
+    { afterText: "그날 밤. 전진협 단톡방에 알림이 울렸다.", image: "/hidden_selfie.png" },
+  ],
   background: "/bg_school_staff_room.png",
   text: `당신은 전진협 원년멤버다.
 전진협. 전국 진상들의 협회가 아니라 전국진협회.
