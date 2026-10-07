@@ -20,6 +20,7 @@ export type Message = { id: string; role: Role; content: string; time: string; i
 export type Stats = { affinity: number; jealousy: number; obsession: number; trust: number; bladderCharm: number };
 export type StatDelta = Partial<Record<StatKey, number>>;
 export type StoryRoute = "common" | "pure" | "obsession";
+export type BlackjonRoute = "conspiracy" | "erosion" | "collision";
 export type CharacterKey = "geonddeokjon" | "hidden" | "blackjon";
 export type MemoryNote = {
   id: string;
@@ -41,6 +42,7 @@ export type Choice = {
   end?: boolean;
   forceImage?: string;
   route?: StoryRoute;
+  blackjonRoute?: BlackjonRoute; // 흑존 10화의 명시적 분기 선택
   condition?: ChoiceCondition;  // 잠금 조건: 미충족 시 회색 잠금
   flag?: string;                // 분기 플래그 (예: "confine_A_seed") — 추후 라우팅/분석용
   result?: string;              // 선택 후 한 페이지 결과 텍스트 (있으면 임시 시나리오로 보여주고 next로 진행)

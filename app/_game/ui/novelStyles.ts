@@ -249,6 +249,7 @@ html,body{background:#151719;letter-spacing:0}
 .novelApp .vnMediaFrame{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);width:100%;height:100%;min-height:0;min-width:0}
 .novelApp .vnMediaFrame img,.novelApp .vnMediaFrame video{grid-area:1/1;width:100%;height:100%;max-height:100%;min-height:0;object-fit:contain}
 .novelApp .vnMediaFrame video{z-index:1;pointer-events:none}
+.novelApp .vnPlaybackControl{position:absolute;z-index:2;top:max(14px,env(safe-area-inset-top));right:16px;min-height:44px;padding:10px 14px;border:1px solid #ffffff66;border-radius:8px;background:#15121de6;color:#fff;font-size:14px;cursor:pointer}
 .novelApp .vnTextbox{position:absolute;top:auto;bottom:max(16px,env(safe-area-inset-bottom));margin:0;max-height:65dvh;overflow-y:auto;overscroll-behavior:contain}
 @media(max-width:760px){.novelApp .vnTextbox{bottom:max(10px,env(safe-area-inset-bottom));max-height:60dvh}}
 /* Archive and admin screens use one legible palette regardless of story route. */

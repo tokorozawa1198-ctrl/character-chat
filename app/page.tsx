@@ -7,6 +7,8 @@ import { NovelTitle, MobileMenuButton, ViewIcon, ArrowRight, Camera, House } fro
 import { PlayerProfileEditor, PlayerProfileButton, usePlayerProfile, getProfileTitle } from "./_game/ui/PlayerProfile";
 import { StoryLibrary, StoryChapter } from "./_game/ui/StoryLibrary";
 import { SceneIllustration } from "./_game/ui/SceneIllustration";
+import { BlackjonRouteSummary } from "./_game/ui/BlackjonRouteSummary";
+import { BLACKJON_ROUTES, BLACKJON_ROUTE_IDS, getBlackjonRoute, selectBlackjonRoute } from "./blackjonRoute";
 import { playerText } from "./_game/playerText";
 import { CollectionTrophies } from "./_game/ui/CollectionTrophies";
 import { NOVEL_CSS } from "./_game/ui/novelStyles";
@@ -4088,7 +4090,8 @@ export default function Page() {
     const segmentIdx = Math.min(pool.length - 1, Math.floor(safeVNLineIndex / segmentSize));
     return pool[segmentIdx] ?? activePortrait;
   }, [currentScenario?.id, currentScenario?.imagePool, vnLines.length, safeVNLineIndex, activePortrait, vnVisualCue]);
-  const routeLabel = storyRoute === "pure" ? "순애 루트" : storyRoute === "obsession" ? "집착 루트" : "공통 루트";
+  const blackjonRoute = getBlackjonRoute(seenEvents);
+  const routeLabel = selectedCharacter === "blackjon" ? (blackjonRoute ? `${BLACKJON_ROUTES[blackjonRoute].label} 루트` : "흑존 공통") : storyRoute === "pure" ? "순애 루트" : storyRoute === "obsession" ? "집착 루트" : "공통 루트";
   const currentChapter = getMainChapterNumber(currentScenarioId) || Math.max(1, ...Object.keys(seenEvents).map(getMainChapterNumber));
   const emotionState = getEmotionState(stats, storyRoute, currentChapter, silenceLevel);
   const baseHomeImage = getHomeCharacterImage(stats, storyRoute);
@@ -4968,6 +4971,9 @@ export default function Page() {
       showStatDelta(choice.stat);
     }
     if (choice.route) enterRoute(choice.route);
+    if (choice.blackjonRoute && currentScenario.id === "blackjon_ep10_06") {
+      setSeenEvents((prev) => selectBlackjonRoute(prev, choice.blackjonRoute!));
+    }
     if (choice.forceImage) {
       setCurrentPortrait(choice.forceImage);
       unlockCGs([choice.forceImage]);
@@ -5007,6 +5013,12 @@ export default function Page() {
     setScenarioProgress((p) => (p?.id === currentScenario.id ? null : p));
     setCurrentScenarioId(null);
     showChapterTransition(ending, 2600);
+    if (currentScenario.id.startsWith("blackjon_ep10_") && choice.end) {
+      unlockEvent("blackjon_ep10_complete");
+      const completedRoute = BLACKJON_ROUTE_IDS.find((route) => currentScenario.id === `blackjon_ep10_${route}_end`);
+      if (completedRoute) unlockEvent(`blackjon_ep10_${completedRoute}_complete`);
+      return; // 흑존 분기 종료에 근떡존 능력치 엔딩을 적용하지 않는다.
+    }
     // 배드엔딩 시나리오 직접 트리거 (kind: bad_ending) — endingData 조건 검사 스킵
     if (currentScenario.kind === "bad_ending") {
       setMessages((m) => [...m, makeMessage("narration", `*${currentScenario.title} 해금*`)]);
@@ -6406,6 +6418,7 @@ export default function Page() {
     if (s.id.startsWith("blackjon_ep7_") && !seenEvents.blackjon_ep6_12) reasons.push("흑존 6화 완료 필요");
     if (s.id.startsWith("blackjon_ep8_") && !seenEvents.blackjon_ep7_09) reasons.push("흑존 7화 완료 필요");
     if (s.id.startsWith("blackjon_ep9_") && !seenEvents.blackjon_ep8_10) reasons.push("흑존 8화 완료 필요");
+    if (s.id.startsWith("blackjon_ep10_") && !seenEvents.blackjon_ep9_09) reasons.push("흑존 9화 완료 필요");
     // 레벨 요구
     const minLv = getSpecialScenarioMinLevel(s.id);
     if (minLv > 0 && userLevel < minLv) reasons.push(`Lv.${minLv} 필요`);
@@ -6696,7 +6709,7 @@ export default function Page() {
             <img className={`homePlayerAvatar-${player?.avatarFrame || "gold"}`} src={player?.avatar || "/hidden_portrait.png"} alt="내 프로필 사진"/>
             <span className="homePlayerInfo"><span className="homePlayerTop"><span className="homePlayerName"><strong>{player?.nickname || "내 프로필"}</strong>{player?.title && player.title !== "none" && <small>{getProfileTitle(player.title)}</small>}</span><b>Lv.{userLevel}</b></span><span className="homePlayerExpLabel">{getLevelTitle(userLevel)} · {userExp} / {expToNextLevel(userLevel)} EXP</span><span className="homePlayerTrack"><span style={{width: `${Math.min(100, (userExp / expToNextLevel(userLevel)) * 100)}%`}}/></span></span>
           </button>
-          <div className="homeHeader"><span className="novelEyebrow">HIROSHIMA · CHAPTER {String(currentChapter).padStart(2, "0")}</span><div className="homeLogo" onClick={handleAdminTap} style={{cursor:"default"}}><span>{activeCharacterName}</span><small>{selectedCharacter === "blackjon" ? "어나더 캐릭터" : routeLabel}</small>{isAdminMode && <span className="adminBadge">🔑 관리자</span>}</div><p className="novelHomeMood">{emotionState.label}<span>{emotionState.detail}</span></p></div>
+          <div className="homeHeader"><span className="novelEyebrow">HIROSHIMA · CHAPTER {String(currentChapter).padStart(2, "0")}</span><div className="homeLogo" onClick={handleAdminTap} style={{cursor:"default"}}><span>{activeCharacterName}</span><small>{routeLabel}</small>{isAdminMode && <span className="adminBadge">🔑 관리자</span>}</div><p className="novelHomeMood">{emotionState.label}<span>{emotionState.detail}</span></p></div>
           <div className="homeStage">
             <div className="homeBubble">{homeBubble}</div>
             <button className="homeCharacterCard" aria-label="캐릭터에게 말 걸기" onClick={handleHomeReact} onPointerMove={handleHomePointerMove} onPointerLeave={()=>setHomeTilt({x:0,y:0})} style={{ "--tilt-x": `${homeTilt.x}deg`, "--tilt-y": `${homeTilt.y}deg` } as React.CSSProperties}>
@@ -6823,11 +6836,12 @@ export default function Page() {
               { id: "blackjon_ep7_01", prefix: "blackjon_ep7_", number: 7, prerequisite: "blackjon_ep6_12" },
               { id: "blackjon_ep8_01", prefix: "blackjon_ep8_", number: 8, prerequisite: "blackjon_ep7_09" },
               { id: "blackjon_ep9_01", prefix: "blackjon_ep9_", number: 9, prerequisite: "blackjon_ep8_10" },
+              { id: "blackjon_ep10_01", prefix: "blackjon_ep10_", number: 10, prerequisite: "blackjon_ep9_09" },
             ];
             blackjonChapters.forEach(({ id, prefix, number, prerequisite }) => {
               const entry = scenarioData[id];
               if (!entry) return;
-              const scenes = Object.values(scenarioData).filter((s) => s.id.startsWith(prefix));
+              const scenes = Object.values(scenarioData).filter((s) => s.id.startsWith(prefix) && !s.id.includes("__r__"));
               const available = !prerequisite || !!seenEvents[prerequisite] || isAdminMode;
               chapters.push({ id, scenarioId: id, title: entry.title, subtitle: entry.subtitle, route: "blackjon", number, ending: false, image: entry.imagePool?.[0] || entry.image || "/blackjon_profile_transparent.png", available, visited: scenes.some((s) => !!seenEvents[s.id]), sceneCount: scenes.length, visitedCount: scenes.filter((s) => !!seenEvents[s.id]).length, lockReason: prerequisite ? "이전 흑존 이야기를 먼저 진행하세요" : undefined });
             });
@@ -6844,7 +6858,7 @@ export default function Page() {
           const saved = scenarioProgress && scenarioData[scenarioProgress.id];
           const savedMatchesCharacter = saved && (isHiddenRoute ? saved.id.startsWith("hidden_") : isBlackjonRoute ? saved.id.startsWith("blackjon_") : !saved.id.startsWith("hidden_") && !saved.id.startsWith("blackjon_"));
           const resume = saved && savedMatchesCharacter ? { id: saved.id, title: saved.title, line: scenarioProgress!.lineIndex } : null;
-          return <div className="panel"><StoryLibrary chapters={chapters} activeRoute={isHiddenRoute ? "hidden" : isBlackjonRoute ? "blackjon" : storyRoute} resume={resume} onStart={startScenario} onNavigate={setView}/></div>;
+          return <div className="panel">{isBlackjonRoute && seenEvents.blackjon_ep10_06 && <BlackjonRouteSummary selected={blackjonRoute} onChoose={() => startScenario("blackjon_ep10_06")} />}<StoryLibrary chapters={chapters} activeRoute={isHiddenRoute ? "hidden" : isBlackjonRoute ? "blackjon" : storyRoute} resume={resume} onStart={startScenario} onNavigate={setView}/></div>;
         })()}
         {view === "extraScenarios" && (() => {
           const endingsCleared = Object.keys(unlockedEndings).length;
