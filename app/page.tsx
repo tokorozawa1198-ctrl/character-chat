@@ -6,6 +6,7 @@ import { MemoryAdminPanel } from "./_game/ui/MemoryAdminPanel";
 import { NovelTitle, MobileMenuButton, ViewIcon, ArrowRight, Camera, House } from "./_game/ui/NovelChrome";
 import { PlayerProfileEditor, PlayerProfileButton, usePlayerProfile, getProfileTitle } from "./_game/ui/PlayerProfile";
 import { StoryLibrary, StoryChapter } from "./_game/ui/StoryLibrary";
+import { SaveStatus } from "./_game/ui/SaveStatus";
 import { SceneIllustration } from "./_game/ui/SceneIllustration";
 import { BlackjonRouteSummary } from "./_game/ui/BlackjonRouteSummary";
 import { BLACKJON_ROUTES, BLACKJON_ROUTE_IDS, getBlackjonBranchLockReason, getBlackjonRoute, selectBlackjonRoute } from "./blackjonRoute";
@@ -3849,6 +3850,10 @@ export default function Page() {
   const [shopToast, setShopToast] = useState<{ name: string; detail: string } | null>(null);
   const [userLevel, setUserLevel] = useState<number>(1);
   const [userExp, setUserExp] = useState<number>(0);
+  const [loadedStorageKey, setLoadedStorageKey] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const [saveRetry, setSaveRetry] = useState(0);
   const [levelUpEffect, setLevelUpEffect] = useState<{ level: number; title: string; reward?: LevelReward } | null>(null);
   const [expFloater, setExpFloater] = useState<{ id: number; amount: number } | null>(null);
   const [showLevelRewards, setShowLevelRewards] = useState(false);
@@ -4015,7 +4020,7 @@ export default function Page() {
       mainSeenEvents = mainSave?.seenEvents ?? {};
     } catch {}
     // Only the main character's progress unlocks the alternate characters.
-    if (selectedCharacter === "geonddeokjon") {
+    if (selectedCharacter === "geonddeokjon" && loadedStorageKey === STORAGE_KEY) {
       mainLevel = userLevel;
       mainSeenEvents = seenEvents;
     }
@@ -4028,7 +4033,7 @@ export default function Page() {
       localStorage.removeItem(CHARACTER_KEY);
       setSelectedCharacter(null);
     }
-  }, [selectedCharacter, isAdminMode, userLevel, seenEvents]);
+  }, [selectedCharacter, isAdminMode, userLevel, seenEvents, loadedStorageKey]);
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
   const [chapterTransition, setChapterTransition] = useState<ChapterTransition | null>(null);
@@ -4147,14 +4152,19 @@ export default function Page() {
     // 캐릭터 미선택 상태 → 로드/저장 모두 비활성
     if (!selectedCharacter) {
       loadedRef.current = false;
+      setLoadedStorageKey(null);
       return;
     }
     // 새 캐릭터 로드 시작 전 저장 방지
     loadedRef.current = false;
+    setLoadedStorageKey(null);
+    setLoadError(false);
+    setSaveError(null);
     try {
       const raw = localStorage.getItem(activeStorageKey);
       if (raw) {
         const saved = JSON.parse(raw) as Partial<SaveData>;
+        if (!saved || typeof saved !== "object" || Array.isArray(saved)) throw new Error("invalid-save");
         // v11→v12 마이그레이션: stat max 100→1000, 기존 값 ×10
         let loadedStats: Stats = saved.stats ? { ...initialStats, ...saved.stats } : initialStats;
         if ((saved.version ?? 0) < 12 && loadedStats) {
@@ -4317,15 +4327,23 @@ export default function Page() {
         setMonthlyCalendarClaims({});
       }
       setShowTutorial(localStorage.getItem(TUTORIAL_KEY) !== "1");
-    } catch {
-      setMessages([makeMessage("assistant", "안녕하세요. 필요하시면 불러주세요.")]);
-    } finally {
-      // 로드 완료 표시. 이 이후로만 저장 useEffect가 실제 write 한다.
-      loadedRef.current = true;
+      // ref를 여기서 true로 바꾸면 같은 렌더의 초기 상태가 먼저 저장된다.
+      // 불러온 상태와 이 키가 함께 반영된 다음 렌더부터 저장을 허용한다.
+      setLoadedStorageKey(activeStorageKey);
+    } catch (error) {
+      console.warn("[save] Could not load saved progress", error);
+      setLoadError(true);
+      setSaveError("저장 기록을 불러오지 못했어요. 기존 기록을 보호하기 위해 자동 저장을 멈췄어요.");
     }
-  }, [selectedCharacter]); // 캐릭터 전환 시마다 해당 키에서 재로드
+  }, [selectedCharacter, activeStorageKey]);
 
   useEffect(() => {
+    loadedRef.current = !!selectedCharacter && loadedStorageKey === activeStorageKey;
+    return () => { loadedRef.current = false; };
+  }, [selectedCharacter, activeStorageKey, loadedStorageKey]);
+
+  useEffect(() => {
+    if (!selectedCharacter || loadedStorageKey !== activeStorageKey || !loadedRef.current) return;
     const save: SaveData = {
       version: VERSION,
       stats,
@@ -4410,12 +4428,11 @@ export default function Page() {
       soundSfxVolume,
     };
     save.messages = sanitizeMessages(save.messages);
-    // [패치 1] 로드 끝나기 전엔 저장 금지 (마운트 직후 빈 상태가 저장본 덮어쓰는 거 방지)
-    if (!loadedRef.current) return;
     // [패치 2] try/catch + Quota 시 messages 절반 잘라서 재시도. 조용한 실패 방지.
     const writeSave = (data: SaveData): boolean => {
       try {
         localStorage.setItem(activeStorageKey, JSON.stringify(data));
+        setSaveError(null);
         return true;
       } catch (e) {
         if (e instanceof DOMException && (e.name === "QuotaExceededError" || e.code === 22)) {
@@ -4433,10 +4450,11 @@ export default function Page() {
         const minimal: SaveData = { ...save, messages: save.messages.slice(-30) };
         if (!writeSave(minimal)) {
           console.warn("[save] localStorage quota exceeded even after trimming. save skipped.");
+          setSaveError("진행 상황을 저장하지 못했어요. 브라우저 저장 공간을 확인한 뒤 다시 저장해 주세요. 저장되기 전에는 이 창을 닫지 마세요.");
         }
       }
     }
-  }, [stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory, userLevel, userExp, lastFreeGacha, gachaTickets, gachaPityCount, comboCount, lastComboTime, comboMilestonesReached, ownedPets, activePet, totalGachaPulls, activeAdventure, adventureHistory, snsLikes, lastSnsRefresh, snsFeed, raidWeek, raidBossId, raidHp, raidCleared, raidDamageDealt, journalEntries, lastJournalDate, minigameClickerHigh, minigameWordHigh, loveMeterPoints, loveMeterDate, loveMeterClaimedToday, letterReads, unlockedLetters, quoteOfDayId, quoteOfDayDate, collectedQuotes, ownedCards, totalCardPulls, bossDefeats, bladderMarathonWeek, bladderMarathonScore, monthlyCalendarClaims, soundBgmEnabled, soundSfxEnabled, soundBgmVolume, soundSfxVolume]);
+  }, [selectedCharacter, activeStorageKey, loadedStorageKey, saveRetry, unlockedSpecials, unlockedSubScenarios, scenarioProgress, stats, messages, view, currentScenarioId, currentPortrait, galleryTab, unlockedCGs, seenEvents, storyRoute, memoryNotes, afterScenarioCues, silenceLevel, routeLabel, giftCooldowns, lastCheckIn, checkInStreak, checkInHistory, equippedOutfit, unlockedAchievements, lastBladderRelief, bladderPopupThreshold, cgFavorites, unlockedEndings, completedQuests, unlockedMilestones, lastRandomMessage, coins, dailyState, shopHistory, userLevel, userExp, lastFreeGacha, gachaTickets, gachaPityCount, comboCount, lastComboTime, comboMilestonesReached, ownedPets, activePet, totalGachaPulls, activeAdventure, adventureHistory, snsLikes, lastSnsRefresh, snsFeed, raidWeek, raidBossId, raidHp, raidCleared, raidDamageDealt, journalEntries, lastJournalDate, minigameClickerHigh, minigameWordHigh, loveMeterPoints, loveMeterDate, loveMeterClaimedToday, letterReads, unlockedLetters, quoteOfDayId, quoteOfDayDate, collectedQuotes, ownedCards, totalCardPulls, bossDefeats, bladderMarathonWeek, bladderMarathonScore, monthlyCalendarClaims, soundBgmEnabled, soundSfxEnabled, soundBgmVolume, soundSfxVolume]);
 
   // ─ 방광 채우기 타이머 ─
   useEffect(() => {
@@ -5233,7 +5251,7 @@ export default function Page() {
       setQuoteOfDayId(q.id);
       setQuoteOfDayDate(today);
     }
-  }, [view, quoteOfDayDate]);
+  }, [view, quoteOfDayDate, loadedStorageKey]);
   function collectTodayQuote() {
     if (collectedQuotes.includes(quoteOfDayId)) return;
     setCollectedQuotes((prev) => [...prev, quoteOfDayId]);
@@ -5378,7 +5396,7 @@ export default function Page() {
     const newEntry = { id: `${tpl.id}_${today}`, date: today, templateId: tpl.id, liked: false };
     setJournalEntries((prev) => [newEntry, ...prev].slice(0, 60)); // 최근 60개만
     setLastJournalDate(today);
-  }, [view, lastJournalDate]);
+  }, [view, lastJournalDate, loadedStorageKey]);
   function toggleJournalLike(id: string) {
     setJournalEntries((prev) => prev.map((e) => {
       if (e.id !== id) return e;
@@ -5613,7 +5631,7 @@ export default function Page() {
       setRaidCleared(false);
       setRaidDamageDealt(0);
     }
-  }, [raidWeek, raidBossId]);
+  }, [raidWeek, raidBossId, loadedStorageKey]);
   function dealRaidDamage(dmg: number) {
     if (raidCleared || dmg <= 0) return;
     setRaidHp((hp) => {
@@ -5858,7 +5876,7 @@ export default function Page() {
 
   // ─ EXP 획득 + 레벨업 처리 ─
   function gainExp(amountRaw: number) {
-    if (amountRaw <= 0) return;
+    if (!loadedRef.current || amountRaw <= 0) return;
     // 펫 EXP 보너스 적용
     const expMul = getPetMultiplier(activePetObj, activePetData, "exp") * getPetMultiplier(activePetObj, activePetData, "all");
     const amount = Math.round(amountRaw * expMul);
@@ -5944,7 +5962,7 @@ export default function Page() {
         missions: pickDailyMissions(today, eligibleIds, perkBonus.dailySlots),
       };
     });
-  }, [view, dailyState.date]); // 뷰 전환 + 날짜 바뀔 때만
+  }, [view, dailyState.date, loadedStorageKey]); // 뷰 전환 + 날짜 바뀔 때만
 
   // ─ 방광 게이지 최고 기록 추적 ─
   useEffect(() => {
@@ -6041,7 +6059,7 @@ export default function Page() {
       window.setTimeout(() => setMilestoneToast(null), 4200);
       break; // 한 틱에 한 개만
     }
-  }, [stats.affinity, stats.trust, stats.obsession, stats.jealousy, stats.bladderCharm]);
+  }, [stats.affinity, stats.trust, stats.obsession, stats.jealousy, stats.bladderCharm, loadedStorageKey]);
 
   // ─ 랜덤 깜짝 메시지 (홈 진입 시 4시간 쿨다운) ─
   useEffect(() => {
@@ -6565,6 +6583,7 @@ export default function Page() {
 
   return (
     <main data-view={view} className={`app novelApp ${mobileMenuOpen ? "menuExpanded" : ""} ${uiThemeClass} relTier-${relLevel.lv <= 2 ? "early" : relLevel.lv <= 5 ? "mid" : relLevel.lv <= 8 ? "late" : "peak"} ${currentScenario ? "scenarioActive" : ""} ${shakeClass}`}>
+      {saveError && <SaveStatus message={saveError} loadFailed={loadError} onRetry={() => loadError ? window.location.reload() : setSaveRetry((n) => n + 1)} />}
       {/* Static, project-owned CSS: preserve quotes in server-rendered style text. */}
       <style dangerouslySetInnerHTML={{ __html: CSS + NOVEL_CSS }} />
       {editingPlayer && <PlayerProfileEditor value={player} onCancel={() => setEditingPlayer(false)} onSave={(value) => { savePlayer(value); setEditingPlayer(false); }}/>}
