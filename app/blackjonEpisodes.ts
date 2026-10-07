@@ -5,6 +5,7 @@ import { blackjonEpisode6 } from "./blackjonEpisode6";
 import { blackjonEpisode7 } from "./blackjonEpisode7";
 import { blackjonEpisode8 } from "./blackjonEpisode8";
 import { blackjonEpisode9 } from "./blackjonEpisode9";
+import { blackjonEpisode11Conspiracy } from "./blackjonEpisode11Conspiracy";
 import { blackjonEpisode10 } from "./blackjonEpisode10";
 
 // 흑존 프롤로그 이후의 연애 이야기. 장면마다 이미지를 고정해 순서대로 보여준다.
@@ -16,6 +17,7 @@ export const blackjonEpisodes: Record<string, Scenario> = {
   ...blackjonEpisode8,
   ...blackjonEpisode9,
   ...blackjonEpisode10,
+  ...blackjonEpisode11Conspiracy,
   blackjon_ep2_01: {
     id: "blackjon_ep2_01",
     title: "흑존 2화: 숨기지 않는 냄새",

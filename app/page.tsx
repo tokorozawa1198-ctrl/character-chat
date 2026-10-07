@@ -8,7 +8,7 @@ import { PlayerProfileEditor, PlayerProfileButton, usePlayerProfile, getProfileT
 import { StoryLibrary, StoryChapter } from "./_game/ui/StoryLibrary";
 import { SceneIllustration } from "./_game/ui/SceneIllustration";
 import { BlackjonRouteSummary } from "./_game/ui/BlackjonRouteSummary";
-import { BLACKJON_ROUTES, BLACKJON_ROUTE_IDS, getBlackjonRoute, selectBlackjonRoute } from "./blackjonRoute";
+import { BLACKJON_ROUTES, BLACKJON_ROUTE_IDS, getBlackjonBranchLockReason, getBlackjonRoute, selectBlackjonRoute } from "./blackjonRoute";
 import { playerText } from "./_game/playerText";
 import { CollectionTrophies } from "./_game/ui/CollectionTrophies";
 import { NOVEL_CSS } from "./_game/ui/novelStyles";
@@ -4841,6 +4841,7 @@ export default function Page() {
   function startScenario(id: string) {
     const scenario = scenarioData[id] ?? getLocationScenario(id, stats);
     if (!scenario) return;
+    if (!isAdminMode && getBlackjonBranchLockReason(id, seenEvents)) return;
     const image = pick(scenario.imagePool) ?? scenario.image ?? fallbackImage(scenario.kind);
     // 진입 시점에 seenEvents 체크해서 다시 보기 여부 기록 (unlockEvent 전에)
     scenarioReplayRef.current = !!seenEvents[id];
@@ -5018,6 +5019,10 @@ export default function Page() {
       const completedRoute = BLACKJON_ROUTE_IDS.find((route) => currentScenario.id === `blackjon_ep10_${route}_end`);
       if (completedRoute) unlockEvent(`blackjon_ep10_${completedRoute}_complete`);
       return; // 흑존 분기 종료에 근떡존 능력치 엔딩을 적용하지 않는다.
+    }
+    if (currentScenario.id === "blackjon_ep11_conspiracy_end" && choice.end) {
+      unlockEvent("blackjon_ep11_conspiracy_complete");
+      return;
     }
     // 배드엔딩 시나리오 직접 트리거 (kind: bad_ending) — endingData 조건 검사 스킵
     if (currentScenario.kind === "bad_ending") {
@@ -6406,6 +6411,8 @@ export default function Page() {
   function getScenarioLockReasons(s: Scenario): string[] {
     if (isAdminMode) return [];
     const reasons: string[] = [];
+    const branchLock = getBlackjonBranchLockReason(s.id, seenEvents);
+    if (branchLock) reasons.push(branchLock);
     if ((s.id === "hidden_ch04" || s.id.startsWith("hidden_ch04_")) && !seenEvents.hidden_ch03_end) reasons.push("히든 3화 완료 필요");
     if ((s.id === "hidden_ch05" || s.id.startsWith("hidden_ch05_")) && !seenEvents.hidden_ch04_end) reasons.push("히든 4화 완료 필요");
     if ((s.id === "hidden_ch06" || s.id.startsWith("hidden_ch06_")) && !seenEvents.hidden_ch05_end) reasons.push("히든 5화 완료 필요");
@@ -6837,13 +6844,15 @@ export default function Page() {
               { id: "blackjon_ep8_01", prefix: "blackjon_ep8_", number: 8, prerequisite: "blackjon_ep7_09" },
               { id: "blackjon_ep9_01", prefix: "blackjon_ep9_", number: 9, prerequisite: "blackjon_ep8_10" },
               { id: "blackjon_ep10_01", prefix: "blackjon_ep10_", number: 10, prerequisite: "blackjon_ep9_09" },
+              { id: "blackjon_ep11_conspiracy_01", prefix: "blackjon_ep11_conspiracy_", number: 11, prerequisite: "blackjon_ep10_conspiracy_complete" },
             ];
             blackjonChapters.forEach(({ id, prefix, number, prerequisite }) => {
               const entry = scenarioData[id];
               if (!entry) return;
               const scenes = Object.values(scenarioData).filter((s) => s.id.startsWith(prefix) && !s.id.includes("__r__"));
-              const available = !prerequisite || !!seenEvents[prerequisite] || isAdminMode;
-              chapters.push({ id, scenarioId: id, title: entry.title, subtitle: entry.subtitle, route: "blackjon", number, ending: false, image: entry.imagePool?.[0] || entry.image || "/blackjon_profile_transparent.png", available, visited: scenes.some((s) => !!seenEvents[s.id]), sceneCount: scenes.length, visitedCount: scenes.filter((s) => !!seenEvents[s.id]).length, lockReason: prerequisite ? "이전 흑존 이야기를 먼저 진행하세요" : undefined });
+              const branchLock = getBlackjonBranchLockReason(id, seenEvents);
+              const available = isAdminMode || ((!prerequisite || !!seenEvents[prerequisite]) && !branchLock);
+              chapters.push({ id, scenarioId: id, title: entry.title, subtitle: entry.subtitle, route: "blackjon", number, ending: false, image: entry.imagePool?.[0] || entry.image || "/blackjon_profile_transparent.png", available, visited: scenes.some((s) => !!seenEvents[s.id]), sceneCount: scenes.length, visitedCount: scenes.filter((s) => !!seenEvents[s.id]).length, lockReason: branchLock || (prerequisite ? "이전 흑존 이야기를 먼저 진행하세요" : undefined) });
             });
           }
           if (!isHiddenRoute && !isBlackjonRoute) {
@@ -6857,7 +6866,7 @@ export default function Page() {
           }
           const saved = scenarioProgress && scenarioData[scenarioProgress.id];
           const savedMatchesCharacter = saved && (isHiddenRoute ? saved.id.startsWith("hidden_") : isBlackjonRoute ? saved.id.startsWith("blackjon_") : !saved.id.startsWith("hidden_") && !saved.id.startsWith("blackjon_"));
-          const resume = saved && savedMatchesCharacter ? { id: saved.id, title: saved.title, line: scenarioProgress!.lineIndex } : null;
+          const resume = saved && savedMatchesCharacter && (isAdminMode || !getBlackjonBranchLockReason(saved.id, seenEvents)) ? { id: saved.id, title: saved.title, line: scenarioProgress!.lineIndex } : null;
           return <div className="panel">{isBlackjonRoute && seenEvents.blackjon_ep10_06 && <BlackjonRouteSummary selected={blackjonRoute} onChoose={() => startScenario("blackjon_ep10_06")} />}<StoryLibrary chapters={chapters} activeRoute={isHiddenRoute ? "hidden" : isBlackjonRoute ? "blackjon" : storyRoute} resume={resume} onStart={startScenario} onNavigate={setView}/></div>;
         })()}
         {view === "extraScenarios" && (() => {
