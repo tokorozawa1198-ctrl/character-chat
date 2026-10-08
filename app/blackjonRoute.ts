@@ -22,7 +22,7 @@ export function selectBlackjonRoute(events: Record<string, boolean>, selected: B
 
 // 장면 입장 기록이 아닌 완독 기록과 현재 선택을 함께 확인한다.
 export function getBlackjonBranchLockReason(id: string, events: Record<string, boolean>): string | null {
-  const route = (["conspiracy", "erosion"] as const).find((branch) => id.startsWith(`blackjon_ep11_${branch}_`));
+  const route = BLACKJON_ROUTE_IDS.find((branch) => id.startsWith(`blackjon_ep11_${branch}_`));
   if (!route) return null;
   const label = BLACKJON_ROUTES[route].label;
   if (!events[`blackjon_ep10_${route}_complete`]) return `흑존 10화 ${label} 결말 완독 필요`;
