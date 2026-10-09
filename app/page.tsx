@@ -5058,6 +5058,10 @@ export default function Page() {
       unlockEvent("blackjon_ep12_conspiracy_complete");
       return;
     }
+    if (currentScenario.id === "blackjon_ep12_erosion_end" && choice.end) {
+      unlockEvent("blackjon_ep12_erosion_complete");
+      return;
+    }
     // 배드엔딩 시나리오 직접 트리거 (kind: bad_ending) — endingData 조건 검사 스킵
     if (currentScenario.kind === "bad_ending") {
       setMessages((m) => [...m, makeMessage("narration", `*${currentScenario.title} 해금*`)]);
@@ -6883,6 +6887,7 @@ export default function Page() {
               { id: "blackjon_ep11_erosion_01", prefix: "blackjon_ep11_erosion_", number: 11, prerequisite: "blackjon_ep10_erosion_complete" },
               { id: "blackjon_ep11_collision_01", prefix: "blackjon_ep11_collision_", number: 11, prerequisite: "blackjon_ep10_collision_complete" },
               { id: "blackjon_ep12_conspiracy_01", prefix: "blackjon_ep12_conspiracy_", number: 12, prerequisite: "blackjon_ep11_conspiracy_complete" },
+              { id: "blackjon_ep12_erosion_01", prefix: "blackjon_ep12_erosion_", number: 12, prerequisite: "blackjon_ep11_erosion_complete" },
               { id: "blackjon_ep12_collision_01", prefix: "blackjon_ep12_collision_", number: 12, prerequisite: "blackjon_ep11_collision_complete" },
             ];
             blackjonChapters.forEach(({ id, prefix, number, prerequisite }) => {
