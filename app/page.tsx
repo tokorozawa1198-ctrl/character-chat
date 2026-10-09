@@ -7,6 +7,7 @@ import { NovelTitle, MobileMenuButton, ViewIcon, ArrowRight, Camera, House } fro
 import { PlayerProfileEditor, PlayerProfileButton, usePlayerProfile, getProfileTitle } from "./_game/ui/PlayerProfile";
 import { StoryLibrary, StoryChapter } from "./_game/ui/StoryLibrary";
 import { SaveStatus } from "./_game/ui/SaveStatus";
+import { advanceProgress, readProgress, writeProgress, progressKey, type PlayerProgress } from "./_game/progressPersistence";
 import { SceneIllustration } from "./_game/ui/SceneIllustration";
 import { BlackjonRouteSummary } from "./_game/ui/BlackjonRouteSummary";
 import { BLACKJON_ROUTES, BLACKJON_ROUTE_IDS, getBlackjonBranchLockReason, getBlackjonRoute, selectBlackjonRoute } from "./blackjonRoute";
@@ -3854,6 +3855,9 @@ export default function Page() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [saveRetry, setSaveRetry] = useState(0);
+  const [saveReload, setSaveReload] = useState(0);
+  const loadedSaveRawRef = useRef<string | null>(null);
+  const skipReloadSaveRef = useRef(false);
   const [levelUpEffect, setLevelUpEffect] = useState<{ level: number; title: string; reward?: LevelReward } | null>(null);
   const [expFloater, setExpFloater] = useState<{ id: number; amount: number } | null>(null);
   const [showLevelRewards, setShowLevelRewards] = useState(false);
@@ -4016,7 +4020,7 @@ export default function Page() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       const mainSave = raw ? JSON.parse(raw) as Partial<SaveData> : null;
-      mainLevel = mainSave?.userLevel ?? 1;
+      mainLevel = readProgress(localStorage, STORAGE_KEY, mainSave).userLevel;
       mainSeenEvents = mainSave?.seenEvents ?? {};
     } catch {}
     // Only the main character's progress unlocks the alternate characters.
@@ -4055,9 +4059,8 @@ export default function Page() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   // 저장 가드: 로드 useEffect가 끝나기 전에 저장 useEffect가 빈 상태를 덮어쓰는 레이스 방지
   const loadedRef = useRef(false);
-  // gainExp가 클로저에서 stale userLevel을 잡아서 setUserLevel을 낮은 값으로 덮어쓰던 버그
-  // (새로고침 후 EXP 추가 시 레벨 다운) 방지용. 항상 최신 userLevel을 참조.
-  const userLevelRef = useRef<number>(1);
+  // 레벨과 EXP를 한 쌍으로 갱신한다. React updater 안에서 저장/보상을 실행하지 않는다.
+  const userProgressRef = useRef<PlayerProgress>({ userLevel: 1, userExp: 0 });
   // 마일스톤 effect도 같은 closure stale 문제로 잠금해제된 마일스톤이 또 발화하는 버그가 있어서
   // 발화한 마일스톤 ID를 ref에 동기 기록해서 같은 effect tick 내 재발화 차단.
   const unlockedMilestonesRef = useRef<Record<string, boolean>>({});
@@ -4065,11 +4068,6 @@ export default function Page() {
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // userLevel 변경 시 ref 동기화 — gainExp 안에서 stale closure 방어
-  useEffect(() => {
-    userLevelRef.current = userLevel;
-  }, [userLevel]);
 
   // unlockedMilestones 변경 시 ref 동기화
   useEffect(() => {
@@ -4162,6 +4160,8 @@ export default function Page() {
     setSaveError(null);
     try {
       const raw = localStorage.getItem(activeStorageKey);
+      loadedSaveRawRef.current = raw;
+      skipReloadSaveRef.current = saveReload > 0;
       if (raw) {
         const saved = JSON.parse(raw) as Partial<SaveData>;
         if (!saved || typeof saved !== "object" || Array.isArray(saved)) throw new Error("invalid-save");
@@ -4195,9 +4195,11 @@ export default function Page() {
         setCoins(saved.coins ?? 0);
         if (saved.dailyState) setDailyState(saved.dailyState);
         setShopHistory(saved.shopHistory ?? {});
-        setUserLevel(saved.userLevel ?? 1);
-        userLevelRef.current = saved.userLevel ?? 1;
-        setUserExp(saved.userExp ?? 0);
+        const progress = readProgress(localStorage, activeStorageKey, saved);
+        if (progress.userLevel !== saved.userLevel || progress.userExp !== (saved.userExp ?? 0)) skipReloadSaveRef.current = false;
+        userProgressRef.current = progress;
+        setUserLevel(progress.userLevel);
+        setUserExp(progress.userExp);
         setLastFreeGacha(saved.lastFreeGacha ?? 0);
         setGachaTickets(saved.gachaTickets ?? 0);
         setGachaPityCount(saved.gachaPityCount ?? 0);
@@ -4269,9 +4271,10 @@ export default function Page() {
         setCoins(0);
         setDailyState({ date: todayKey(), chatCount: 0, giftCount: 0, scenarioCount: 0, checkinDone: false, bladderPeak: 0, missions: [] });
         setShopHistory({});
-        setUserLevel(1);
-        userLevelRef.current = 1;
-        setUserExp(0);
+        const progress = readProgress(localStorage, activeStorageKey, null);
+        userProgressRef.current = progress;
+        setUserLevel(progress.userLevel);
+        setUserExp(progress.userExp);
         setLastFreeGacha(0);
         setGachaTickets(0);
         setGachaPityCount(0);
@@ -4335,6 +4338,35 @@ export default function Page() {
       setLoadError(true);
       setSaveError("저장 기록을 불러오지 못했어요. 기존 기록을 보호하기 위해 자동 저장을 멈췄어요.");
     }
+  }, [selectedCharacter, activeStorageKey, saveReload]);
+
+  // 다른 탭의 최신 저장을 먼저 반영한다. 모바일에서 멈췄던 탭이 복귀할 때도 확인한다.
+  useEffect(() => {
+    if (!selectedCharacter) return;
+    const refresh = () => {
+      try {
+        if (localStorage.getItem(activeStorageKey) === loadedSaveRawRef.current) return;
+        loadedRef.current = false;
+        setLoadedStorageKey(null);
+        setSaveReload((n) => n + 1);
+      } catch (error) {
+        console.warn("[save] Could not check newer progress", error);
+      }
+    };
+    const onStorage = (event: StorageEvent) => {
+      if (event.storageArea === localStorage && (event.key === activeStorageKey || event.key === null)) refresh();
+    };
+    const onVisible = () => { if (document.visibilityState === "visible") refresh(); };
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("pageshow", refresh);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("pageshow", refresh);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [selectedCharacter, activeStorageKey]);
 
   useEffect(() => {
@@ -4344,6 +4376,8 @@ export default function Page() {
 
   useEffect(() => {
     if (!selectedCharacter || loadedStorageKey !== activeStorageKey || !loadedRef.current) return;
+    // 외부 저장을 로드한 직후 다시 저장하면 탭끼리 savedAt만 바꾸며 무한 재저장한다.
+    if (skipReloadSaveRef.current) { skipReloadSaveRef.current = false; return; }
     const save: SaveData = {
       version: VERSION,
       stats,
@@ -4428,10 +4462,32 @@ export default function Page() {
       soundSfxVolume,
     };
     save.messages = sanitizeMessages(save.messages);
+    // 자동 저장 직전에도 오래된 탭인지 확인하고 최신 전체 기록을 다시 읽는다.
+    try {
+      if (localStorage.getItem(activeStorageKey) !== loadedSaveRawRef.current) {
+        loadedRef.current = false;
+        setLoadedStorageKey(null);
+        setSaveReload((n) => n + 1);
+        return;
+      }
+      const progress = writeProgress(localStorage, activeStorageKey, { userLevel, userExp });
+      save.userLevel = progress.userLevel;
+      save.userExp = progress.userExp;
+      if (progress.userLevel !== userLevel || progress.userExp !== userExp) {
+        userProgressRef.current = progress;
+        setUserLevel(progress.userLevel);
+        setUserExp(progress.userExp);
+      }
+    } catch (error) {
+      // 체크포인트 저장 공간이 부족해도 기존 전체 저장의 축소 재시도는 수행한다.
+      console.warn("[save] Progress checkpoint unavailable", error);
+    }
     // [패치 2] try/catch + Quota 시 messages 절반 잘라서 재시도. 조용한 실패 방지.
     const writeSave = (data: SaveData): boolean => {
       try {
-        localStorage.setItem(activeStorageKey, JSON.stringify(data));
+        const raw = JSON.stringify(data);
+        localStorage.setItem(activeStorageKey, raw);
+        loadedSaveRawRef.current = raw;
         setSaveError(null);
         return true;
       } catch (e) {
@@ -5903,47 +5959,44 @@ export default function Page() {
     // 작은 EXP 플로터 표시
     setExpFloater({ id: Date.now(), amount });
     window.setTimeout(() => setExpFloater(null), 1400);
-    setUserExp((prevExp) => {
-      let exp = prevExp + amount;
-      let levelChanged = false;
-      // ref에서 항상 최신 level 가져옴. closure userLevel 쓰면 stale일 때
-      // 낮은 값으로 setUserLevel 호출해서 레벨 다운 발생함.
-      let curLevel = userLevelRef.current;
-      while (exp >= expToNextLevel(curLevel)) {
-        exp -= expToNextLevel(curLevel);
-        curLevel += 1;
-        levelChanged = true;
-      }
-      if (levelChanged) {
-        userLevelRef.current = curLevel;
-        setUserLevel(curLevel);
-        setCoins((c) => c + curLevel * 10); // 레벨업 보너스 코인
-        const rewardThisLevel = LEVEL_REWARDS.find((r) => r.level === curLevel);
-        setLevelUpEffect({ level: curLevel, title: getLevelTitle(curLevel), reward: rewardThisLevel });
-        window.setTimeout(() => setLevelUpEffect(null), rewardThisLevel ? 4000 : 2400);
-        // 레벨업 1회성 보상 지급
-        for (const r of LEVEL_REWARDS) {
-          if (r.level === curLevel && r.oneTime) {
-            if (r.oneTime.coins) setCoins((c) => c + r.oneTime!.coins!);
-            if (r.oneTime.tickets) setGachaTickets((t) => t + r.oneTime!.tickets!);
-            if (r.oneTime.affinity) setStats((s) => ({ ...s, affinity: clamp(s.affinity + r.oneTime!.affinity!) }));
-            if (r.oneTime.trust) setStats((s) => ({ ...s, trust: clamp(s.trust + r.oneTime!.trust!) }));
-          }
-        }
-        // 특수 보상 자동 해금 (CG / 시나리오 / 터치 / 아바타)
-        if (rewardThisLevel?.special) {
-          const sp = rewardThisLevel.special;
-          if (sp.kind === "cg") {
-            setUnlockedCGs((cgs) => ({ ...cgs, [sp.id]: true }));
-          }
-          // scenario / touch는 시나리오 데이터에 정의되어 있으므로 자동 startable.
-          // 영구 해금 표시용 플래그
-          setUnlockedSpecials((u) => ({ ...u, [sp.id]: true }));
+    // 즉시 작은 체크포인트를 저장해 레벨업 직후 탭/브라우저 종료에도 대비한다.
+    let previous = userProgressRef.current;
+    try { previous = readProgress(localStorage, activeStorageKey, previous); }
+    catch (error) { console.warn("[save] Could not read EXP checkpoint", error); }
+    const progress = advanceProgress(previous, amount);
+    userProgressRef.current = progress;
+    try { writeProgress(localStorage, activeStorageKey, progress); }
+    catch (error) { console.warn("[save] Could not checkpoint earned EXP", error); }
+    setUserLevel(progress.userLevel);
+    setUserExp(progress.userExp);
+    const curLevel = progress.userLevel;
+    if (curLevel > previous.userLevel) {
+      setCoins((c) => c + curLevel * 10); // 레벨업 보너스 코인
+      const rewardThisLevel = LEVEL_REWARDS.find((r) => r.level === curLevel);
+      setLevelUpEffect({ level: curLevel, title: getLevelTitle(curLevel), reward: rewardThisLevel });
+      window.setTimeout(() => setLevelUpEffect(null), rewardThisLevel ? 4000 : 2400);
+      // 레벨업 1회성 보상 지급
+      for (const r of LEVEL_REWARDS) {
+        if (r.level === curLevel && r.oneTime) {
+          if (r.oneTime.coins) setCoins((c) => c + r.oneTime!.coins!);
+          if (r.oneTime.tickets) setGachaTickets((t) => t + r.oneTime!.tickets!);
+          if (r.oneTime.affinity) setStats((s) => ({ ...s, affinity: clamp(s.affinity + r.oneTime!.affinity!) }));
+          if (r.oneTime.trust) setStats((s) => ({ ...s, trust: clamp(s.trust + r.oneTime!.trust!) }));
         }
       }
-      return exp;
-    });
+      // 특수 보상 자동 해금 (CG / 시나리오 / 터치 / 아바타)
+      if (rewardThisLevel?.special) {
+        const sp = rewardThisLevel.special;
+        if (sp.kind === "cg") {
+          setUnlockedCGs((cgs) => ({ ...cgs, [sp.id]: true }));
+        }
+        // scenario / touch는 시나리오 데이터에 정의되어 있으므로 자동 startable.
+        // 영구 해금 표시용 플래그
+        setUnlockedSpecials((u) => ({ ...u, [sp.id]: true }));
+      }
+    }
   }
+
   // 활성 패시브 효과 헬퍼
   const activePerks = useMemo(() => getActivePerks(userLevel), [userLevel]);
   const perkBonus = {
@@ -6322,6 +6375,7 @@ export default function Page() {
     if (!raw) return alert("빈 슬롯이에요.");
     if (!confirm(`${slot}번 슬롯을 불러올까요? 현재 진행 상황은 사라집니다 (다른 슬롯에 저장 안 했다면).`)) return;
     localStorage.setItem(STORAGE_KEY, raw);
+    localStorage.removeItem(progressKey(STORAGE_KEY));
     location.reload();
   }
   function deleteSlot(slot: number) {
@@ -6352,7 +6406,9 @@ export default function Page() {
         body: JSON.stringify({ type: "reset" }),
       });
     } catch {}
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(activeStorageKey);
+    localStorage.removeItem(progressKey(activeStorageKey));
+    loadedSaveRawRef.current = null;
     localStorage.removeItem(PUSH_SEEN_KEY);
     for (let slot = 1; slot <= 3; slot += 1) {
       localStorage.removeItem(SLOT_KEY(slot));
@@ -6374,7 +6430,7 @@ export default function Page() {
     setDailyState({ date: todayKey(), chatCount: 0, giftCount: 0, scenarioCount: 0, checkinDone: false, bladderPeak: 0, missions: [] });
     setShopHistory({});
     setUserLevel(1);
-    userLevelRef.current = 1;
+    userProgressRef.current = { userLevel: 1, userExp: 0 };
     setUserExp(0);
     setLastFreeGacha(0);
     setGachaTickets(0);
