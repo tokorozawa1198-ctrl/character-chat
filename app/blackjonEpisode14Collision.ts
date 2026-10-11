@@ -216,7 +216,7 @@ export const blackjonEpisode14Collision: Record<string, Scenario> = {
   blackjon_ep14_collision_06: {
     id: "blackjon_ep14_collision_06", title: "흑존 14화: 충돌 · 여기에도",
     subtitle: "거실에서 옷방까지 · 남겨진 자리", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep14_collision_wardrobe.png"], background: "/blackjon_ep14_collision_wardrobe.png",
     text: `형은 소파 옆에 놓인 흑존의 가방을 집어 들었다. 쿠션 위에 자기 것이 아닌 웃옷이 걸쳐져 있었다. 형이 치우자 흑존이 일어났다.
 
 흑존: 그건 거기 두세요.
@@ -404,7 +404,7 @@ export const blackjonEpisode14Collision: Record<string, Scenario> = {
   blackjon_ep14_collision_11: {
     id: "blackjon_ep14_collision_11", title: "흑존 14화: 충돌 · 문을 닫아도",
     subtitle: "현관 · 끝났다는 착각", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep14_collision_aftermath.png"], background: "/blackjon_ep14_collision_aftermath.png",
     text: `형은 문을 열고 옆으로 비켰다. 흑존이 신발을 신다가 고개를 들었다.
 
 흑존: 오늘 저 미워하셔도 돼요.
@@ -437,7 +437,7 @@ export const blackjonEpisode14Collision: Record<string, Scenario> = {
   blackjon_ep14_collision_end: {
     id: "blackjon_ep14_collision_end", title: "흑존 14화: 충돌 · 남겨진 집",
     subtitle: "늦은 밤 · 혼자가 된 뒤에도", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep14_collision_aftermath.png"], background: "/blackjon_ep14_collision_aftermath.png",
     text: `흑존은 집에 도착해서도 한동안 가방을 열지 않았다. 형이 돌려보낸 옷이 안에 들어 있었다.
 
 예전 같았으면 돌려받았다는 사실만 생각했을 것이다. 오늘은 형이 끝에 가서 말을 거의 하지 않았다는 것이 먼저 떠올랐다.
