@@ -1,11 +1,10 @@
 import type { Scenario } from "./gameTypes";
 
-// 14화 전용 CG를 받을 때 교체한다. 현재는 기존 방 배경을 사용한다.
 export const blackjonEpisode14Collision: Record<string, Scenario> = {
   blackjon_ep14_collision_01: {
     id: "blackjon_ep14_collision_01", title: "흑존 14화: 충돌 · 남겨진 집",
     subtitle: "일주일 뒤 · 잠깐이라는 약속", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep14_collision_01.png"], background: "/blackjon_ep14_collision_01.png",
     text: `흑존이 날짜 옆에 첫 번째 표시를 한 뒤로 일주일이 지났다.
 
 형은 그동안 혼자 출근했고, 혼자 돌아왔다. 퇴근했다는 연락 다음에 어디냐는 질문이 붙으면 집이라고만 답했다. 저녁 메뉴를 묻는 말에는 사진을 보내지 않았다. 그 작은 일들을 일부러 해야 한다는 게 마음에 걸렸다.
@@ -45,7 +44,7 @@ export const blackjonEpisode14Collision: Record<string, Scenario> = {
   blackjon_ep14_collision_02: {
     id: "blackjon_ep14_collision_02", title: "흑존 14화: 충돌 · 빈 칸",
     subtitle: "옷방 · 가져가라는 말", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep14_collision_02.png"], background: "/blackjon_ep14_collision_02.png",
     text: `씻고 나온 형은 머리에 수건을 얹은 채 옷장 문을 열었다. 집에서 입는 옷이 있던 칸이 비어 있었다.
 
 아니, 비어 있는 건 아니었다. 낯익지만 자기 것은 아닌 옷들이 가지런히 놓여 있었다. 흑존이 두고 갔던 것, 전에 입고 왔던 것. 형은 맨 위의 옷을 들었다가 내려놓았다.
@@ -89,7 +88,7 @@ export const blackjonEpisode14Collision: Record<string, Scenario> = {
   blackjon_ep14_collision_03: {
     id: "blackjon_ep14_collision_03", title: "흑존 14화: 충돌 · 왜요?",
     subtitle: "거실 · 듣고도 따르지 않는 말", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep14_collision_03.png"], background: "/blackjon_ep14_collision_03.png",
     text: `형은 가방을 거실로 가져왔다. 흑존도 따라 나왔다. 형이 창문을 더 열자 차가운 바람이 들어와 커튼을 밀었다.
 
 히든: 일단 좀 비켜. 냄새나잖아. 씻으라고 했지.
