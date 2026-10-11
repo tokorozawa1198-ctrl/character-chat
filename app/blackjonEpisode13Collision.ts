@@ -1,11 +1,11 @@
 import type { Scenario } from "./gameTypes";
 
-// 13화 CG는 사용자 제공 예정. 업로드 전에는 기존 배경만 사용한다.
+// 사용자 참고 외형을 유지한 13화 충돌 전용 CG: 밤 / 아침 / 첫날.
 export const blackjonEpisode13Collision: Record<string, Scenario> = {
   blackjon_ep13_collision_01: {
     id: "blackjon_ep13_collision_01", title: "흑존 13화: 충돌 · 마킹",
     subtitle: "망년회에서 돌아온 밤 · 정해진 귀가", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep13_collision_night.png"], background: "/blackjon_ep13_collision_night.png",
     text: `늦은 밤, 형은 자기 집 문을 열었다. 뒤따라온 흑존에게 안으로 들어오라고 했다. 식당 앞에서 다 하지 못한 말을 끝낼 생각이었다.
 
 히든: 나 오늘 더 있고 싶었어.
@@ -33,7 +33,7 @@ export const blackjonEpisode13Collision: Record<string, Scenario> = {
   blackjon_ep13_collision_02: {
     id: "blackjon_ep13_collision_02", title: "흑존 13화: 충돌 · 좋은 사람",
     subtitle: "조금 전의 회식 · 미리 끝난 의논", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep13_collision_night.png"], background: "/blackjon_ep13_collision_night.png",
     text: `흑존이 식당에 들어왔을 때, 형보다 먼저 그를 알아보고 손을 흔든 동료가 있었다.
 
 기타: 아, 데리러 오신다는 분이죠? 선생님, 먼저 가셔도 돼요. 아까 얘기 들었어요.
@@ -71,7 +71,7 @@ export const blackjonEpisode13Collision: Record<string, Scenario> = {
   blackjon_ep13_collision_03: {
     id: "blackjon_ep13_collision_03", title: "흑존 13화: 충돌 · 돌아오지 않은 것",
     subtitle: "현관 · 남의 향수", kind: "jealousy", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep13_collision_night.png"], background: "/blackjon_ep13_collision_night.png",
     text: `형이 외투를 걸려고 옆을 지날 때 흑존이 고개를 들었다.
 
 흑존: 무슨 냄새예요?
@@ -108,7 +108,7 @@ export const blackjonEpisode13Collision: Record<string, Scenario> = {
   blackjon_ep13_collision_04: {
     id: "blackjon_ep13_collision_04", title: "흑존 13화: 충돌 · 없애주세요",
     subtitle: "욕실 앞 · 대답하지 않는 대답", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep13_collision_night.png"], background: "/blackjon_ep13_collision_night.png",
     text: `흑존: 일단 씻어요, 형.
 히든: 말 돌리지 말라고.
 흑존: 그 냄새 없애고 얘기하면 안 돼요?
@@ -144,7 +144,7 @@ export const blackjonEpisode13Collision: Record<string, Scenario> = {
   blackjon_ep13_collision_05: {
     id: "blackjon_ep13_collision_05", title: "흑존 13화: 충돌 · 지워지지 않는 밤",
     subtitle: "새벽 · 빼앗긴 시간", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep13_collision_night.png"], background: "/blackjon_ep13_collision_night.png",
     text: `흑존: 한 가지만 더 물어볼게요.
 
 그 한 가지가 끝날 때마다 다음 질문이 생겼다. 형이 씻고 나온 뒤에도, 옷을 치운 뒤에도 같았다. 향수가 사라진 자리에 어떤 표정으로 안아줬느냐는 말이 들어왔다.
@@ -176,7 +176,7 @@ export const blackjonEpisode13Collision: Record<string, Scenario> = {
   blackjon_ep13_collision_06: {
     id: "blackjon_ep13_collision_06", title: "흑존 13화: 충돌 · 먼저 남기는 것",
     subtitle: "다음 날 아침 · 소유의 표시", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_day.png"], background: "/bg_room_day.png",
+    imagePool: ["/blackjon_ep13_collision_morning.png"], background: "/blackjon_ep13_collision_morning.png",
     text: `형은 흑존이 아직 거실에 있는 걸 보고 멈췄다.
 
 히든: 아직도 안 갔냐.
@@ -211,7 +211,7 @@ export const blackjonEpisode13Collision: Record<string, Scenario> = {
   blackjon_ep13_collision_07: {
     id: "blackjon_ep13_collision_07", title: "흑존 13화: 충돌 · 준비",
     subtitle: "자기 집 · 일주일의 시작", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_day.png"], background: "/bg_room_day.png",
+    imagePool: ["/blackjon_ep13_collision_training.png"], background: "/blackjon_ep13_collision_training.png",
     text: `흑존은 결국 형의 집을 나왔다. 자기 집에 도착해서 운동복으로 갈아입었다. 휴대폰에는 형에게 보낸 마지막 메시지만 남아 있었다.
 
 메시지: 【흑존】 들어왔어요. 형도 좀 쉬세요.
@@ -236,7 +236,7 @@ export const blackjonEpisode13Collision: Record<string, Scenario> = {
   blackjon_ep13_collision_end: {
     id: "blackjon_ep13_collision_end", title: "흑존 13화: 충돌 · 제 것",
     subtitle: "마킹 · 아직 첫날", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_day.png"], background: "/bg_room_day.png",
+    imagePool: ["/blackjon_ep13_collision_training.png"], background: "/blackjon_ep13_collision_training.png",
     text: `형은 동료에게 도착한 메시지를 읽었다.
 
 메시지: 【동료】 어제 잘 들어가셨어요? 데리러 와주는 사람도 있고 좋네요.

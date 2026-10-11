@@ -1,11 +1,11 @@
 import type { Scenario } from "./gameTypes";
 
-// 13화 CG는 사용자 제공 예정. 장면별 imagePool/background를 업로드 후 교체한다.
+// 사용자 참고 외형을 유지한 13화 공모 전용 CG: 밤 / 아침 / 첫날.
 export const blackjonEpisode13Conspiracy: Record<string, Scenario> = {
   blackjon_ep13_conspiracy_01: {
     id: "blackjon_ep13_conspiracy_01", title: "흑존 13화: 공모 · 마킹",
     subtitle: "망년회가 끝난 밤 · 귀가 보고", kind: "comedy", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep13_conspiracy_night.png"], background: "/blackjon_ep13_conspiracy_night.png",
     text: `밤 열한 시가 넘어 형이 집에 돌아왔다. 흑존은 현관에서 가방을 받자마자 형의 얼굴을 들여다봤다.
 
 흑존: 형. 살아 계셨네요.
@@ -37,7 +37,7 @@ export const blackjonEpisode13Conspiracy: Record<string, Scenario> = {
   blackjon_ep13_conspiracy_02: {
     id: "blackjon_ep13_conspiracy_02", title: "흑존 13화: 공모 · 원격 참석자",
     subtitle: "조금 전의 회식 · 화면 안의 남자친구", kind: "comedy", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep13_conspiracy_night.png"], background: "/blackjon_ep13_conspiracy_night.png",
     text: `처음 메시지는 음식 사진에 대한 답이었다.
 
 메시지: 【흑존】 형 그거 뜨거워요. 또 과학 실험 하지 마세요.
@@ -79,7 +79,7 @@ export const blackjonEpisode13Conspiracy: Record<string, Scenario> = {
   blackjon_ep13_conspiracy_03: {
     id: "blackjon_ep13_conspiracy_03", title: "흑존 13화: 공모 · 남은 향수",
     subtitle: "현관 · 농담 다음의 질문", kind: "jealousy", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep13_conspiracy_night.png"], background: "/blackjon_ep13_conspiracy_night.png",
     text: `흑존이 팔을 풀었다. 형도 깃을 당겨 맡아봤다. 술과 음식 냄새 사이에 달고 묵직한 향이 남아 있었다.
 
 히든: 아. 가게에서 묻었나.
@@ -117,7 +117,7 @@ export const blackjonEpisode13Conspiracy: Record<string, Scenario> = {
   blackjon_ep13_conspiracy_04: {
     id: "blackjon_ep13_conspiracy_04", title: "흑존 13화: 공모 · 형이 온 다음에도",
     subtitle: "거실 · 끝나지 않는 확인", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep13_conspiracy_night.png"], background: "/blackjon_ep13_conspiracy_night.png",
     text: `흑존: 알아요. 형이 그분 좋아해서 그러신 거 아닌 거.
 히든: 알면 그 표정 좀 펴.
 흑존: 아는데 싫은 건 어떡해요.
@@ -155,7 +155,7 @@ export const blackjonEpisode13Conspiracy: Record<string, Scenario> = {
   blackjon_ep13_conspiracy_05: {
     id: "blackjon_ep13_conspiracy_05", title: "흑존 13화: 공모 · 아직 모자란 밤",
     subtitle: "새벽 · 지워지는 것과 남는 것", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep13_conspiracy_night.png"], background: "/blackjon_ep13_conspiracy_night.png",
     text: `형이 씻고 나왔을 때 셔츠는 세탁 바구니에 들어가 있었다. 흑존의 티셔츠 소매는 형의 팔꿈치 가까이 내려왔다.
 
 히든: 됐냐. 남의 옷 입어서 사람까지 두 배 됐네.
@@ -192,7 +192,7 @@ export const blackjonEpisode13Conspiracy: Record<string, Scenario> = {
   blackjon_ep13_conspiracy_06: {
     id: "blackjon_ep13_conspiracy_06", title: "흑존 13화: 공모 · 표시가 필요한 사람",
     subtitle: "다음 날 아침 · 소유권 안내", kind: "comedy", category: "main",
-    imagePool: ["/bg_room_day.png"], background: "/bg_room_day.png",
+    imagePool: ["/blackjon_ep13_conspiracy_morning.png"], background: "/blackjon_ep13_conspiracy_morning.png",
     text: `아침에 형은 흑존의 옷을 입은 채 토스트를 먹었다. 흑존은 빵보다 소매를 오래 봤다.
 
 히든: 니 옷에 잼 안 흘렸어. 아직.
@@ -228,7 +228,7 @@ export const blackjonEpisode13Conspiracy: Record<string, Scenario> = {
   blackjon_ep13_conspiracy_07: {
     id: "blackjon_ep13_conspiracy_07", title: "흑존 13화: 공모 · 일주일 챌린지",
     subtitle: "아침 식탁 · 참가자 한 명", kind: "comedy", category: "main",
-    imagePool: ["/bg_room_day.png"], background: "/bg_room_day.png",
+    imagePool: ["/blackjon_ep13_conspiracy_training.png"], background: "/blackjon_ep13_conspiracy_training.png",
     text: `흑존: 일주일만 안 씻어볼게요.
 
 형은 포크를 내려놓았다. 아주 조심히 내려놓았다.
@@ -268,7 +268,7 @@ export const blackjonEpisode13Conspiracy: Record<string, Scenario> = {
   blackjon_ep13_conspiracy_end: {
     id: "blackjon_ep13_conspiracy_end", title: "흑존 13화: 공모 · 오늘부터 1일 차",
     subtitle: "그날 오후 · 웃긴데 진심인 사람", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_day.png"], background: "/bg_room_day.png",
+    imagePool: ["/blackjon_ep13_conspiracy_training.png"], background: "/blackjon_ep13_conspiracy_training.png",
     text: `오후에 형은 혼자 책을 폈다. 이번에는 늦게까지 학교에 있다고 하지 않았다. 오늘은 자기 집에서 자기 일을 하겠다고 했다.
 
 흑존은 자기 집으로 돌아갔다. 한동안 연락이 없어서, 형은 정말로 세 장을 읽었다.

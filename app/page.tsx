@@ -3777,6 +3777,15 @@ function getCGName(imgPath: string): string {
     oppa_jealous2: "낮아진 목소리",
     oppa_confinement1: "잠긴 문",
     oppa_obsession1: "놓지 않는 손",
+    blackjon_ep13_conspiracy_night: "공모 · 귀가 후의 질투",
+    blackjon_ep13_conspiracy_morning: "공모 · 기상천외한 선언",
+    blackjon_ep13_conspiracy_training: "공모 · 진지한 도전",
+    blackjon_ep13_erosion_night: "침식 · 끝나지 않는 확인",
+    blackjon_ep13_erosion_morning: "침식 · 남겨두고 싶은 것",
+    blackjon_ep13_erosion_training: "침식 · 돌아선 욕실",
+    blackjon_ep13_collision_night: "충돌 · 남의 흔적",
+    blackjon_ep13_collision_morning: "충돌 · 먼저 남기는 것",
+    blackjon_ep13_collision_training: "충돌 · 첫 번째 표시",
   };
   return map[base] ?? "새 CG";
 }

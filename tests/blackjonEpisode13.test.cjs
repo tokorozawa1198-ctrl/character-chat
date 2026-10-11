@@ -90,6 +90,21 @@ for (const route of BLACKJON_ROUTE_IDS) {
     }
   });
 
+  test(`${route}: dedicated CGs follow night, morning, and first-day scene timing`, () => {
+    const expected = {
+      '01': 'night', '02': 'night', '03': 'night', '04': 'night', '05': 'night',
+      '06': 'morning', '07': 'training', end: 'training',
+    };
+    for (const [suffix, part] of Object.entries(expected)) {
+      const scene = blackjonEpisodes[`${prefix}${suffix}`];
+      const asset = `/blackjon_ep13_${route}_${part}.png`;
+      assert.deepEqual(Array.from(scene.imagePool), [asset]);
+      assert.equal(scene.background, asset);
+      assert.ok(fs.existsSync(path.join('public', asset)), `missing ${asset}`);
+      assert.ok(pageSource.includes(`blackjon_ep13_${route}_${part}:`), `missing gallery name for ${asset}`);
+    }
+  });
+
   test(`${route}: final choice records completion, clears resume, skips main-character endings`, () => {
     for (const replay of [false, true]) {
       const unlocked = [];

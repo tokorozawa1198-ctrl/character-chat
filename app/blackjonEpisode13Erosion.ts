@@ -1,11 +1,11 @@
 import type { Scenario } from "./gameTypes";
 
-// 13화 CG는 사용자 제공 예정. 업로드 전에는 기존 배경만 사용한다.
+// 사용자 참고 외형을 유지한 13화 침식 전용 CG: 밤 / 아침 / 첫날.
 export const blackjonEpisode13Erosion: Record<string, Scenario> = {
   blackjon_ep13_erosion_01: {
     id: "blackjon_ep13_erosion_01", title: "흑존 13화: 침식 · 마킹",
     subtitle: "망년회가 끝난 밤 · 잠깐만", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep13_erosion_night.png"], background: "/blackjon_ep13_erosion_night.png",
     text: `형이 집에 돌아왔을 때는 자정이 가까웠다. 휴대폰에 도착했다는 메시지를 보내고 외투를 벗었다. 잠깐 얼굴을 보고 싶다는 답장이 왔다.
 
 히든: 내일 보면 안 됨? 오늘 말 너무 많이 해서 한국어 소진됨.
@@ -32,7 +32,7 @@ export const blackjonEpisode13Erosion: Record<string, Scenario> = {
   blackjon_ep13_erosion_02: {
     id: "blackjon_ep13_erosion_02", title: "흑존 13화: 침식 · 보이지 않는 참석자",
     subtitle: "같은 저녁 · 말하지 않은 외출", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep13_erosion_night.png"], background: "/blackjon_ep13_erosion_night.png",
     text: `흑존은 저녁 내내 집에 있지 않았다.
 
 형이 말해준 식당까지 갔다. 문을 열면 안 된다고 생각하면서도 결국 혼자 자리를 잡았다. 형이 고개를 돌렸을 때 바로 보이지 않는 자리였다.
@@ -59,7 +59,7 @@ export const blackjonEpisode13Erosion: Record<string, Scenario> = {
   blackjon_ep13_erosion_03: {
     id: "blackjon_ep13_erosion_03", title: "흑존 13화: 침식 · 아는 장면",
     subtitle: "낯선 향수 · 설명의 끝", kind: "jealousy", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep13_erosion_night.png"], background: "/blackjon_ep13_erosion_night.png",
     text: `흑존: 향수요. 형은 안 쓰시잖아요.
 히든: 식당에서 묻었겠지. 사람 많았음.
 흑존: 어떻게 묻었는데요?
@@ -92,7 +92,7 @@ export const blackjonEpisode13Erosion: Record<string, Scenario> = {
   blackjon_ep13_erosion_04: {
     id: "blackjon_ep13_erosion_04", title: "흑존 13화: 침식 · 지우면 괜찮을까",
     subtitle: "늦어진 취침 · 부탁의 무게", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep13_erosion_night.png"], background: "/blackjon_ep13_erosion_night.png",
     text: `흑존: 씻으시면 안 돼요?
 히든: 어차피 씻을 거야.
 흑존: 그 옷도 벗어놓으시고요.
@@ -124,7 +124,7 @@ export const blackjonEpisode13Erosion: Record<string, Scenario> = {
   blackjon_ep13_erosion_05: {
     id: "blackjon_ep13_erosion_05", title: "흑존 13화: 침식 · 남아 있는 것",
     subtitle: "새벽 · 끝나지 않는 확인", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep13_erosion_night.png"], background: "/blackjon_ep13_erosion_night.png",
     text: `밤은 짧아지지 않았다. 흑존은 이제 괜찮다고 했다가, 형이 자리에서 일어나면 다시 고개를 들었다.
 
 히든: 물 마시러 가. 어디 안 감.
@@ -150,7 +150,7 @@ export const blackjonEpisode13Erosion: Record<string, Scenario> = {
   blackjon_ep13_erosion_06: {
     id: "blackjon_ep13_erosion_06", title: "흑존 13화: 침식 · 지우는 대신",
     subtitle: "다음 날 아침 · 잘못된 답", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_day.png"], background: "/bg_room_day.png",
+    imagePool: ["/blackjon_ep13_erosion_morning.png"], background: "/blackjon_ep13_erosion_morning.png",
     text: `히든: 목 아파. 십 분 면담이 철야가 됐네.
 흑존: 다음엔 안 그럴게요.
 히든: 그 말 어제도 들었는데.
@@ -180,7 +180,7 @@ export const blackjonEpisode13Erosion: Record<string, Scenario> = {
   blackjon_ep13_erosion_07: {
     id: "blackjon_ep13_erosion_07", title: "흑존 13화: 침식 · 일주일",
     subtitle: "자기 집 · 말하지 않은 결정", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_day.png"], background: "/bg_room_day.png",
+    imagePool: ["/blackjon_ep13_erosion_training.png"], background: "/blackjon_ep13_erosion_training.png",
     text: `흑존은 자기 집으로 돌아왔다. 형이 쉬겠다는 말은 이번에는 지켰다. 운동복을 갈아입고 매트 앞에 섰다.
 
 운동이 끝났을 때 습관처럼 욕실로 향했다가 멈췄다. 어깨에 코를 가까이 댔다. 아직 약했다.
@@ -209,7 +209,7 @@ export const blackjonEpisode13Erosion: Record<string, Scenario> = {
   blackjon_ep13_erosion_end: {
     id: "blackjon_ep13_erosion_end", title: "흑존 13화: 침식 · 첫날",
     subtitle: "마킹 · 혼자 시작한 약속", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_day.png"], background: "/bg_room_day.png",
+    imagePool: ["/blackjon_ep13_erosion_training.png"], background: "/blackjon_ep13_erosion_training.png",
     text: `형은 잠들기 전에 식당 영수증을 가방에서 꺼냈다. 모처럼 자기 일정대로 놀았던 저녁이었다. 마지막에는 누굴 달래다가 끝났는지만 선명했다.
 
 히든: 다음엔 그냥 바로 자야지.
