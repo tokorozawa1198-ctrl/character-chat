@@ -37,15 +37,20 @@ const chooseScenarioCode = ts.transpileModule(chooseScenarioSource, {
   compilerOptions: { target: ts.ScriptTarget.ES2020 },
 }).outputText;
 
-for (const route of BLACKJON_ROUTE_IDS) {
-  const prefix = `blackjon_ep13_${route}_`;
+const chapters = [
+  ...BLACKJON_ROUTE_IDS.map(route => ({ episode: 13, route, sceneCount: 8 })),
+  { episode: 14, route: 'collision', sceneCount: 12 },
+];
+for (const { episode, route, sceneCount } of chapters) {
+  const prefix = `blackjon_ep${episode}_${route}_`;
   const entry = `${prefix}01`;
   const ending = `${prefix}end`;
-  const completion = `blackjon_ep13_${route}_complete`;
+  const completion = `blackjon_ep${episode}_${route}_complete`;
+  const previous = `blackjon_ep${episode - 1}_${route}`;
 
-  test(`${route}: eight registered scenes, all choices reach only this route's ending`, () => {
+  test(`episode ${episode} ${route}: ${sceneCount} registered scenes, all choices reach only this route's ending`, () => {
     const scenes = Object.values(blackjonEpisodes).filter(scene => scene.id.startsWith(prefix));
-    assert.equal(scenes.length, 8);
+    assert.equal(scenes.length, sceneCount);
     const visited = new Set();
     function walk(id, ancestors = new Set()) {
       assert.ok(!ancestors.has(id), `cycle at ${id}`);
@@ -75,22 +80,22 @@ for (const route of BLACKJON_ROUTE_IDS) {
     assert.equal(visited.size, scenes.length);
   });
 
-  test(`${route}: entry, middle, and ending require current route plus episode 12 completion`, () => {
+  test(`episode ${episode} ${route}: entry, middle, and ending require current route plus previous completion`, () => {
     const selected = selectBlackjonRoute({}, route);
-    const completed = { ...selected, [`blackjon_ep12_${route}_complete`]: true };
+    const completed = { ...selected, [`${previous}_complete`]: true };
     for (const id of [entry, `${prefix}04`, ending]) {
-      assert.match(getBlackjonBranchLockReason(id, {}), /12화/);
-      assert.match(getBlackjonBranchLockReason(id, { ...selected, [`blackjon_ep12_${route}_end`]: true }), /완독/);
+      assert.ok(getBlackjonBranchLockReason(id, {}).includes(`${episode - 1}화`));
+      assert.match(getBlackjonBranchLockReason(id, { ...selected, [`${previous}_end`]: true }), /완독/);
       assert.equal(getBlackjonBranchLockReason(id, completed), null);
       const other = BLACKJON_ROUTE_IDS.find(value => value !== route);
       const switched = selectBlackjonRoute(completed, other);
       assert.match(getBlackjonBranchLockReason(id, switched), /10화에서/);
-      assert.equal(switched[`blackjon_ep12_${route}_complete`], true);
+      assert.equal(switched[`${previous}_complete`], true);
       assert.equal(getBlackjonBranchLockReason(id, selectBlackjonRoute(switched, route)), null);
     }
   });
 
-  test(`${route}: dedicated CGs follow night, morning, and first-day scene timing`, () => {
+  if (episode === 13) test(`${route}: dedicated CGs follow night, morning, and first-day scene timing`, () => {
     const expected = {
       '01': 'night', '02': 'night', '03': 'night', '04': 'night', '05': 'night',
       '06': 'morning', '07': 'training', end: 'training',
@@ -105,7 +110,7 @@ for (const route of BLACKJON_ROUTE_IDS) {
     }
   });
 
-  test(`${route}: final choice records completion, clears resume, skips main-character endings`, () => {
+  test(`episode ${episode} ${route}: final choice records completion, clears resume, skips main-character endings`, () => {
     for (const replay of [false, true]) {
       const unlocked = [];
       let progress = { id: ending, lineIndex: 3 };

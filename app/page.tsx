@@ -5132,6 +5132,10 @@ export default function Page() {
       unlockEvent(`blackjon_ep13_${episode13Route}_complete`);
       return;
     }
+    if (currentScenario.id === "blackjon_ep14_collision_end" && choice.end) {
+      unlockEvent("blackjon_ep14_collision_complete");
+      return;
+    }
     // 배드엔딩 시나리오 직접 트리거 (kind: bad_ending) — endingData 조건 검사 스킵
     if (currentScenario.kind === "bad_ending") {
       setMessages((m) => [...m, makeMessage("narration", `*${currentScenario.title} 해금*`)]);
@@ -6962,6 +6966,7 @@ export default function Page() {
               { id: "blackjon_ep13_conspiracy_01", prefix: "blackjon_ep13_conspiracy_", number: 13, prerequisite: "blackjon_ep12_conspiracy_complete" },
               { id: "blackjon_ep13_erosion_01", prefix: "blackjon_ep13_erosion_", number: 13, prerequisite: "blackjon_ep12_erosion_complete" },
               { id: "blackjon_ep13_collision_01", prefix: "blackjon_ep13_collision_", number: 13, prerequisite: "blackjon_ep12_collision_complete" },
+              { id: "blackjon_ep14_collision_01", prefix: "blackjon_ep14_collision_", number: 14, prerequisite: "blackjon_ep13_collision_complete" },
             ];
             blackjonChapters.forEach(({ id, prefix, number, prerequisite }) => {
               const entry = scenarioData[id];
