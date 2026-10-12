@@ -40,6 +40,7 @@ const chooseScenarioCode = ts.transpileModule(chooseScenarioSource, {
 const chapters = [
   ...BLACKJON_ROUTE_IDS.map(route => ({ episode: 13, route, sceneCount: 8 })),
   { episode: 14, route: 'collision', sceneCount: 12 },
+  { episode: 15, route: 'collision', sceneCount: 20 },
 ];
 for (const { episode, route, sceneCount } of chapters) {
   const prefix = `blackjon_ep${episode}_${route}_`;
@@ -139,7 +140,21 @@ for (const { episode, route, sceneCount } of chapters) {
       unlocked.length = 0;
       context.chooseScenario(blackjonEpisodes[entry].choices[0]);
       assert.deepEqual(unlocked, [], 'entering a scene must not complete the episode');
-      assert.deepEqual(started, [`${prefix}02`]);
+      const firstChoice = blackjonEpisodes[entry].choices[0];
+      if (firstChoice.result) {
+        const resultId = `${entry}__r__${firstChoice.label.replace(/\s+/g, '_').slice(0, 24)}`;
+        assert.deepEqual(started, [resultId]);
+        assert.equal(blackjonEpisodes[resultId].text, firstChoice.result);
+        assert.equal(getBlackjonBranchLockReason(resultId, selectBlackjonRoute({
+          [`${previous}_complete`]: true,
+        }, route)), null);
+        context.currentScenario = blackjonEpisodes[resultId];
+        context.chooseScenario(blackjonEpisodes[resultId].choices[0]);
+        assert.deepEqual(started, [resultId, `${prefix}02`]);
+        assert.deepEqual(unlocked, [], 'choice-result scenes must not complete the episode');
+      } else {
+        assert.deepEqual(started, [`${prefix}02`]);
+      }
     }
   });
 }
@@ -155,4 +170,37 @@ test('episode 11/12 gates are preserved; common episodes remain ungated', () => 
     }
   }
   assert.equal(getBlackjonBranchLockReason('blackjon_ep10_01', {}), null);
+});
+
+test('episode 15: all six dedicated CGs appear at their story beats and have gallery names', () => {
+  const expected = {
+    '02': 'phone', '03': 'phone', '04': 'gate', '05': 'walk', '06': 'walk',
+    '10': 'plea', '11': 'plea', '12': 'plea', '14': 'bus', '15': 'bus', '16': 'bus',
+    '19': 'sofa', end: 'sofa',
+  };
+  for (const [suffix, part] of Object.entries(expected)) {
+    const scene = blackjonEpisodes[`blackjon_ep15_collision_${suffix}`];
+    const asset = `/blackjon_ep15_collision_${part}.png`;
+    assert.deepEqual(Array.from(scene.imagePool), [asset]);
+    assert.equal(scene.background, asset);
+    const bytes = fs.readFileSync(path.join('public', asset));
+    assert.equal(bytes.subarray(1, 4).toString(), 'PNG');
+    assert.ok(pageSource.includes(`blackjon_ep15_collision_${part}:`));
+  }
+});
+
+test('episode 15: long-form story stops at the sofa, with no episode 16 kitchen continuation', () => {
+  const scenes = Object.values(blackjonEpisodes).filter(scene =>
+    scene.id.startsWith('blackjon_ep15_collision_') && !scene.id.includes('__r__'));
+  const text = scenes.map(scene => scene.text).join('\n');
+  assert.ok(text.length > 15000, 'retain the requested long-form episode');
+  const messages = blackjonEpisodes.blackjon_ep15_collision_02.text.match(/^메시지: 【흑존(?: · [^】]+)?】/gm);
+  assert.equal(messages.length, 32, 'thirty queued messages plus two new replies');
+  assert.ok(text.includes('형 말 들어야 하나?'));
+  assert.ok(text.includes('제가 불쾌합니다.'));
+  assert.ok(text.includes('헤어지자.'));
+  assert.ok(!text.includes('아사이볼'));
+  assert.ok(blackjonEpisodes.blackjon_ep15_collision_end.text.endsWith('흑존은 앉아 있었다.'));
+  assert.ok(pageSource.includes('id: "blackjon_ep15_collision_01", prefix: "blackjon_ep15_collision_", number: 15, prerequisite: "blackjon_ep14_collision_complete"'));
+  assert.equal(Object.keys(blackjonEpisodes).some(id => /^blackjon_ep15_(conspiracy|erosion)_/.test(id)), false);
 });
