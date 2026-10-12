@@ -10,6 +10,7 @@ import { SaveStatus } from "./_game/ui/SaveStatus";
 import { advanceProgress, readProgress, writeProgress, progressKey, type PlayerProgress } from "./_game/progressPersistence";
 import { SceneIllustration } from "./_game/ui/SceneIllustration";
 import { BlackjonRouteSummary } from "./_game/ui/BlackjonRouteSummary";
+import { BlackjonSeasonFinale, BlackjonSeasonNotice } from "./_game/ui/BlackjonSeasonFinale";
 import { BLACKJON_ROUTES, BLACKJON_ROUTE_IDS, getBlackjonBranchLockReason, getBlackjonRoute, selectBlackjonRoute } from "./blackjonRoute";
 import { playerText } from "./_game/playerText";
 import { CollectionTrophies } from "./_game/ui/CollectionTrophies";
@@ -3817,6 +3818,12 @@ function getCGName(imgPath: string): string {
     blackjon_ep19_collision_door: "충돌 · 매번 가셨잖아요",
     blackjon_ep19_collision_dinner: "충돌 · 두 사람 몫",
     blackjon_ep19_collision_today: "충돌 · 오늘은",
+    blackjon_ep20_collision_call: "충돌 · 앞에 있는데",
+    blackjon_ep20_collision_plea: "충돌 · 그런데도",
+    blackjon_ep20_collision_door: "충돌 · 열린 문",
+    blackjon_ep20_collision_following: "충돌 · 끝나지 않는 배웅",
+    blackjon_ep20_collision_street: "충돌 · 헤어진 채로",
+    blackjon_ep20_collision_finale: "충돌 · 기다리지 않는 사람",
   };
   return map[base] ?? "새 CG";
 }
@@ -3993,6 +4000,7 @@ export default function Page() {
   const [lockedChoiceMsg, setLockedChoiceMsg] = useState(false);
   const [missionResult, setMissionResult] = useState<{ label: string } | null>(null);
   const [endingCard, setEndingCard] = useState<{ key: string; card: EndingCardData; bgImage: string } | null>(null);
+  const [blackjonSeasonFinale, setBlackjonSeasonFinale] = useState(false);
   const [levelUpCard, setLevelUpCard] = useState<(RelLevel & { displayName: string }) | null>(null);
   const [giftCooldowns, setGiftCooldowns] = useState<Record<string, number>>({});
   const [giftReaction, setGiftReaction] = useState<{ gift: Gift; text: string; delta: StatDelta } | null>(null);
@@ -5127,6 +5135,11 @@ export default function Page() {
     // 완독했으므로 진행 상황 초기화
     setScenarioProgress((p) => (p?.id === currentScenario.id ? null : p));
     setCurrentScenarioId(null);
+    if (currentScenario.id === "blackjon_ep20_collision_end" && choice.end) {
+      unlockEvent("blackjon_ep20_collision_complete");
+      setBlackjonSeasonFinale(true);
+      return;
+    }
     showChapterTransition(ending, 2600);
     if (currentScenario.id.startsWith("blackjon_ep10_") && choice.end) {
       unlockEvent("blackjon_ep10_complete");
@@ -7023,6 +7036,7 @@ export default function Page() {
               { id: "blackjon_ep17_collision_01", prefix: "blackjon_ep17_collision_", number: 17, prerequisite: "blackjon_ep16_collision_complete" },
               { id: "blackjon_ep18_collision_01", prefix: "blackjon_ep18_collision_", number: 18, prerequisite: "blackjon_ep17_collision_complete" },
               { id: "blackjon_ep19_collision_01", prefix: "blackjon_ep19_collision_", number: 19, prerequisite: "blackjon_ep18_collision_complete" },
+              { id: "blackjon_ep20_collision_01", prefix: "blackjon_ep20_collision_", number: 20, prerequisite: "blackjon_ep19_collision_complete" },
             ];
             blackjonChapters.forEach(({ id, prefix, number, prerequisite }) => {
               const entry = scenarioData[id];
@@ -7045,7 +7059,11 @@ export default function Page() {
           const saved = scenarioProgress && scenarioData[scenarioProgress.id];
           const savedMatchesCharacter = saved && (isHiddenRoute ? saved.id.startsWith("hidden_") : isBlackjonRoute ? saved.id.startsWith("blackjon_") : !saved.id.startsWith("hidden_") && !saved.id.startsWith("blackjon_"));
           const resume = saved && savedMatchesCharacter && (isAdminMode || !getBlackjonBranchLockReason(saved.id, seenEvents)) ? { id: saved.id, title: saved.title, line: scenarioProgress!.lineIndex } : null;
-          return <div className="panel">{isBlackjonRoute && seenEvents.blackjon_ep10_06 && <BlackjonRouteSummary selected={blackjonRoute} onChoose={() => startScenario("blackjon_ep10_06")} />}<StoryLibrary chapters={chapters} activeRoute={isHiddenRoute ? "hidden" : isBlackjonRoute ? "blackjon" : storyRoute} resume={resume} onStart={startScenario} onNavigate={setView}/></div>;
+          return <div className="panel">
+            {isBlackjonRoute && seenEvents.blackjon_ep10_06 && <BlackjonRouteSummary selected={blackjonRoute} onChoose={() => startScenario("blackjon_ep10_06")} />}
+            {isBlackjonRoute && blackjonRoute === "collision" && seenEvents.blackjon_ep20_collision_complete && <BlackjonSeasonNotice onReplay={() => setBlackjonSeasonFinale(true)} />}
+            <StoryLibrary chapters={chapters} activeRoute={isHiddenRoute ? "hidden" : isBlackjonRoute ? "blackjon" : storyRoute} resume={resume} onStart={startScenario} onNavigate={setView}/>
+          </div>;
         })()}
         {view === "extraScenarios" && (() => {
           const endingsCleared = Object.keys(unlockedEndings).length;
@@ -9285,6 +9303,9 @@ export default function Page() {
           </div>
         )}
       </section>
+      {selectedCharacter === "blackjon" && blackjonSeasonFinale && (
+        <BlackjonSeasonFinale onClose={() => { setBlackjonSeasonFinale(false); setView("scenarioMenu"); }} />
+      )}
       {endingCard && (
         <div className="endingCardOverlay" onClick={() => { if(endingCardTimer.current) window.clearTimeout(endingCardTimer.current); setEndingCard(null); }}>
           <div className="endingCardBg" style={{ backgroundImage: `url(${endingCard.bgImage})` }} />

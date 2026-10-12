@@ -45,7 +45,39 @@ const chapters = [
   { episode: 17, route: 'collision', sceneCount: 22 },
   { episode: 18, route: 'collision', sceneCount: 20 },
   { episode: 19, route: 'collision', sceneCount: 14 },
+  { episode: 20, route: 'collision', sceneCount: 20 },
 ];
+
+test('episode 20: season finale preserves refusal and follows the live call into unwanted company', () => {
+  const scene = suffix => blackjonEpisodes[`blackjon_ep20_collision_${suffix}`];
+  const scenes = Object.values(blackjonEpisodes).filter(s => s.id.startsWith('blackjon_ep20_collision_'));
+  assert.equal(scenes.reduce((count, s) => count + s.choices.length, 0), 23);
+  assert.ok(scenes.reduce((count, s) => count + s.text.length, 0) > 8000);
+  assert.match(scene('01').text, /통화를 끊지 말/);
+  assert.match(scene('18').text, /그럼 헤어진 채로 같이 있으면 되겠네요/);
+  assert.match(scene('19').text, /울면 형 마음 아프다면서요/);
+  assert.ok(scene('end').text.endsWith('흑존: 저 이제 기다리는 거 안 할래요.'));
+  assert.equal(scene('end').choices[0].label, '20화 완독 · 시즌 1부 종료');
+  assert.ok(pageSource.includes('id: "blackjon_ep20_collision_01", prefix: "blackjon_ep20_collision_", number: 20, prerequisite: "blackjon_ep19_collision_complete"'));
+  assert.ok(pageSource.includes('setBlackjonSeasonFinale(false); setView("scenarioMenu");'));
+});
+
+test('episode 20: six new CGs track call, plea, exit, following, street, and final portrait', () => {
+  const sequence = ['call', 'call', 'call', ...Array(7).fill('plea'), ...Array(3).fill('door'), ...Array(3).fill('following'), ...Array(3).fill('street'), 'finale'];
+  const scenes = Object.values(blackjonEpisodes).filter(s => s.id.startsWith('blackjon_ep20_collision_'));
+  scenes.forEach((scene, index) => {
+    const part = sequence[index];
+    const asset = `/blackjon_ep20_collision_${part}.png`;
+    assert.deepEqual(Array.from(scene.imagePool), [asset]);
+    assert.equal(scene.background, asset);
+    assert.equal(scene.kind, 'obsession');
+    assert.ok(pageSource.includes(`blackjon_ep20_collision_${part}:`));
+    const bytes = fs.readFileSync(path.join('public', asset));
+    assert.equal(bytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+    assert.equal(bytes.readUInt32BE(16), 1024);
+    assert.equal(bytes.readUInt32BE(20), 1536);
+  });
+});
 
 test('episode 19: agreed story preserves the refusal, outside contact, and unresolved ending', () => {
   const scene = suffix => blackjonEpisodes[`blackjon_ep19_collision_${suffix}`];
@@ -161,6 +193,8 @@ for (const { episode, route, sceneCount } of chapters) {
       const unlocked = [];
       let progress = { id: ending, lineIndex: 3 };
       let currentId = ending;
+      let finale = false;
+      let transitionCount = 0;
       const noop = () => {};
       const context = {
         currentScenario: blackjonEpisodes[ending], scenarioReplayRef: { current: replay },
@@ -168,7 +202,8 @@ for (const { episode, route, sceneCount } of chapters) {
         setStats: noop, showStatDelta: noop, setMemoryNotes: noop, setMessages: noop,
         setAfterScenarioCues: noop, chapterEndTransition: () => null,
         setScenarioProgress: fn => { progress = fn(progress); },
-        setCurrentScenarioId: id => { currentId = id; }, showChapterTransition: noop,
+        setCurrentScenarioId: id => { currentId = id; }, showChapterTransition: () => transitionCount++,
+        setBlackjonSeasonFinale: value => { finale = value; },
         BLACKJON_ROUTE_IDS, unlockEvent: id => unlocked.push(id),
         endingData: { forbidden: { condition: () => { assert.fail('must not check main-character endings'); } } },
         scenarioData: blackjonEpisodes,
@@ -179,6 +214,8 @@ for (const { episode, route, sceneCount } of chapters) {
       assert.deepEqual(unlocked, [completion]);
       assert.equal(progress, null);
       assert.equal(currentId, null);
+      assert.equal(finale, episode === 20);
+      assert.equal(transitionCount, episode === 20 ? 0 : 1);
       const started = [];
       context.currentScenario = blackjonEpisodes[entry];
       context.startScenario = id => started.push(id);
