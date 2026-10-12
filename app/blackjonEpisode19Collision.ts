@@ -155,7 +155,7 @@ export const blackjonEpisode19Collision: Record<string, Scenario> = {
   blackjon_ep19_collision_05: {
     id: "blackjon_ep19_collision_05", title: "흑존 19화: 충돌 · 정리하는 손",
     subtitle: "작은 방 앞 · 처음으로 말한 대로", kind: "obsession", category: "main",
-    imagePool: ["/blackjon_ep17_collision_room.png"], background: "/blackjon_ep17_collision_room.png",
+    imagePool: ["/blackjon_ep19_collision_sorting.png"], background: "/blackjon_ep19_collision_sorting.png",
     text: `히든: 정리한다며.
 
 흑존이 먼저 들어갔다.
@@ -191,7 +191,7 @@ export const blackjonEpisode19Collision: Record<string, Scenario> = {
   blackjon_ep19_collision_06: {
     id: "blackjon_ep19_collision_06", title: "흑존 19화: 충돌 · 조용했죠",
     subtitle: "여섯 분 뒤 · 참았던 사람", kind: "obsession", category: "main",
-    imagePool: ["/blackjon_ep17_collision_room.png"], background: "/blackjon_ep17_collision_room.png",
+    imagePool: ["/blackjon_ep19_collision_sorting.png"], background: "/blackjon_ep19_collision_sorting.png",
     text: `여섯 분이 지났다. 형은 시간을 확인하고 말했다.
 
 히든: 됐어. 나머지는 네가 해.
@@ -247,7 +247,7 @@ export const blackjonEpisode19Collision: Record<string, Scenario> = {
   blackjon_ep19_collision_07: {
     id: "blackjon_ep19_collision_07", title: "흑존 19화: 충돌 · 그러니까요",
     subtitle: "현관 · 끝났기 때문에", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep19_collision_door.png"], background: "/blackjon_ep19_collision_door.png",
     text: `형은 신발 한 짝에 발을 넣은 채 고개를 들었다.
 
 히든: 뭐 해?
@@ -281,7 +281,7 @@ export const blackjonEpisode19Collision: Record<string, Scenario> = {
   blackjon_ep19_collision_08: {
     id: "blackjon_ep19_collision_08", title: "흑존 19화: 충돌 · 매번 가셨잖아요",
     subtitle: "현관 · 허락하지 않은 기다림", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep19_collision_door.png"], background: "/blackjon_ep19_collision_door.png",
     text: `형의 얼굴이 굳었다.
 
 히든: 그게 싫었어?
@@ -326,7 +326,7 @@ export const blackjonEpisode19Collision: Record<string, Scenario> = {
   blackjon_ep19_collision_09: {
     id: "blackjon_ep19_collision_09", title: "흑존 19화: 충돌 · 연락 기다려",
     subtitle: "손안의 휴대폰 · 바깥에 있는 사람", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep19_collision_door.png"], background: "/blackjon_ep19_collision_door.png",
     text: `형이 휴대폰을 꺼냈다. 흑존의 눈이 그 손으로 갔다.
 
 히든: 나 여기 온 거 친구도 알아.
@@ -356,7 +356,7 @@ export const blackjonEpisode19Collision: Record<string, Scenario> = {
   blackjon_ep19_collision_10: {
     id: "blackjon_ep19_collision_10", title: "흑존 19화: 충돌 · 다음에는",
     subtitle: "현관 · 경고를 듣는 방식", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep19_collision_door.png"], background: "/blackjon_ep19_collision_door.png",
     text: `히든: 지금 비키면 나 그냥 가.
 
 흑존의 눈이 흔들렸다. 형은 한마디씩 분명하게 말했다.
@@ -378,7 +378,7 @@ export const blackjonEpisode19Collision: Record<string, Scenario> = {
   blackjon_ep19_collision_11: {
     id: "blackjon_ep19_collision_11", title: "흑존 19화: 충돌 · 처음부터",
     subtitle: "현관에서 돌아본 방", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep19_collision_door.png"], background: "/blackjon_ep19_collision_door.png",
     text: `히든: 너 지금 무서워.
 
 형의 목소리가 낮아졌다. 흑존은 처음으로 눈을 내렸다. 그 말은 아팠다.
@@ -427,7 +427,7 @@ export const blackjonEpisode19Collision: Record<string, Scenario> = {
   blackjon_ep19_collision_12: {
     id: "blackjon_ep19_collision_12", title: "흑존 19화: 충돌 · 두 사람 몫",
     subtitle: "주방의 알림 · 십 분 뒤에도", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep19_collision_dinner.png"], background: "/blackjon_ep19_collision_dinner.png",
     text: `주방에서 짧은 알림음이 났다. 형은 고개를 돌렸다. 흑존도 그쪽을 봤다. 무심코 시간을 확인하는 얼굴이었다.
 
 히든: 저거 뭐야.
@@ -469,7 +469,7 @@ export const blackjonEpisode19Collision: Record<string, Scenario> = {
   blackjon_ep19_collision_13: {
     id: "blackjon_ep19_collision_13", title: "흑존 19화: 충돌 · 아직 여기야",
     subtitle: "연결된 통화 · 지우지 않는 말", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep19_collision_today.png"], background: "/blackjon_ep19_collision_today.png",
     text: `휴대폰이 울렸다. 친구에게서 전화가 왔다. 형은 곧바로 받았다.
 
 히든: 나 아직 여기야.
@@ -495,7 +495,7 @@ export const blackjonEpisode19Collision: Record<string, Scenario> = {
   blackjon_ep19_collision_end: {
     id: "blackjon_ep19_collision_end", title: "흑존 19화: 충돌 · 오늘은 안 돼요",
     subtitle: "문 앞 · 물러서지 않는 사람", kind: "obsession", category: "main",
-    imagePool: ["/bg_room_night.png"], background: "/bg_room_night.png",
+    imagePool: ["/blackjon_ep19_collision_today.png"], background: "/blackjon_ep19_collision_today.png",
     text: `흑존은 대답 대신 손을 폈다가 쥐었다.
 
 형이 자기를 좋아하던 얼굴을 다시 보고 싶었다. 그 얼굴로 들어와서, 자기 옆에 앉아서, 음식이 짜다며 투덜거렸으면 했다.

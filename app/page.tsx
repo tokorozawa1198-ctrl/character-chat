@@ -3813,6 +3813,10 @@ function getCGName(imgPath: string): string {
     blackjon_ep18_collision_empty: "충돌 · 맞은편",
     blackjon_ep18_collision_return: "충돌 · 내일 입을 옷",
     blackjon_ep18_collision_wardrobe: "충돌 · 형 것만",
+    blackjon_ep19_collision_sorting: "충돌 · 정리하는 손",
+    blackjon_ep19_collision_door: "충돌 · 매번 가셨잖아요",
+    blackjon_ep19_collision_dinner: "충돌 · 두 사람 몫",
+    blackjon_ep19_collision_today: "충돌 · 오늘은",
   };
   return map[base] ?? "새 CG";
 }

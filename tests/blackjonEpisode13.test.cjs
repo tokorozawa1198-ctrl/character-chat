@@ -64,14 +64,26 @@ test('episode 19: agreed story preserves the refusal, outside contact, and unres
   assert.ok(pageSource.includes('id: "blackjon_ep19_collision_01", prefix: "blackjon_ep19_collision_", number: 19, prerequisite: "blackjon_ep18_collision_complete"'));
 });
 
-test('episode 19: existing backgrounds follow the evening, workday, and prepared room', () => {
+test('episode 19: four new CGs follow sorting, blocked exit, dinner reveal, and final call', () => {
+  const illustrated = {
+    '05': 'sorting', '06': 'sorting', '07': 'door', '08': 'door', '09': 'door',
+    '10': 'door', '11': 'door', '12': 'dinner', '13': 'today', end: 'today',
+  };
   for (const scene of Object.values(blackjonEpisodes).filter(s => s.id.startsWith('blackjon_ep19_collision_'))) {
     const suffix = scene.id.slice('blackjon_ep19_collision_'.length);
-    const asset = ['02', '03'].includes(suffix) ? '/bg_room_day.png'
-      : ['05', '06'].includes(suffix) ? '/blackjon_ep17_collision_room.png' : '/bg_room_night.png';
+    const part = illustrated[suffix];
+    const asset = part ? `/blackjon_ep19_collision_${part}.png`
+      : ['02', '03'].includes(suffix) ? '/bg_room_day.png' : '/bg_room_night.png';
     assert.deepEqual(Array.from(scene.imagePool), [asset]);
     assert.equal(scene.background, asset);
     assert.equal(scene.kind, 'obsession');
+    if (part) {
+      assert.ok(pageSource.includes(`blackjon_ep19_collision_${part}:`));
+      const bytes = fs.readFileSync(path.join('public', asset));
+      assert.equal(bytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+      assert.equal(bytes.readUInt32BE(16), 1024);
+      assert.equal(bytes.readUInt32BE(20), 1536);
+    }
   }
 });
 
