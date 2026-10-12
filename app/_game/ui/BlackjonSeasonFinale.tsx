@@ -2,18 +2,19 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export function BlackjonSeasonNotice({ onReplay }: { onReplay: () => void }) {
+export function BlackjonSeasonNotice({ onReplay, onStartNext }: { onReplay: () => void; onStartNext: () => void }) {
   return <section className="blackjonSeasonNotice" aria-labelledby="blackjon-season-notice-title">
     <style>{`
       .blackjonSeasonNotice{margin:16px 0;padding:22px;border:1px solid #72505a;border-radius:12px;background:linear-gradient(135deg,#21161e,#11131c);color:#f4e6e9}
       .app .panel .blackjonSeasonNotice h2{margin:0 0 8px;font-size:20px;letter-spacing:.06em;color:#f4e6e9 !important;background:none;-webkit-text-fill-color:#f4e6e9;animation:none}
       .blackjonSeasonNotice p{margin:6px 0;font-size:13px;line-height:1.7;color:#d1bdc4}
-      .blackjonSeasonNotice button{margin-top:12px;min-height:44px;padding:10px 16px;border:1px solid #9d7482;border-radius:6px;background:#2b1c27;color:#ffeaf0;cursor:pointer}
+      .blackjonSeasonNotice button{margin:12px 12px 0 0;min-height:44px;padding:10px 16px;border:1px solid #9d7482;border-radius:6px;background:#2b1c27;color:#ffeaf0;cursor:pointer}
       .blackjonSeasonNotice button:focus-visible{outline:2px solid #f4c4c4;outline-offset:3px}
     `}</style>
     <h2 id="blackjon-season-notice-title">시즌 1부 종료</h2>
     <p>흑존 · 충돌 20화 완독. 끝난 것은, 기다림뿐이었다.</p>
-    <p>시즌 2는 21화부터 이어집니다. 21화는 아직 공개되지 않았습니다.</p>
+    <p>시즌 2 시작 · 21화 〈형이 모르는 얼굴〉이 공개되었습니다.</p>
+    <button type="button" onClick={onStartNext}>시즌 2 시작 · 21화 읽기</button>
     <button type="button" onClick={onReplay}>시즌 1 종료 연출 다시 보기</button>
   </section>;
 }

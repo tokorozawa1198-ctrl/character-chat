@@ -3824,6 +3824,12 @@ function getCGName(imgPath: string): string {
     blackjon_ep20_collision_following: "충돌 · 끝나지 않는 배웅",
     blackjon_ep20_collision_street: "충돌 · 헤어진 채로",
     blackjon_ep20_collision_finale: "충돌 · 기다리지 않는 사람",
+    blackjon_ep21_collision_warmup: "충돌 · 제법 선배 같네",
+    blackjon_ep21_collision_audience: "충돌 · 맨 끝자리",
+    blackjon_ep21_collision_lift: "충돌 · 자기 기록",
+    blackjon_ep21_collision_award: "충돌 · 빈 의자",
+    blackjon_ep21_collision_reunion: "충돌 · 늦게 도착한 칭찬",
+    blackjon_ep21_collision_replay: "충돌 · 멈춘 장면",
   };
   return map[base] ?? "새 CG";
 }
@@ -5198,6 +5204,10 @@ export default function Page() {
     }
     if (currentScenario.id === "blackjon_ep19_collision_end" && choice.end) {
       unlockEvent("blackjon_ep19_collision_complete");
+      return;
+    }
+    if (currentScenario.id === "blackjon_ep21_collision_end" && choice.end) {
+      unlockEvent("blackjon_ep21_collision_complete");
       return;
     }
     // 배드엔딩 시나리오 직접 트리거 (kind: bad_ending) — endingData 조건 검사 스킵
@@ -7037,6 +7047,7 @@ export default function Page() {
               { id: "blackjon_ep18_collision_01", prefix: "blackjon_ep18_collision_", number: 18, prerequisite: "blackjon_ep17_collision_complete" },
               { id: "blackjon_ep19_collision_01", prefix: "blackjon_ep19_collision_", number: 19, prerequisite: "blackjon_ep18_collision_complete" },
               { id: "blackjon_ep20_collision_01", prefix: "blackjon_ep20_collision_", number: 20, prerequisite: "blackjon_ep19_collision_complete" },
+              { id: "blackjon_ep21_collision_01", prefix: "blackjon_ep21_collision_", number: 21, prerequisite: "blackjon_ep20_collision_complete" },
             ];
             blackjonChapters.forEach(({ id, prefix, number, prerequisite }) => {
               const entry = scenarioData[id];
@@ -7061,7 +7072,7 @@ export default function Page() {
           const resume = saved && savedMatchesCharacter && (isAdminMode || !getBlackjonBranchLockReason(saved.id, seenEvents)) ? { id: saved.id, title: saved.title, line: scenarioProgress!.lineIndex } : null;
           return <div className="panel">
             {isBlackjonRoute && seenEvents.blackjon_ep10_06 && <BlackjonRouteSummary selected={blackjonRoute} onChoose={() => startScenario("blackjon_ep10_06")} />}
-            {isBlackjonRoute && blackjonRoute === "collision" && seenEvents.blackjon_ep20_collision_complete && <BlackjonSeasonNotice onReplay={() => setBlackjonSeasonFinale(true)} />}
+            {isBlackjonRoute && blackjonRoute === "collision" && seenEvents.blackjon_ep20_collision_complete && <BlackjonSeasonNotice onReplay={() => setBlackjonSeasonFinale(true)} onStartNext={() => startScenario("blackjon_ep21_collision_01")} />}
             <StoryLibrary chapters={chapters} activeRoute={isHiddenRoute ? "hidden" : isBlackjonRoute ? "blackjon" : storyRoute} resume={resume} onStart={startScenario} onNavigate={setView}/>
           </div>;
         })()}

@@ -46,7 +46,54 @@ const chapters = [
   { episode: 18, route: 'collision', sceneCount: 20 },
   { episode: 19, route: 'collision', sceneCount: 14 },
   { episode: 20, route: 'collision', sceneCount: 20 },
+  { episode: 21, route: 'collision', sceneCount: 24 },
 ];
+
+test('episode 21: layered season-two opening preserves independent achievement and unresolved separation', () => {
+  const scene = suffix => blackjonEpisodes[`blackjon_ep21_collision_${suffix}`];
+  const scenes = Object.values(blackjonEpisodes).filter(s => s.id.startsWith('blackjon_ep21_collision_'));
+  assert.equal(scenes.reduce((count, s) => count + s.choices.length, 0), 27);
+  assert.ok(scenes.reduce((count, s) => count + s.text.length, 0) > 10000);
+  assert.match(scene('01').subtitle, /시즌 2 시작/);
+  assert.match(scene('01').text, /형은 친구와 택시를 타고 떠났다/);
+  assert.match(scene('03').text, /내가 아까부터 그 말 했잖아/);
+  assert.match(scene('06').text, /아니\. 보고 싶어서/);
+  assert.match(scene('11').text, /심판의 신호보다 먼저 내려놓았다/);
+  assert.match(scene('13').text, /형은 그 모습을 끝까지 봤다/);
+  assert.match(scene('14').text, /학교 동료/);
+  assert.match(scene('15').text, /같은 기념 메달/);
+  assert.match(scene('16').text, /마지막 거 찍어주기로 했잖아요/);
+  assert.match(scene('19').text, /힘 쓸 일을 외주 주는 지능/);
+  assert.match(scene('20').text, /금요일 밤 일까지 괜찮아졌다는 뜻은 아니고/);
+  assert.match(scene('21').text, /근데 왜 형 안 보이니까 다 하기 싫어졌지/);
+  assert.match(scene('22').text, /친구와 저녁을 먹고 따로 귀가했다/);
+  assert.match(scene('23').text, /체육관 단체 대화방에 영상/);
+  assert.ok(scene('end').text.endsWith('이번에는 일어나기 전에 멈췄다.'));
+  assert.ok(pageSource.includes('id: "blackjon_ep21_collision_01", prefix: "blackjon_ep21_collision_", number: 21, prerequisite: "blackjon_ep20_collision_complete"'));
+  assert.ok(pageSource.includes('onStartNext={() => startScenario("blackjon_ep21_collision_01")}'));
+  const notice = fs.readFileSync('app/_game/ui/BlackjonSeasonFinale.tsx', 'utf8');
+  assert.ok(notice.includes('시즌 2 시작 · 21화 읽기'));
+  assert.ok(!notice.includes('21화는 아직 공개되지 않았습니다'));
+});
+
+test('episode 21: six reference-based CGs follow the meet, reunion, and private replay', () => {
+  const sequence = ['warmup','warmup','warmup','warmup',null,null,'audience','warmup','audience','warmup','warmup','warmup','lift','audience','award','award','award','reunion','reunion','reunion','reunion','reunion','replay','replay'];
+  const scenes = Object.values(blackjonEpisodes).filter(s => s.id.startsWith('blackjon_ep21_collision_'));
+  assert.equal(scenes.length, sequence.length);
+  scenes.forEach((scene, index) => {
+    const part = sequence[index];
+    const asset = part ? `/blackjon_ep21_collision_${part}.png` : '/bg_room_day.png';
+    assert.deepEqual(Array.from(scene.imagePool), [asset]);
+    assert.equal(scene.background, asset);
+    assert.equal(scene.kind, 'obsession');
+    if (!part) return;
+    assert.ok(pageSource.includes(`blackjon_ep21_collision_${part}:`));
+    const bytes = fs.readFileSync(path.join('public', asset));
+    assert.equal(bytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+    assert.equal(bytes.readUInt32BE(16), 1024);
+    assert.equal(bytes.readUInt32BE(20), 1536);
+  });
+});
 
 test('episode 20: season finale preserves refusal and follows the live call into unwanted company', () => {
   const scene = suffix => blackjonEpisodes[`blackjon_ep20_collision_${suffix}`];

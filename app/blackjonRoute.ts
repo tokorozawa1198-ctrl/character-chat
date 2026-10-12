@@ -22,6 +22,7 @@ export function selectBlackjonRoute(events: Record<string, boolean>, selected: B
 
 // 장면 입장 기록이 아닌 완독 기록과 현재 선택을 함께 확인한다.
 export function getBlackjonBranchLockReason(id: string, events: Record<string, boolean>): string | null {
+  const episode21Route = BLACKJON_ROUTE_IDS.find((branch) => id.startsWith(`blackjon_ep21_${branch}_`));
   const episode20Route = BLACKJON_ROUTE_IDS.find((branch) => id.startsWith(`blackjon_ep20_${branch}_`));
   const episode19Route = BLACKJON_ROUTE_IDS.find((branch) => id.startsWith(`blackjon_ep19_${branch}_`));
   const episode18Route = BLACKJON_ROUTE_IDS.find((branch) => id.startsWith(`blackjon_ep18_${branch}_`));
@@ -31,10 +32,10 @@ export function getBlackjonBranchLockReason(id: string, events: Record<string, b
   const episode14Route = BLACKJON_ROUTE_IDS.find((branch) => id.startsWith(`blackjon_ep14_${branch}_`));
   const episode13Route = BLACKJON_ROUTE_IDS.find((branch) => id.startsWith(`blackjon_ep13_${branch}_`));
   const episode12Route = BLACKJON_ROUTE_IDS.find((branch) => id.startsWith(`blackjon_ep12_${branch}_`));
-  const route = episode20Route ?? episode19Route ?? episode18Route ?? episode17Route ?? episode16Route ?? episode15Route ?? episode14Route ?? episode13Route ?? episode12Route ?? BLACKJON_ROUTE_IDS.find((branch) => id.startsWith(`blackjon_ep11_${branch}_`));
+  const route = episode21Route ?? episode20Route ?? episode19Route ?? episode18Route ?? episode17Route ?? episode16Route ?? episode15Route ?? episode14Route ?? episode13Route ?? episode12Route ?? BLACKJON_ROUTE_IDS.find((branch) => id.startsWith(`blackjon_ep11_${branch}_`));
   if (!route) return null;
   const label = BLACKJON_ROUTES[route].label;
-  const previousEpisode = episode20Route ? 19 : episode19Route ? 18 : episode18Route ? 17 : episode17Route ? 16 : episode16Route ? 15 : episode15Route ? 14 : episode14Route ? 13 : episode13Route ? 12 : episode12Route ? 11 : 10;
+  const previousEpisode = episode21Route ? 20 : episode20Route ? 19 : episode19Route ? 18 : episode18Route ? 17 : episode17Route ? 16 : episode16Route ? 15 : episode15Route ? 14 : episode14Route ? 13 : episode13Route ? 12 : episode12Route ? 11 : 10;
   if (!events[`blackjon_ep${previousEpisode}_${route}_complete`]) return `흑존 ${previousEpisode}화 ${label} 결말 완독 필요`;
   if (getBlackjonRoute(events) !== route) return `10화에서 ${label} 루트를 선택하세요`;
   return null;
