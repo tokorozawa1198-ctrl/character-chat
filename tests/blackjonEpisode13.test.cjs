@@ -42,6 +42,7 @@ const chapters = [
   { episode: 14, route: 'collision', sceneCount: 12 },
   { episode: 15, route: 'collision', sceneCount: 20 },
   { episode: 16, route: 'collision', sceneCount: 24 },
+  { episode: 17, route: 'collision', sceneCount: 22 },
 ];
 for (const { episode, route, sceneCount } of chapters) {
   const prefix = `blackjon_ep${episode}_${route}_`;
@@ -159,6 +160,51 @@ for (const { episode, route, sceneCount } of chapters) {
     }
   });
 }
+
+test('episode 17: seven reference-based CGs reveal the prepared room only after the overnight stay', () => {
+  const expected = {
+    '02': 'door', '03': 'door',
+    '05': 'lunch', '06': 'lunch', '07': 'lunch', '08': 'lunch', '09': 'lunch',
+    '10': 'evening', '12': 'evening', '14': 'evening', '15': 'evening',
+    '16': 'preparing', '18': 'preparing', '17': 'rest', '19': 'rest',
+    '20': 'room', '21': 'call', end: 'call',
+  };
+  for (const [suffix, part] of Object.entries(expected)) {
+    const scene = blackjonEpisodes[`blackjon_ep17_collision_${suffix}`];
+    const asset = `/blackjon_ep17_collision_${part}.png`;
+    assert.deepEqual(Array.from(scene.imagePool), [asset]);
+    assert.equal(scene.background, asset);
+    const bytes = fs.readFileSync(path.join('public', asset));
+    assert.equal(bytes.subarray(1, 4).toString(), 'PNG');
+    assert.equal(bytes.readUInt32BE(16), 1024);
+    assert.equal(bytes.readUInt32BE(20), 1536);
+    assert.ok(pageSource.includes(`blackjon_ep17_collision_${part}:`));
+  }
+  assert.equal(blackjonEpisodes.blackjon_ep17_collision_13.background, '/bg_room_night.png');
+});
+
+test('episode 17: long-form overnight stay leads to an unsolicited room, not agreed cohabitation', () => {
+  const scenes = Object.values(blackjonEpisodes).filter(scene =>
+    scene.id.startsWith('blackjon_ep17_collision_') && !scene.id.includes('__r__'));
+  const text = scenes.map(scene => scene.text).join('\n');
+  assert.ok(text.length > 19000, 'retain the long-form parallel story');
+  assert.ok(scenes[0].text.includes('내일 오지 마. 문 안 열어줄 거야.'));
+  assert.ok(blackjonEpisodes.blackjon_ep17_collision_02.text.includes('그럼 두 번 먹어.'));
+  assert.ok(blackjonEpisodes.blackjon_ep17_collision_20.text.includes('형 방이에요.'));
+  const call = blackjonEpisodes.blackjon_ep17_collision_21.text;
+  assert.ok(call.includes('내가 언제 너랑 산다고 했어?'));
+  assert.ok(call.includes('아직 안 하셨죠.'));
+  assert.ok(call.includes('나 어제 잘 잤어. 네가 없어도.'));
+  assert.ok(blackjonEpisodes.blackjon_ep17_collision_end.text.endsWith('흑존: 침대 위치는 마음에 들어요?'));
+  assert.ok(pageSource.includes('id: "blackjon_ep17_collision_01", prefix: "blackjon_ep17_collision_", number: 17, prerequisite: "blackjon_ep16_collision_complete"'));
+  assert.equal(Object.keys(blackjonEpisodes).some(id => /^blackjon_ep17_(conspiracy|erosion)_/.test(id)), false);
+  assert.equal(Object.keys(blackjonEpisodes).some(id => /^blackjon_ep18_/.test(id)), false);
+  for (const scene of scenes) {
+    for (const line of scene.text.split('\n').filter(line => /^(흑존|히든):/.test(line))) {
+      assert.ok(line.length <= 100, `${scene.id}: dialogue too long: ${line}`);
+    }
+  }
+});
 
 test('episode 11/12 gates are preserved; common episodes remain ungated', () => {
   for (const route of BLACKJON_ROUTE_IDS) {
