@@ -43,6 +43,7 @@ const chapters = [
   { episode: 15, route: 'collision', sceneCount: 20 },
   { episode: 16, route: 'collision', sceneCount: 24 },
   { episode: 17, route: 'collision', sceneCount: 22 },
+  { episode: 18, route: 'collision', sceneCount: 20 },
 ];
 for (const { episode, route, sceneCount } of chapters) {
   const prefix = `blackjon_ep${episode}_${route}_`;
@@ -198,7 +199,54 @@ test('episode 17: long-form overnight stay leads to an unsolicited room, not agr
   assert.ok(blackjonEpisodes.blackjon_ep17_collision_end.text.endsWith('흑존: 침대 위치는 마음에 들어요?'));
   assert.ok(pageSource.includes('id: "blackjon_ep17_collision_01", prefix: "blackjon_ep17_collision_", number: 17, prerequisite: "blackjon_ep16_collision_complete"'));
   assert.equal(Object.keys(blackjonEpisodes).some(id => /^blackjon_ep17_(conspiracy|erosion)_/.test(id)), false);
-  assert.equal(Object.keys(blackjonEpisodes).some(id => /^blackjon_ep18_/.test(id)), false);
+  for (const scene of scenes) {
+    for (const line of scene.text.split('\n').filter(line => /^(흑존|히든):/.test(line))) {
+      assert.ok(line.length <= 100, `${scene.id}: dialogue too long: ${line}`);
+    }
+  }
+});
+
+test('episode 18: seven new CGs follow the return, cafe breakup, and separate wardrobes', () => {
+  const expected = {
+    '01': 'packing', '02': 'packing', '03': 'packing',
+    '05': 'door', '06': 'door', '07': 'door',
+    '08': 'cafe', '09': 'cafe', '10': 'cafe', '11': 'cafe', '15': 'cafe',
+    '12': 'tears', '13': 'tears', '14': 'tears',
+    '16': 'empty', '17': 'return', '19': 'wardrobe', end: 'wardrobe',
+  };
+  for (const [suffix, part] of Object.entries(expected)) {
+    const scene = blackjonEpisodes[`blackjon_ep18_collision_${suffix}`];
+    const asset = `/blackjon_ep18_collision_${part}.png`;
+    assert.deepEqual(Array.from(scene.imagePool), [asset]);
+    assert.equal(scene.background, asset);
+    const bytes = fs.readFileSync(path.join('public', asset));
+    assert.equal(bytes.subarray(1, 4).toString(), 'PNG');
+    assert.equal(bytes.readUInt32BE(16), 1024);
+    assert.equal(bytes.readUInt32BE(20), 1536);
+    assert.ok(pageSource.includes(`blackjon_ep18_collision_${part}:`));
+  }
+  assert.equal(blackjonEpisodes.blackjon_ep18_collision_04.background, '/bg_room_night.png');
+  assert.equal(blackjonEpisodes.blackjon_ep18_collision_18.background, '/blackjon_ep17_collision_room.png');
+});
+
+test('episode 18: long-form breakup preserves affection without reconciliation or cohabitation', () => {
+  const scenes = Object.values(blackjonEpisodes).filter(scene =>
+    scene.id.startsWith('blackjon_ep18_collision_') && !scene.id.includes('__r__'));
+  const text = scenes.map(scene => scene.text).join('\n');
+  assert.ok(text.length > 16000, 'retain the long-form emotional pacing');
+  assert.ok(blackjonEpisodes.blackjon_ep18_collision_05.text.includes('이것도요?'));
+  const breakup = blackjonEpisodes.blackjon_ep18_collision_11.text;
+  assert.ok(breakup.includes('히든: 좋아해.'));
+  assert.ok(breakup.includes('히든: 그런데 헤어질 거야.'));
+  assert.ok(breakup.includes('고치는 동안에도 내가 계속 네 옆에 있어야 해?'));
+  const tissue = blackjonEpisodes.blackjon_ep18_collision_13.text;
+  assert.ok(tissue.includes('다정한 척.'));
+  assert.ok(tissue.includes('척하는 거 아니야.'));
+  assert.ok(tissue.includes('그럼 가지 마세요.'));
+  assert.ok(blackjonEpisodes.blackjon_ep18_collision_17.text.includes('그래도 다시 만나기는 싫어.'));
+  assert.ok(blackjonEpisodes.blackjon_ep18_collision_end.text.endsWith('흑존: 형 것만 오면 되겠다.'));
+  assert.ok(pageSource.includes('id: "blackjon_ep18_collision_01", prefix: "blackjon_ep18_collision_", number: 18, prerequisite: "blackjon_ep17_collision_complete"'));
+  assert.equal(Object.keys(blackjonEpisodes).some(id => /^blackjon_ep18_(conspiracy|erosion)_/.test(id)), false);
   for (const scene of scenes) {
     for (const line of scene.text.split('\n').filter(line => /^(흑존|히든):/.test(line))) {
       assert.ok(line.length <= 100, `${scene.id}: dialogue too long: ${line}`);
