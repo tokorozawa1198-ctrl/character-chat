@@ -47,7 +47,53 @@ const chapters = [
   { episode: 19, route: 'collision', sceneCount: 14 },
   { episode: 20, route: 'collision', sceneCount: 20 },
   { episode: 21, route: 'collision', sceneCount: 24 },
+  { episode: 22, route: 'collision', sceneCount: 24 },
 ];
+
+test('episode 22: sincere care remains distinct from reconciliation and permission for tomorrow', () => {
+  const scene = suffix => blackjonEpisodes[`blackjon_ep22_collision_${suffix}`];
+  const scenes = Object.values(blackjonEpisodes).filter(s => s.id.startsWith('blackjon_ep22_collision_'));
+  assert.equal(scenes.reduce((count, s) => count + s.choices.length, 0), 27);
+  assert.ok(scenes.reduce((count, s) => count + s.text.length, 0) > 10000);
+  assert.match(scene('01').text, /수요일 아침/);
+  assert.match(scene('02').text, /나 메뉴 고르는 중/);
+  assert.match(scene('03').text, /들어가도 돼요/);
+  assert.match(scene('05').text, /반찬 입맛은 있고/);
+  assert.match(scene('06').text, /그래서 사과했어요/);
+  assert.match(scene('07').text, /남겨요\. 나중에 데워드릴게요/);
+  assert.match(scene('09').text, /오늘은 안 크게 할게요/);
+  assert.match(scene('10').text, /잠들 때까지만 있어/);
+  assert.match(scene('12').text, /아프지 않았으면 했다/);
+  assert.match(scene('13').text, /흑존은 손대지 않았다/);
+  assert.match(scene('14').text, /열은 아침보다 내려 있었다/);
+  assert.match(scene('15').text, /친구에게도 조금 나아졌다고/);
+  assert.match(scene('18').text, /괜찮아지셔도 제가 해드리면 안 돼요/);
+  assert.match(scene('19').text, /아직 사귀는 거 아니야/);
+  assert.match(scene('20').text, /내일 오지 마/);
+  assert.match(scene('22').text, /내일 안 아프셔도 저 불러주시면 안 돼요/);
+  assert.match(scene('end').text, /다시 초인종을 누르지는 않았다/);
+  assert.ok(scene('end').text.endsWith('형이 아프지 않아도, 자기가 할 일은 많았다.'));
+  assert.ok(pageSource.includes('id: "blackjon_ep22_collision_01", prefix: "blackjon_ep22_collision_", number: 22, prerequisite: "blackjon_ep21_collision_complete"'));
+});
+
+test('episode 22: six new CGs follow the permitted visit, sleep, recovery, kitchen and parting', () => {
+  const sequence = ['alone', 'alone', null, ...Array(8).fill('porridge'), ...Array(3).fill('sleep'), ...Array(3).fill('recovery'), ...Array(4).fill('kitchen'), ...Array(3).fill('door')];
+  const scenes = Object.values(blackjonEpisodes).filter(s => s.id.startsWith('blackjon_ep22_collision_'));
+  assert.equal(scenes.length, sequence.length);
+  scenes.forEach((scene, index) => {
+    const part = sequence[index];
+    const asset = part ? `/blackjon_ep22_collision_${part}.png` : '/bg_room_day.png';
+    assert.deepEqual(Array.from(scene.imagePool), [asset]);
+    assert.equal(scene.background, asset);
+    assert.equal(scene.kind, 'obsession');
+    if (!part) return;
+    assert.ok(pageSource.includes(`blackjon_ep22_collision_${part}:`));
+    const bytes = fs.readFileSync(path.join('public', asset));
+    assert.equal(bytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+    assert.equal(bytes.readUInt32BE(16), 1024);
+    assert.equal(bytes.readUInt32BE(20), 1536);
+  });
+});
 
 test('episode 21: layered season-two opening preserves independent achievement and unresolved separation', () => {
   const scene = suffix => blackjonEpisodes[`blackjon_ep21_collision_${suffix}`];
@@ -208,7 +254,7 @@ for (const { episode, route, sceneCount } of chapters) {
   test(`episode ${episode} ${route}: entry, middle, and ending require current route plus previous completion`, () => {
     const selected = selectBlackjonRoute({}, route);
     const completed = { ...selected, [`${previous}_complete`]: true };
-    for (const id of [entry, `${prefix}04`, ending]) {
+    for (const id of [entry, `${prefix}04`, `${prefix}06__r__0`, ending]) {
       assert.ok(getBlackjonBranchLockReason(id, {}).includes(`${episode - 1}화`));
       assert.match(getBlackjonBranchLockReason(id, { ...selected, [`${previous}_end`]: true }), /완독/);
       assert.equal(getBlackjonBranchLockReason(id, completed), null);
