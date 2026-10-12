@@ -41,6 +41,7 @@ const chapters = [
   ...BLACKJON_ROUTE_IDS.map(route => ({ episode: 13, route, sceneCount: 8 })),
   { episode: 14, route: 'collision', sceneCount: 12 },
   { episode: 15, route: 'collision', sceneCount: 20 },
+  { episode: 16, route: 'collision', sceneCount: 24 },
 ];
 for (const { episode, route, sceneCount } of chapters) {
   const prefix = `blackjon_ep${episode}_${route}_`;
@@ -203,4 +204,47 @@ test('episode 15: long-form story stops at the sofa, with no episode 16 kitchen 
   assert.ok(blackjonEpisodes.blackjon_ep15_collision_end.text.endsWith('흑존은 앉아 있었다.'));
   assert.ok(pageSource.includes('id: "blackjon_ep15_collision_01", prefix: "blackjon_ep15_collision_", number: 15, prerequisite: "blackjon_ep14_collision_complete"'));
   assert.equal(Object.keys(blackjonEpisodes).some(id => /^blackjon_ep15_(conspiracy|erosion)_/.test(id)), false);
+});
+
+test('episode 16: seven reference-based CGs follow the story and have gallery names', () => {
+  const expected = {
+    '01': 'kitchen', '02': 'kitchen', '03': 'kitchen',
+    '04': 'table', '05': 'table', '06': 'table',
+    '08': 'night', '09': 'night', '10': 'night', '11': 'night',
+    '14': 'wardrobe', '15': 'wardrobe',
+    '18': 'date', '19': 'date', '20': 'date',
+    '21': 'bench',
+    '22': 'photo', '23': 'photo', end: 'photo',
+  };
+  for (const [suffix, part] of Object.entries(expected)) {
+    const scene = blackjonEpisodes[`blackjon_ep16_collision_${suffix}`];
+    const asset = `/blackjon_ep16_collision_${part}.png`;
+    assert.deepEqual(Array.from(scene.imagePool), [asset]);
+    assert.equal(scene.background, asset);
+    const bytes = fs.readFileSync(path.join('public', asset));
+    assert.equal(bytes.subarray(1, 4).toString(), 'PNG');
+    assert.equal(bytes.readUInt32BE(16), 1024);
+    assert.equal(bytes.readUInt32BE(20), 1536);
+    assert.ok(pageSource.includes(`blackjon_ep16_collision_${part}:`));
+  }
+});
+
+test('episode 16: long-form continuation preserves the opening, isolated night, and photo ending', () => {
+  const scenes = Object.values(blackjonEpisodes).filter(scene =>
+    scene.id.startsWith('blackjon_ep16_collision_') && !scene.id.includes('__r__'));
+  const text = scenes.map(scene => scene.text).join('\n');
+  assert.ok(text.length > 20000, 'retain the requested long-form pacing');
+  assert.ok(scenes[0].text.includes('형 과일 드실 시간. 드셔야죠.'));
+  assert.ok(scenes[0].text.includes('아사이볼 해드릴까요?'));
+  assert.ok(blackjonEpisodes.blackjon_ep16_collision_11.text.includes('세 시 십이 분'));
+  assert.ok(blackjonEpisodes.blackjon_ep16_collision_14.text.includes('이거 치우면 알죠?'));
+  assert.ok(blackjonEpisodes.blackjon_ep16_collision_22.text.includes('다른 생각 안 하게'));
+  assert.ok(blackjonEpisodes.blackjon_ep16_collision_end.text.endsWith('저때도 집에 가고 싶었다.'));
+  assert.ok(pageSource.includes('id: "blackjon_ep16_collision_01", prefix: "blackjon_ep16_collision_", number: 16, prerequisite: "blackjon_ep15_collision_complete"'));
+  assert.equal(Object.keys(blackjonEpisodes).some(id => /^blackjon_ep16_(conspiracy|erosion)_/.test(id)), false);
+  for (const scene of scenes) {
+    for (const line of scene.text.split('\n').filter(line => /^(흑존|히든):/.test(line))) {
+      assert.ok(line.length <= 100, `${scene.id}: dialogue too long: ${line}`);
+    }
+  }
 });
