@@ -19,6 +19,7 @@ import { blackjonEpisode15Collision } from "./blackjonEpisode15Collision";
 import { blackjonEpisode16Collision } from "./blackjonEpisode16Collision";
 import { blackjonEpisode17Collision } from "./blackjonEpisode17Collision";
 import { blackjonEpisode18Collision } from "./blackjonEpisode18Collision";
+import { blackjonEpisode19Collision } from "./blackjonEpisode19Collision";
 import { blackjonEpisode10 } from "./blackjonEpisode10";
 
 // 흑존 프롤로그 이후의 연애 이야기. 장면마다 이미지를 고정해 순서대로 보여준다.
@@ -44,6 +45,7 @@ export const blackjonEpisodes: Record<string, Scenario> = {
   ...blackjonEpisode16Collision,
   ...blackjonEpisode17Collision,
   ...blackjonEpisode18Collision,
+  ...blackjonEpisode19Collision,
   blackjon_ep2_01: {
     id: "blackjon_ep2_01",
     title: "흑존 2화: 숨기지 않는 냄새",

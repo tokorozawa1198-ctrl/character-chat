@@ -44,7 +44,37 @@ const chapters = [
   { episode: 16, route: 'collision', sceneCount: 24 },
   { episode: 17, route: 'collision', sceneCount: 22 },
   { episode: 18, route: 'collision', sceneCount: 20 },
+  { episode: 19, route: 'collision', sceneCount: 14 },
 ];
+
+test('episode 19: agreed story preserves the refusal, outside contact, and unresolved ending', () => {
+  const scene = suffix => blackjonEpisodes[`blackjon_ep19_collision_${suffix}`];
+  const scenes = Object.values(blackjonEpisodes).filter(s => s.id.startsWith('blackjon_ep19_collision_'));
+  assert.equal(scenes.reduce((count, s) => count + s.choices.length, 0), 17);
+  assert.ok(scene('01').text.includes('화요일에는 연락이 없었다. 수요일에도 없었다.'));
+  assert.ok(scene('03').text.includes('히든: 십 분.'));
+  assert.ok(scene('08').text.includes('내가 여기서 나가겠다는데 네 허락이 왜 필요해?'));
+  assert.ok(scene('09').text.includes('메시지를 보냈다.'));
+  assert.ok(scene('10').text.includes('그럼 오늘 보내면 안 되겠네요.'));
+  assert.ok(scene('12').text.includes('자기가 여기 오기 전부터, 흑존은 저녁을 준비하고 있었다.'));
+  assert.ok(scene('13').text.includes('나가려고 했는데 못 나가게 해.'));
+  assert.ok(scene('13').text.includes('형은 통화를 끊지 않았다.'));
+  assert.ok(scene('end').text.includes('그럼 저 미워하면서 있어요.'));
+  assert.ok(scene('end').text.endsWith('흑존: 오늘은.'));
+  assert.ok(pageSource.includes('id: "blackjon_ep19_collision_01", prefix: "blackjon_ep19_collision_", number: 19, prerequisite: "blackjon_ep18_collision_complete"'));
+});
+
+test('episode 19: existing backgrounds follow the evening, workday, and prepared room', () => {
+  for (const scene of Object.values(blackjonEpisodes).filter(s => s.id.startsWith('blackjon_ep19_collision_'))) {
+    const suffix = scene.id.slice('blackjon_ep19_collision_'.length);
+    const asset = ['02', '03'].includes(suffix) ? '/bg_room_day.png'
+      : ['05', '06'].includes(suffix) ? '/blackjon_ep17_collision_room.png' : '/bg_room_night.png';
+    assert.deepEqual(Array.from(scene.imagePool), [asset]);
+    assert.equal(scene.background, asset);
+    assert.equal(scene.kind, 'obsession');
+  }
+});
+
 for (const { episode, route, sceneCount } of chapters) {
   const prefix = `blackjon_ep${episode}_${route}_`;
   const entry = `${prefix}01`;
