@@ -40,6 +40,7 @@ const chooseScenarioCode = ts.transpileModule(chooseScenarioSource, {
 const chapters = [
   ...BLACKJON_ROUTE_IDS.map(route => ({ episode: 13, route, sceneCount: 8 })),
   { episode: 14, route: 'collision', sceneCount: 12 },
+  { episode: 14, route: 'conspiracy', sceneCount: 18 },
   { episode: 15, route: 'collision', sceneCount: 20 },
   { episode: 16, route: 'collision', sceneCount: 24 },
   { episode: 17, route: 'collision', sceneCount: 22 },
@@ -49,6 +50,48 @@ const chapters = [
   { episode: 21, route: 'collision', sceneCount: 24 },
   { episode: 22, route: 'collision', sceneCount: 24 },
 ];
+
+test('episode 14 conspiracy: comic visit keeps chronology, reciprocal humor, and a bright conclusion', () => {
+  const scene = suffix => blackjonEpisodes[`blackjon_ep14_conspiracy_${suffix}`];
+  const scenes = Object.values(blackjonEpisodes).filter(s => s.id.startsWith('blackjon_ep14_conspiracy_'));
+  assert.equal(scenes.reduce((count, s) => count + s.choices.length, 0), 21);
+  assert.ok(scenes.reduce((count, s) => count + s.text.length, 0) > 7000);
+  assert.match(scene('01').text, /두 주가 지났다/);
+  assert.match(scene('02').text, /아직 운동화를 신은 채/);
+  assert.match(scene('03').text, /어때요\? 어때요/);
+  assert.match(scene('04').text, /된장찌개 냄새 구현해왔어요/);
+  assert.match(scene('06').text, /그럼 발은 2주잖아/);
+  assert.match(scene('07').text, /더 내밀지는 않았다/);
+  assert.match(scene('09').text, /제 케이크는 남겨놔요/);
+  assert.match(scene('11').text, /이번에는 전부요/);
+  assert.match(scene('13').text, /그가 좋아할 대답이라는 걸 알고/);
+  assert.match(scene('15').text, /제 거 드시려고 그러죠/);
+  assert.match(scene('17').text, /두 손으로 얌전히 받더라/);
+  assert.match(scene('end').text, /발효는 부엌에서만 해/);
+  assert.ok(scene('end').text.endsWith('이번에는 두 사람 다 바로 일어났다.'));
+  assert.ok(pageSource.includes('id: "blackjon_ep14_conspiracy_01", prefix: "blackjon_ep14_conspiracy_", number: 14, prerequisite: "blackjon_ep13_conspiracy_complete"'));
+  assert.match(getBlackjonBranchLockReason('blackjon_ep14_conspiracy_01', {blackjon_route_conspiracy:true,blackjon_ep13_collision_complete:true}), /13화 공모/);
+  assert.match(getBlackjonBranchLockReason('blackjon_ep15_collision_01', {blackjon_route_collision:true,blackjon_ep14_conspiracy_complete:true}), /14화 충돌/);
+});
+
+test('episode 14 conspiracy: five dedicated CGs preserve reveal, cleanup, and dessert timing', () => {
+  const sequence = [null,'arrival',...Array(5).fill('prank'),'towel','towel',null,...Array(5).fill('sofa'),...Array(3).fill('menu')];
+  const scenes = Object.values(blackjonEpisodes).filter(s => s.id.startsWith('blackjon_ep14_conspiracy_'));
+  assert.equal(scenes.length, sequence.length);
+  scenes.forEach((scene, index) => {
+    const part = sequence[index];
+    const asset = part ? `/blackjon_ep14_conspiracy_${part}.png` : '/bg_room_day.png';
+    assert.deepEqual(Array.from(scene.imagePool), [asset]);
+    assert.equal(scene.background, asset);
+    assert.ok(['comedy','normal'].includes(scene.kind));
+    if (!part) return;
+    assert.ok(pageSource.includes(`blackjon_ep14_conspiracy_${part}:`));
+    const bytes = fs.readFileSync(path.join('public',asset));
+    assert.equal(bytes.subarray(0,8).toString('hex'), '89504e470d0a1a0a');
+    assert.equal(bytes.readUInt32BE(16),1024);
+    assert.equal(bytes.readUInt32BE(20),1536);
+  });
+});
 
 test('episode 22: sincere care remains distinct from reconciliation and permission for tomorrow', () => {
   const scene = suffix => blackjonEpisodes[`blackjon_ep22_collision_${suffix}`];
