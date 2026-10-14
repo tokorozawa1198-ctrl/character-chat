@@ -3786,6 +3786,12 @@ function getCGName(imgPath: string): string {
     blackjon_ep14_conspiracy_towel: "공모 · 두 손으로 받으세요",
     blackjon_ep14_conspiracy_sofa: "공모 · 기억하는 얼굴",
     blackjon_ep14_conspiracy_menu: "공모 · 오늘 저녁은 돈가스",
+    blackjon_ep15_conspiracy_basket: "공모 · 아주 좋은 생각",
+    blackjon_ep15_conspiracy_arm: "공모 · 형이 먼저",
+    blackjon_ep15_conspiracy_phone: "공모 · 누구랑 연락해",
+    blackjon_ep15_conspiracy_street: "공모 · 한 손씩",
+    blackjon_ep15_conspiracy_kitchen: "공모 · 좋아서요",
+    blackjon_ep15_conspiracy_sofa: "공모 · 어디 가?",
     blackjon_ep13_erosion_night: "침식 · 끝나지 않는 확인",
     blackjon_ep13_erosion_morning: "침식 · 남겨두고 싶은 것",
     blackjon_ep13_erosion_training: "침식 · 돌아선 욕실",
@@ -5203,6 +5209,10 @@ export default function Page() {
     }
     if (currentScenario.id === "blackjon_ep15_collision_end" && choice.end) {
       unlockEvent("blackjon_ep15_collision_complete");
+      return;
+    }
+    if (currentScenario.id === "blackjon_ep15_conspiracy_end" && choice.end) {
+      unlockEvent("blackjon_ep15_conspiracy_complete");
       return;
     }
     if (currentScenario.id === "blackjon_ep16_collision_end" && choice.end) {
@@ -7061,6 +7071,7 @@ export default function Page() {
               { id: "blackjon_ep13_collision_01", prefix: "blackjon_ep13_collision_", number: 13, prerequisite: "blackjon_ep12_collision_complete" },
               { id: "blackjon_ep14_collision_01", prefix: "blackjon_ep14_collision_", number: 14, prerequisite: "blackjon_ep13_collision_complete" },
               { id: "blackjon_ep14_conspiracy_01", prefix: "blackjon_ep14_conspiracy_", number: 14, prerequisite: "blackjon_ep13_conspiracy_complete" },
+              { id: "blackjon_ep15_conspiracy_01", prefix: "blackjon_ep15_conspiracy_", number: 15, prerequisite: "blackjon_ep14_conspiracy_complete" },
               { id: "blackjon_ep15_collision_01", prefix: "blackjon_ep15_collision_", number: 15, prerequisite: "blackjon_ep14_collision_complete" },
               { id: "blackjon_ep16_collision_01", prefix: "blackjon_ep16_collision_", number: 16, prerequisite: "blackjon_ep15_collision_complete" },
               { id: "blackjon_ep17_collision_01", prefix: "blackjon_ep17_collision_", number: 17, prerequisite: "blackjon_ep16_collision_complete" },

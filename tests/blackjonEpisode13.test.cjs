@@ -42,6 +42,7 @@ const chapters = [
   { episode: 14, route: 'collision', sceneCount: 12 },
   { episode: 14, route: 'conspiracy', sceneCount: 18 },
   { episode: 15, route: 'collision', sceneCount: 20 },
+  { episode: 15, route: 'conspiracy', sceneCount: 20 },
   { episode: 16, route: 'collision', sceneCount: 24 },
   { episode: 17, route: 'collision', sceneCount: 22 },
   { episode: 18, route: 'collision', sceneCount: 20 },
@@ -50,6 +51,49 @@ const chapters = [
   { episode: 21, route: 'collision', sceneCount: 24 },
   { episode: 22, route: 'collision', sceneCount: 24 },
 ];
+
+test('episode 15 conspiracy: reciprocal grocery prank preserves genuine affection and independent time', () => {
+  const scene = suffix => blackjonEpisodes[`blackjon_ep15_conspiracy_${suffix}`];
+  const scenes = Object.values(blackjonEpisodes).filter(s => s.id.startsWith('blackjon_ep15_conspiracy_'));
+  assert.equal(scenes.reduce((count, s) => count + s.choices.length, 0), 23);
+  assert.ok(scenes.reduce((count, s) => count + s.text.length, 0) > 8500);
+  assert.match(scene('01').text, /다음 주말/);
+  assert.match(scene('02').text, /오늘만 흑존처럼/);
+  assert.match(scene('03').text, /나 두고/);
+  assert.match(scene('04').text, /왼팔에 자기 오른팔/);
+  assert.match(scene('06').text, /들켰다는 걸 알려주지 않았다/);
+  assert.match(scene('08').text, /화면을 빼앗지 않고/);
+  assert.match(scene('11').text, /흑존이 바로 놓았다/);
+  assert.match(scene('11').text, /형이 먼저 손을 내밀었다/);
+  assert.match(scene('13').text, /저 혼자 두세요/);
+  assert.match(scene('14').text, /좋으니까요/);
+  assert.match(scene('16').text, /다 장난은 아니고/);
+  assert.match(scene('17').text, /내일부터 종일 붙어 있으라는 뜻은 아님/);
+  assert.match(scene('19').text, /저 아직 아무 말 안 했는데요/);
+  assert.match(scene('end').text, /두 컵이 탁자에 놓였다/);
+  assert.ok(scene('end').text.endsWith('형은 이번에는 왜 웃는지 묻지 않았다.'));
+  assert.ok(pageSource.includes('id: "blackjon_ep15_conspiracy_01", prefix: "blackjon_ep15_conspiracy_", number: 15, prerequisite: "blackjon_ep14_conspiracy_complete"'));
+  assert.match(getBlackjonBranchLockReason('blackjon_ep15_conspiracy_01', {blackjon_route_conspiracy:true,blackjon_ep14_collision_complete:true}), /14화 공모/);
+  assert.match(getBlackjonBranchLockReason('blackjon_ep16_collision_01', {blackjon_route_collision:true,blackjon_ep15_conspiracy_complete:true}), /15화 충돌/);
+});
+
+test('episode 15 conspiracy: six new CGs follow shopping, return, kitchen, and sofa', () => {
+  const sequence = [...Array(3).fill('basket'),...Array(4).fill('arm'),...Array(3).fill('phone'),...Array(2).fill('street'),...Array(3).fill('kitchen'),...Array(5).fill('sofa')];
+  const scenes = Object.values(blackjonEpisodes).filter(s => s.id.startsWith('blackjon_ep15_conspiracy_'));
+  assert.equal(scenes.length, sequence.length);
+  scenes.forEach((scene, index) => {
+    const part = sequence[index];
+    const asset = `/blackjon_ep15_conspiracy_${part}.png`;
+    assert.deepEqual(Array.from(scene.imagePool), [asset]);
+    assert.equal(scene.background, asset);
+    assert.ok(['comedy','normal'].includes(scene.kind));
+    assert.ok(pageSource.includes(`blackjon_ep15_conspiracy_${part}:`));
+    const bytes = fs.readFileSync(path.join('public',asset));
+    assert.equal(bytes.subarray(0,8).toString('hex'), '89504e470d0a1a0a');
+    assert.equal(bytes.readUInt32BE(16),1024);
+    assert.equal(bytes.readUInt32BE(20),1536);
+  });
+});
 
 test('episode 14 conspiracy: comic visit keeps chronology, reciprocal humor, and a bright conclusion', () => {
   const scene = suffix => blackjonEpisodes[`blackjon_ep14_conspiracy_${suffix}`];
@@ -512,7 +556,7 @@ test('episode 15: long-form story stops at the sofa, with no episode 16 kitchen 
   assert.ok(!text.includes('아사이볼'));
   assert.ok(blackjonEpisodes.blackjon_ep15_collision_end.text.endsWith('흑존은 앉아 있었다.'));
   assert.ok(pageSource.includes('id: "blackjon_ep15_collision_01", prefix: "blackjon_ep15_collision_", number: 15, prerequisite: "blackjon_ep14_collision_complete"'));
-  assert.equal(Object.keys(blackjonEpisodes).some(id => /^blackjon_ep15_(conspiracy|erosion)_/.test(id)), false);
+  assert.equal(Object.keys(blackjonEpisodes).some(id => /^blackjon_ep15_erosion_/.test(id)), false);
 });
 
 test('episode 16: seven reference-based CGs follow the story and have gallery names', () => {
