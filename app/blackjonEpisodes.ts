@@ -17,6 +17,7 @@ import { blackjonEpisode13Collision } from "./blackjonEpisode13Collision";
 import { blackjonEpisode14Collision } from "./blackjonEpisode14Collision";
 import { blackjonEpisode14Conspiracy } from "./blackjonEpisode14Conspiracy";
 import { blackjonEpisode15Conspiracy } from "./blackjonEpisode15Conspiracy";
+import { blackjonEpisode16Conspiracy } from "./blackjonEpisode16Conspiracy";
 import { blackjonEpisode15Collision } from "./blackjonEpisode15Collision";
 import { blackjonEpisode16Collision } from "./blackjonEpisode16Collision";
 import { blackjonEpisode17Collision } from "./blackjonEpisode17Collision";
@@ -48,6 +49,7 @@ export const blackjonEpisodes: Record<string, Scenario> = {
   ...blackjonEpisode14Collision,
   ...blackjonEpisode14Conspiracy,
   ...blackjonEpisode15Conspiracy,
+  ...blackjonEpisode16Conspiracy,
   ...blackjonEpisode15Collision,
   ...blackjonEpisode16Collision,
   ...blackjonEpisode17Collision,

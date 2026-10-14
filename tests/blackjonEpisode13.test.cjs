@@ -44,6 +44,7 @@ const chapters = [
   { episode: 15, route: 'collision', sceneCount: 20 },
   { episode: 15, route: 'conspiracy', sceneCount: 20 },
   { episode: 16, route: 'collision', sceneCount: 24 },
+  { episode: 16, route: 'conspiracy', sceneCount: 20 },
   { episode: 17, route: 'collision', sceneCount: 22 },
   { episode: 18, route: 'collision', sceneCount: 20 },
   { episode: 19, route: 'collision', sceneCount: 14 },
@@ -51,6 +52,52 @@ const chapters = [
   { episode: 21, route: 'collision', sceneCount: 24 },
   { episode: 22, route: 'collision', sceneCount: 24 },
 ];
+
+test('episode 16 conspiracy: farming comedy keeps both characters active and the spending fictional', () => {
+  const scene = suffix => blackjonEpisodes[`blackjon_ep16_conspiracy_${suffix}`];
+  const scenes = Object.values(blackjonEpisodes).filter(s => s.id.startsWith('blackjon_ep16_conspiracy_'));
+  assert.equal(scenes.reduce((count, s) => count + s.choices.length, 0), 23);
+  assert.ok(scenes.reduce((count, s) => count + s.text.length, 0) > 8500);
+  assert.match(scene('01').text, /저녁 먹으러 오라고 한 금요일/);
+  assert.match(scene('03').text, /결제한 건 아니고/);
+  assert.match(scene('04').text, /다른 게 익었잖아/);
+  assert.match(scene('05').text, /휴대폰을 식탁에 엎어놓았다/);
+  assert.match(scene('06').text, /내가 할게\. 너 밥 했잖아/);
+  assert.match(scene('07').text, /좋아하는 거랑 풍차 사는 건 다르죠/);
+  assert.match(scene('08').text, /우리 이왕 산 거 기뻐하자/);
+  assert.match(scene('09').text, /결제창 대신 과제 목록/);
+  assert.match(scene('10').text, /방향 돌려보세요/);
+  assert.match(scene('12').text, /다 내가 좋아하는 거네/);
+  assert.match(scene('13').text, /파란 지붕이요/);
+  assert.match(scene('14').text, /동선 줄여야지/);
+  assert.match(scene('15').text, /그래도 제 옆에는 계셨죠/);
+  assert.match(scene('16').text, /혼자 하고 싶을 때는 내 폰에 깔 거야/);
+  assert.match(scene('17').text, /게임을 저장하고 화면을 껐다/);
+  assert.match(scene('18').text, /흑존은 자기 집으로 돌아갔다/);
+  assert.match(scene('19').text, /넌 안 썩잖아/);
+  assert.ok(scene('end').text.endsWith('딸기는 아직 수확하지 않았다. 흑존은 통화를 끊지 않았다.'));
+  assert.ok(pageSource.includes('id: "blackjon_ep16_conspiracy_01", prefix: "blackjon_ep16_conspiracy_", number: 16, prerequisite: "blackjon_ep15_conspiracy_complete"'));
+  assert.match(getBlackjonBranchLockReason('blackjon_ep16_conspiracy_01', {blackjon_route_conspiracy:true,blackjon_ep15_collision_complete:true}), /15화 공모/);
+  assert.match(getBlackjonBranchLockReason('blackjon_ep17_collision_01', {blackjon_route_collision:true,blackjon_ep16_conspiracy_complete:true}), /16화 충돌/);
+});
+
+test('episode 16 conspiracy: six new CGs preserve dinner, farm reveal, and next-morning timing', () => {
+  const sequence = [...Array(3).fill('discovery'),...Array(3).fill('dinner'),...Array(5).fill('windmill'),...Array(3).fill('garden'),...Array(4).fill('together'),...Array(2).fill('call')];
+  const scenes = Object.values(blackjonEpisodes).filter(s => s.id.startsWith('blackjon_ep16_conspiracy_'));
+  assert.equal(scenes.length, sequence.length);
+  scenes.forEach((scene,index) => {
+    const part = sequence[index];
+    const asset = `/blackjon_ep16_conspiracy_${part}.png`;
+    assert.deepEqual(Array.from(scene.imagePool), [asset]);
+    assert.equal(scene.background, asset);
+    assert.ok(['comedy','normal'].includes(scene.kind));
+    assert.ok(pageSource.includes(`blackjon_ep16_conspiracy_${part}:`));
+    const bytes = fs.readFileSync(path.join('public',asset));
+    assert.equal(bytes.subarray(0,8).toString('hex'), '89504e470d0a1a0a');
+    assert.equal(bytes.readUInt32BE(16),1024);
+    assert.equal(bytes.readUInt32BE(20),1536);
+  });
+});
 
 test('episode 15 conspiracy: reciprocal grocery prank preserves genuine affection and independent time', () => {
   const scene = suffix => blackjonEpisodes[`blackjon_ep15_conspiracy_${suffix}`];
@@ -594,7 +641,7 @@ test('episode 16: long-form continuation preserves the opening, isolated night, 
   assert.ok(blackjonEpisodes.blackjon_ep16_collision_22.text.includes('다른 생각 안 하게'));
   assert.ok(blackjonEpisodes.blackjon_ep16_collision_end.text.endsWith('저때도 집에 가고 싶었다.'));
   assert.ok(pageSource.includes('id: "blackjon_ep16_collision_01", prefix: "blackjon_ep16_collision_", number: 16, prerequisite: "blackjon_ep15_collision_complete"'));
-  assert.equal(Object.keys(blackjonEpisodes).some(id => /^blackjon_ep16_(conspiracy|erosion)_/.test(id)), false);
+  assert.equal(Object.keys(blackjonEpisodes).some(id => /^blackjon_ep16_erosion_/.test(id)), false);
   for (const scene of scenes) {
     for (const line of scene.text.split('\n').filter(line => /^(흑존|히든):/.test(line))) {
       assert.ok(line.length <= 100, `${scene.id}: dialogue too long: ${line}`);
