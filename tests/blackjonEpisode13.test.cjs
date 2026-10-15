@@ -46,6 +46,7 @@ const chapters = [
   { episode: 16, route: 'collision', sceneCount: 24 },
   { episode: 16, route: 'conspiracy', sceneCount: 20 },
   { episode: 17, route: 'collision', sceneCount: 22 },
+  { episode: 17, route: 'conspiracy', sceneCount: 20 },
   { episode: 18, route: 'collision', sceneCount: 20 },
   { episode: 19, route: 'collision', sceneCount: 14 },
   { episode: 20, route: 'collision', sceneCount: 20 },
@@ -504,7 +505,7 @@ test('episode 17: long-form overnight stay leads to an unsolicited room, not agr
   assert.ok(call.includes('나 어제 잘 잤어. 네가 없어도.'));
   assert.ok(blackjonEpisodes.blackjon_ep17_collision_end.text.endsWith('흑존: 침대 위치는 마음에 들어요?'));
   assert.ok(pageSource.includes('id: "blackjon_ep17_collision_01", prefix: "blackjon_ep17_collision_", number: 17, prerequisite: "blackjon_ep16_collision_complete"'));
-  assert.equal(Object.keys(blackjonEpisodes).some(id => /^blackjon_ep17_(conspiracy|erosion)_/.test(id)), false);
+  assert.equal(Object.keys(blackjonEpisodes).some(id => /^blackjon_ep17_erosion_/.test(id)), false);
   for (const scene of scenes) {
     for (const line of scene.text.split('\n').filter(line => /^(흑존|히든):/.test(line))) {
       assert.ok(line.length <= 100, `${scene.id}: dialogue too long: ${line}`);
