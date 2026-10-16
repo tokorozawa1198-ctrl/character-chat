@@ -3866,6 +3866,13 @@ function getCGName(imgPath: string): string {
     blackjon_ep23_collision_return: "충돌 · 돌려놓는 명찰",
     blackjon_ep23_collision_train: "충돌 · 출발",
     blackjon_ep23_collision_empty: "충돌 · 이제 형 차례",
+    blackjon_ep24_collision_workshop: "충돌 · 형의 수업",
+    blackjon_ep24_collision_lunch: "충돌 · 두 사람 분량",
+    blackjon_ep24_collision_reception: "충돌 · 보호자란",
+    blackjon_ep24_collision_call: "충돌 · 본인이 말한 사실",
+    blackjon_ep24_collision_wardrobe: "충돌 · 한 번도 살지 않은 방",
+    blackjon_ep24_collision_return: "충돌 · 짐을 들고 온 사람",
+    blackjon_ep24_collision_room: "충돌 · 돌아가라는 말",
   };
   return map[base] ?? "새 CG";
 }
@@ -5268,6 +5275,10 @@ export default function Page() {
     }
     if (currentScenario.id === "blackjon_ep23_collision_end" && choice.end) {
       unlockEvent("blackjon_ep23_collision_complete");
+      return;
+    }
+    if (currentScenario.id === "blackjon_ep24_collision_end" && choice.end) {
+      unlockEvent("blackjon_ep24_collision_complete");
       return;
     }
     // 배드엔딩 시나리오 직접 트리거 (kind: bad_ending) — endingData 조건 검사 스킵
@@ -7114,6 +7125,7 @@ export default function Page() {
               { id: "blackjon_ep21_collision_01", prefix: "blackjon_ep21_collision_", number: 21, prerequisite: "blackjon_ep20_collision_complete" },
               { id: "blackjon_ep22_collision_01", prefix: "blackjon_ep22_collision_", number: 22, prerequisite: "blackjon_ep21_collision_complete" },
               { id: "blackjon_ep23_collision_01", prefix: "blackjon_ep23_collision_", number: 23, prerequisite: "blackjon_ep22_collision_complete" },
+              { id: "blackjon_ep24_collision_01", prefix: "blackjon_ep24_collision_", number: 24, prerequisite: "blackjon_ep23_collision_complete" },
             ];
             blackjonChapters.forEach(({ id, prefix, number, prerequisite }) => {
               const entry = scenarioData[id];

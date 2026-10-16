@@ -53,7 +53,17 @@ const chapters = [
   { episode: 21, route: 'collision', sceneCount: 24 },
   { episode: 22, route: 'collision', sceneCount: 24 },
   { episode: 23, route: 'collision', sceneCount: 24 },
+  { episode: 24, route: 'collision', sceneCount: 24 },
 ];
+
+test('episode 24 collision: only its own preceding completion unlocks entry, results and end', () => {
+  const selected = selectBlackjonRoute({}, 'collision');
+  for (const id of ['blackjon_ep24_collision_01', 'blackjon_ep24_collision_07__r__1', 'blackjon_ep24_collision_14__r__0', 'blackjon_ep24_collision_end']) {
+    assert.match(getBlackjonBranchLockReason(id, { ...selected, blackjon_ep23_conspiracy_complete: true, blackjon_ep23_erosion_complete: true, blackjon_ep22_collision_complete: true }), /23화 충돌/);
+    assert.equal(getBlackjonBranchLockReason(id, { ...selected, blackjon_ep23_collision_complete: true }), null);
+    assert.match(getBlackjonBranchLockReason(id, { ...selectBlackjonRoute({}, 'conspiracy'), blackjon_ep23_collision_complete: true }), /충돌 루트를 선택/);
+  }
+});
 
 test('episode 23 collision: other-route completion cannot substitute for episode 22 collision', () => {
   const selected = selectBlackjonRoute({}, 'collision');
