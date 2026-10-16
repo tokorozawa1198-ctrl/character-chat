@@ -52,7 +52,16 @@ const chapters = [
   { episode: 20, route: 'collision', sceneCount: 20 },
   { episode: 21, route: 'collision', sceneCount: 24 },
   { episode: 22, route: 'collision', sceneCount: 24 },
+  { episode: 23, route: 'collision', sceneCount: 24 },
 ];
+
+test('episode 23 collision: other-route completion cannot substitute for episode 22 collision', () => {
+  const selected = selectBlackjonRoute({}, 'collision');
+  for (const id of ['blackjon_ep23_collision_01', 'blackjon_ep23_collision_13__r__1', 'blackjon_ep23_collision_end']) {
+    assert.match(getBlackjonBranchLockReason(id, { ...selected, blackjon_ep22_conspiracy_complete: true, blackjon_ep22_erosion_complete: true }), /22화 충돌/);
+    assert.equal(getBlackjonBranchLockReason(id, { ...selected, blackjon_ep22_collision_complete: true }), null);
+  }
+});
 
 test('episode 16 conspiracy: farming comedy keeps both characters active and the spending fictional', () => {
   const scene = suffix => blackjonEpisodes[`blackjon_ep16_conspiracy_${suffix}`];
