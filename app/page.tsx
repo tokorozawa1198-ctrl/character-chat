@@ -15,6 +15,7 @@ import { BLACKJON_ROUTES, BLACKJON_ROUTE_IDS, getBlackjonBranchLockReason, getBl
 import { playerText } from "./_game/playerText";
 import { CollectionTrophies } from "./_game/ui/CollectionTrophies";
 import { NOVEL_CSS } from "./_game/ui/novelStyles";
+import { BLACKJON_LETTERS, isLetterEarned, letterChapterLabel, letterUnlockLabel, type StoryLetter } from "./_game/letters";
 import type {
   ActionItem,
   AfterScenarioCue,
@@ -682,7 +683,7 @@ const TTEOKJON_QUOTES: { id: string; emoji: string; text: string }[] = [
 // ================================
 // 떡존이 편지함 (챕터 클리어 보상)
 // ================================
-const LETTERS: { id: string; chapter: number; route?: StoryRoute; title: string; content: string; sender?: string; triggerEvent?: string }[] = [
+const LETTERS: StoryLetter[] = [
   { id: "l_1", chapter: 1, title: "첫 번째 편지", content: "선생님께. 처음 만난 그 밤이 자꾸 떠올라요. 편의점 쿠폰 하나 못 써서 선생님께 도움받은 그 밤이요. 저한테는 평범한 밤이 아니었어요. 누군가 저를 이상하게 보지 않고 받아준 첫 번째 밤이었거든요. 그래서 그 다음 메시지 보낼 때, 손가락이 한참 떨렸어요. 들키고 싶지 않은 마음이요. 떡존 올림" },
   { id: "l_2", chapter: 2, title: "전진협의 문 앞에서", content: "선생님께. 전진협 안에 들어가니까 다들 너무 천박해서 좀 놀랐어요 ㅎㅎ 근데 선생님은 거기서도 어떤 사람인지 다 보였어요. 사람이 앞모습만 있는 게 아니라고 하신 그 말, 저한테 오래 남아 있어요. 그 말 덕분에 저도 제 뒷모습을 좀 봐도 되겠구나 했어요. 떡존 올림" },
   { id: "l_3", chapter: 3, title: "오뎅집의 따뜻한 김", content: "선생님께. 오뎅집에서 처음 가까이 앉았을 때, 저는 사실 도시락보다 선생님 옆자리가 더 좋았어요. 그날 추웠는데 추운 줄 몰랐어요. 선생님 옆이 따뜻해서요. 김이 올라오는 그 작은 가게에서 처음으로 평생 이런 자리가 있으면 좋겠다 라고 생각했어요. 떡존 올림" },
@@ -4014,7 +4015,7 @@ export default function Page() {
   const [letterReads, setLetterReads] = useState<Record<string, boolean>>({});
   const [unlockedLetters, setUnlockedLetters] = useState<string[]>([]);
   const [letterToast, setLetterToast] = useState<{ id: string; sender: string; title: string } | null>(null);
-  const [readingLetter, setReadingLetter] = useState<{ id: string; sender?: string; title: string; content: string } | null>(null);
+  const [readingLetter, setReadingLetter] = useState<{ id: string; sender?: string; title: string; content: string; unsent?: boolean } | null>(null);
   const [quoteOfDayId, setQuoteOfDayId] = useState<string>("");
   const [quoteOfDayDate, setQuoteOfDayDate] = useState<string>("");
   const [collectedQuotes, setCollectedQuotes] = useState<string[]>([]);
@@ -4101,6 +4102,12 @@ export default function Page() {
       ? "/blackjon_profile_transparent.png"
       : currentPortrait;
   const activeCharacterName = selectedCharacter === "hidden" ? "히든" : selectedCharacter === "blackjon" ? "흑존" : "근떡존";
+  const characterLetters = selectedCharacter === "blackjon" ? BLACKJON_LETTERS : LETTERS;
+  // Reader/toast belong to the selected save, not the previously viewed character.
+  useEffect(() => {
+    setReadingLetter(null);
+    setLetterToast(null);
+  }, [selectedCharacter]);
   // 캐릭터 확정 후 말풍선 초기화 (SSR 불일치 방지용 useEffect)
   useEffect(() => {
     if (selectedCharacter === "hidden") {
@@ -5500,35 +5507,30 @@ export default function Page() {
 
   // ─ 편지: 챕터 클리어 시 해금 (seenEvents 기반) ─
   useEffect(() => {
-    const newLetters: { id: string; sender?: string; title: string }[] = [];
-    for (const letter of LETTERS) {
-      if (unlockedLetters.includes(letter.id)) continue;
-      // 1) 특정 시나리오 트리거 (배드엔딩 등)
-      if (letter.triggerEvent) {
-        if (seenEvents[letter.triggerEvent]) {
-          newLetters.push({ id: letter.id, sender: letter.sender, title: letter.title });
-        }
-        continue;
-      }
-      // 2) chapter 기반 자동 해금
-      const chapterPrefix = `main_ch${letter.chapter}`;
-      const routeChapterPrefix = letter.route ? `${letter.route === "pure" ? "pure" : "obsession"}_ch${letter.chapter}` : null;
-      const routeMatch = letter.route ? routeChapterPrefix && Object.keys(seenEvents).some((k) => k.startsWith(routeChapterPrefix)) : true;
-      const chapterMatch = Object.keys(seenEvents).some((k) => k.startsWith(chapterPrefix)) || (routeChapterPrefix && Object.keys(seenEvents).some((k) => k.startsWith(routeChapterPrefix)));
-      if (chapterMatch && routeMatch) {
-        newLetters.push({ id: letter.id, sender: letter.sender, title: letter.title });
-      }
-    }
+    if (!selectedCharacter || loadedStorageKey !== activeStorageKey || loadError) return;
+    const newLetters = characterLetters.filter((letter) => !unlockedLetters.includes(letter.id) && isLetterEarned(letter, seenEvents));
     if (newLetters.length) {
-      setUnlockedLetters((prev) => [...prev, ...newLetters.map((l) => l.id)]);
+      setUnlockedLetters((prev) => Array.from(new Set([...prev, ...newLetters.map((l) => l.id)])));
       // 트리거 편지(배드엔딩 등)는 토스트로 알림
-      const triggered = newLetters.find((l) => l.sender);
+      const triggered = newLetters.find((l) => l.triggerEvent && l.sender);
       if (triggered) {
         setLetterToast({ id: triggered.id, sender: triggered.sender!, title: triggered.title });
-        window.setTimeout(() => setLetterToast(null), 6000);
       }
     }
-  }, [seenEvents, storyRoute]);
+  }, [selectedCharacter, loadedStorageKey, activeStorageKey, loadError, characterLetters, seenEvents, unlockedLetters]);
+
+  useEffect(() => {
+    if (!letterToast) return;
+    const timer = window.setTimeout(() => setLetterToast(null), 6000);
+    return () => window.clearTimeout(timer);
+  }, [letterToast]);
+
+  useEffect(() => {
+    if (!readingLetter) return;
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape") setReadingLetter(null); };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [readingLetter]);
 
   // ─ 카드 가챠 ─
   function pullCardGacha(mode: "ticket" | "single") {
@@ -6871,7 +6873,7 @@ export default function Page() {
             sns: snsRefreshDue,
             raid: raidActive,
             calendar30: CALENDAR_MILESTONES.some((m) => checkInStreak >= m.day && !monthlyCalendarClaims[`day_${m.day}`]),
-            letters: unlockedLetters.some((l) => !letterReads[l]),
+            letters: characterLetters.some((l) => unlockedLetters.includes(l.id) && !letterReads[l.id]),
             quote: quoteOfDayId !== "" && !collectedQuotes.includes(quoteOfDayId),
           };
           const flatItems: [string, string][] = [["home","홈"],["miniMap","히로시마 지도"],["chat","채팅"],["scenarioMenu","📖 시나리오"],["gallery","🖼 갤러리"],["quests","도전"],["shop","상점"]];
@@ -7385,8 +7387,8 @@ export default function Page() {
           const endingTotal = 5;
           const cardUnlocked = Object.keys(ownedCards).length;
           const cardTotal = TRADING_CARDS.length;
-          const letterUnlocked = unlockedLetters.length;
-          const letterTotal = LETTERS.length;
+          const letterUnlocked = characterLetters.filter((l) => unlockedLetters.includes(l.id)).length;
+          const letterTotal = characterLetters.length;
           const quoteCollected = collectedQuotes.length;
           const quoteTotal = TTEOKJON_QUOTES.length;
           const sections = [
@@ -7476,43 +7478,45 @@ export default function Page() {
           );
         })()}
         {view === "letters" && (
-          <Panel title="떡존이 편지함 💌">
-            <p className="lettersIntro">챕터 클리어할 때마다 떡존이가 편지를 한 통씩 보내요.</p>
+          <Panel title={selectedCharacter === "blackjon" ? "흑존의 편지함 💌" : "떡존이 편지함 💌"}>
+            <p className="lettersIntro">{selectedCharacter === "blackjon"
+              ? "지나온 이야기 뒤에 흑존이 남긴 마음을 모았어요. ‘부치지 않은 편지’는 형에게 전달되지 않은 글이에요."
+              : "챕터를 따라가며 떡존이가 남긴 편지를 읽어보세요."}</p>
             <div className="lettersList">
-              {LETTERS.map((letter) => {
+              {characterLetters.map((letter) => {
                 const unlocked = unlockedLetters.includes(letter.id);
                 const read = letterReads[letter.id];
                 return (
-                  <div key={letter.id} className={`letterCard${unlocked ? "" : " letterLocked"}${unlocked && !read ? " letterUnread" : ""}${letter.triggerEvent ? " letterTriggered" : ""}`}>
+                  <div key={letter.id} data-letter-id={letter.id} className={`letterCard${unlocked ? "" : " letterLocked"}${unlocked && !read ? " letterUnread" : ""}${letter.triggerEvent ? " letterTriggered" : ""}`}>
                     {unlocked ? (
                       <>
                         <div className="letterHead">
-                          <span className="letterChip">{letter.triggerEvent ? "🩸 배드엔딩" : `Ch.${letter.chapter}${letter.route ? ` · ${letter.route === "pure" ? "순애" : "집착"}` : ""}`}</span>
+                          <span className="letterChip">{letterChapterLabel(letter)}</span>
                           <b>{letter.title}</b>
                           {letter.sender && <span className="letterSender">from. {letter.sender}</span>}
                           {!read && <span className="letterNew">NEW</span>}
                         </div>
-                        {letter.triggerEvent ? (
-                          <button
-                            className="letterOpenBtn"
-                            onClick={() => {
-                              setReadingLetter({ id: letter.id, sender: letter.sender, title: letter.title, content: letter.content });
-                              if (!read) setLetterReads((p) => ({ ...p, [letter.id]: true }));
-                            }}
-                          >
-                            <span className="letterOpenIcon">✉️</span>
-                            <span className="letterOpenLabel">편지 열어보기</span>
-                            <small>클릭하여 전체 본문 읽기</small>
-                          </button>
-                        ) : (
+                        {letter.unsent && <p className="letterUnsent">부치지 않은 편지</p>}
+                        {!letter.triggerEvent && (
                           <p className="letterContent" onClick={() => !read && setLetterReads((p) => ({ ...p, [letter.id]: true }))}>
                             {letter.content}
                           </p>
                         )}
+                        <button
+                          className="letterOpenBtn"
+                          onClick={() => {
+                            setReadingLetter({ id: letter.id, sender: letter.sender, title: letter.title, content: letter.content, unsent: letter.unsent });
+                            if (!read) setLetterReads((p) => ({ ...p, [letter.id]: true }));
+                          }}
+                        >
+                          <span className="letterOpenIcon">✉️</span>
+                          <span className="letterOpenLabel">편지 열어보기</span>
+                          <small>클릭하여 전체 본문 읽기</small>
+                        </button>
                       </>
                     ) : (
                       <div className="letterLockedBody">
-                        🔒 {letter.triggerEvent ? "특정 엔딩 도달 시 도착" : `Ch.${letter.chapter}${letter.route ? ` (${letter.route === "pure" ? "순애" : "집착"} 루트)` : ""} 클리어 시 도착`}
+                        🔒 {letterUnlockLabel(letter)}
                       </div>
                     )}
                   </div>
@@ -9306,9 +9310,9 @@ export default function Page() {
         {achievementToast && <div className="achToast"><div className="achToastIcon">{achievementToast.emoji}</div><div><b>업적 해금</b><span>「{achievementToast.title}」</span><small>{achievementToast.description}</small></div></div>}
         {letterToast && (
           <div className="letterToast" onClick={() => {
-            const found = LETTERS.find((l) => l.id === letterToast.id);
+            const found = characterLetters.find((l) => l.id === letterToast.id);
             if (found) {
-              setReadingLetter({ id: found.id, sender: found.sender, title: found.title, content: found.content });
+              setReadingLetter({ id: found.id, sender: found.sender, title: found.title, content: found.content, unsent: found.unsent });
               setLetterReads((p) => ({ ...p, [found.id]: true }));
             } else {
               setView("letters");
@@ -9325,12 +9329,13 @@ export default function Page() {
         )}
         {readingLetter && (
           <div className="letterReaderOverlay" onClick={() => setReadingLetter(null)}>
-            <div className="letterReader" onClick={(e) => e.stopPropagation()}>
-              <button className="letterReaderClose" onClick={() => setReadingLetter(null)}>✕</button>
+            <div className="letterReader" role="dialog" aria-modal="true" aria-labelledby="letter-reader-title" onClick={(e) => e.stopPropagation()}>
+              <button className="letterReaderClose" aria-label="편지 닫기" autoFocus onClick={() => setReadingLetter(null)}>✕</button>
               <div className="letterReaderPaper">
                 <div className="letterReaderHead">
                   {readingLetter.sender && <span className="letterReaderFrom">from. {readingLetter.sender}</span>}
-                  <h2 className="letterReaderTitle">{readingLetter.title}</h2>
+                  {readingLetter.unsent && <div className="letterReaderFrom">부치지 않은 편지</div>}
+                  <h2 id="letter-reader-title" className="letterReaderTitle">{readingLetter.title}</h2>
                   <div className="letterReaderDivider" />
                 </div>
                 <div className="letterReaderBody">{readingLetter.content}</div>

@@ -129,6 +129,30 @@ html,body{background:#151719;letter-spacing:0}
 .novelApp .statusCard span{font-size:27px;-webkit-text-fill-color:var(--ink);font-weight:500}
 .novelApp .memoryPanel p,.novelApp .memoryPanel small{color:var(--muted)}
 .novelApp .questCard,.novelApp .shopCard,.novelApp .saveSlotCard,.novelApp .giftCard,.novelApp .petCard,.novelApp .achievementCard,.novelApp .diaryCard,.novelApp .letterCard{border-radius:6px!important;background:var(--raised)!important;color:var(--ink)!important;border-color:var(--line)!important;box-shadow:none!important}
+/* Letters: keep foreground and surface in the same palette, including light/pure mode. */
+.novelApp .lettersIntro{background:var(--raised);border-color:var(--line);color:var(--ink);font-size:14px;line-height:1.7;font-style:normal}
+.novelApp .lettersList{gap:18px;max-width:850px;margin-inline:auto}
+.novelApp .letterCard{min-width:0;padding:24px;overflow-wrap:anywhere}
+.novelApp .letterCard.letterLocked{opacity:1;border-style:dashed!important}
+.novelApp .letterCard.letterUnread{border-color:var(--accent)!important}
+.novelApp .letterHead b,.novelApp .letterContent,.novelApp .letterLockedBody,.novelApp .letterSender,.novelApp .letterUnsent{color:var(--ink)!important}
+.novelApp .letterContent{font-size:16px;line-height:1.95;white-space:pre-wrap;font-weight:400}
+.novelApp .letterChip{background:var(--surface)!important;color:var(--ink)!important}
+.novelApp .letterNew{background:var(--accent);color:var(--accent-ink)}
+.novelApp .letterUnsent{margin:0 0 16px;font-size:12px;font-style:italic}
+.novelApp .letterOpenBtn{padding:12px 16px;background:var(--surface);border:1px solid var(--line);border-radius:6px;color:var(--ink);box-shadow:none}
+.novelApp .letterOpenBtn:hover{background:var(--raised);border-color:var(--accent);transform:none;box-shadow:none}
+.novelApp .letterOpenBtn small{color:var(--ink)}
+.novelApp .letterOpenIcon{font-size:24px}
+/* The reader intentionally stays light like paper, even inside the dark app. */
+.novelApp .letterReader{max-height:calc(100dvh - 48px)}
+.novelApp .letterReaderPaper{color-scheme:light;padding-top:56px;overflow-wrap:anywhere}
+.novelApp .letterReaderPaper .letterReaderTitle{color:#2a1a0a!important}
+.novelApp .letterReaderBody{color:#3a2a1a!important}
+.novelApp .letterReaderFrom,.novelApp .letterReaderCloseBtn{color:#5a3018!important}
+.novelApp .letterReaderClose{top:10px;right:10px;background:#fdf6e3;color:#3a2a1a;border-color:#aa784a}
+.novelApp .letterReaderClose:hover{background:#f3e4be;color:#2a1a0a}
+@media(max-width:600px){.novelApp .letterCard{padding:20px 18px}.novelApp .letterHead{gap:8px}.novelApp .letterReaderOverlay{padding:16px}.novelApp .letterReader{max-height:calc(100dvh - 32px)}.novelApp .letterReaderPaper{padding:56px 22px 28px}}
 .novelApp .panel :is(.advCard,.codexCard,.dailyCard,.mgCard,.soundCard,.snsPost,.journalEntry,.subUpcomingCard,.wardrobeCard,.achCard,.gachaPoolItem,.letterItem){background:var(--raised)!important;color:var(--ink)!important;border:1px solid var(--line)!important;border-radius:6px!important;box-shadow:none!important}
 .novelApp .panel :is(.questTitle,.shopName,.giftName,.petName,.wardrobeName,.dailyTitle,.achTitle,.diaryCardTitle,.mapNodeTitle,.questProgressText,.questReward span,.ssScene,.letterReaderTitle,.advSectionTitle,.gachaSectionTitle,.subGroupTitle){color:var(--ink)!important;font-weight:550}
 .novelApp .panel :is(.questDesc,.questHint,.shopDesc,.shopHint,.shopOwned,.giftDesc,.giftLockHint,.wardrobeDesc,.wardrobeHint,.dailyDesc,.achDesc,.diaryHint,.statsHint,.subGroupDesc,.mapHint,.mapNodeSubtitle,.miniMapHint,.ssPreview,.ssTime,.ssEmptyBody,.ssEmptyBody small,.snsHint,.snsPostText,.journalText,.gachaPityHint,.questReward small){color:var(--muted)!important;line-height:1.7;font-style:normal}
