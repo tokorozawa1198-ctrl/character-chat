@@ -5206,7 +5206,7 @@ export default function Page() {
     if (!isBlackjonPure) setAfterScenarioCues((prev) => addAfterScenarioCue(prev, getAfterScenarioCue(currentScenario, currentChapter)));
     const ending = chapterEndTransition(currentScenario);
     // 완독했으므로 진행 상황 초기화
-    setScenarioProgress((p) => (p?.id === currentScenario.id ? null : p));
+    setScenarioProgress((p) => (isBlackjonPure || p?.id === currentScenario.id ? null : p));
     setCurrentScenarioId(null);
     if (isBlackjonPure) {
       if (currentScenario.id === "blackjon_pure_ep1_end" && choice.end) unlockEvent("blackjon_pure_ep1_complete");

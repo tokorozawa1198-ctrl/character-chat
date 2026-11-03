@@ -72,7 +72,7 @@ test('pure episode 4: actual handler marks only final completion, preserves main
  function visit(n){if(ts.isFunctionDeclaration(n)&&n.name?.text==='chooseScenario')handler=n.getText(ast);ts.forEachChild(n,visit);}visit(ast);
  const js=ts.transpileModule(handler,{compilerOptions:{target:ts.ScriptTarget.ES2020}}).outputText;
  for(const replay of [false,true]){
-  const unlocked=[],started=[];let progress={id:end,lineIndex:2},currentId=end,view='chat';const forbidden=()=>assert.fail('main state changed');
+  const unlocked=[],started=[];let progress={id:'blackjon_pure_ep4_07__r__saved',lineIndex:2},currentId=end,view='chat';const forbidden=()=>assert.fail('main state changed');
   const c={currentScenario:scenes[entry],scenarioReplayRef:{current:replay},stats:{affinity:900},perkBonus:{affinityPassive:1},
    applyStats:forbidden,setStats:forbidden,showStatDelta:forbidden,enterRoute:forbidden,setSeenEvents:forbidden,
    setMemoryNotes:forbidden,setMessages:forbidden,setAfterScenarioCues:forbidden,chapterEndTransition:()=>null,
