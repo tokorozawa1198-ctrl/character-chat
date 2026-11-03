@@ -3889,6 +3889,12 @@ function getCGName(imgPath: string): string {
     blackjon_pure_ep5_walk: "순애 외전 · 같이 보니까요",
     blackjon_pure_ep5_goodbye: "순애 외전 · 먼저 놓지 않은 쪽",
     blackjon_pure_ep5_home: "순애 외전 · 화요일은 아직 멀어서",
+    blackjon_pure_ep6_dinner: "순애 외전 · 선택에 책임지는 중",
+    blackjon_pure_ep6_entry: "순애 외전 · 문 안쪽의 형",
+    blackjon_pure_ep6_game: "순애 외전 · 웃음이 먼저 나온 얼굴",
+    blackjon_pure_ep6_lean: "순애 외전 · 어깨 좀 빌려주세요",
+    blackjon_pure_ep6_kiss: "순애 외전 · 내가 먼저 해도 돼",
+    blackjon_pure_ep6_night: "순애 외전 · 다음에도 저렇게 웃을 수 있으면",
     blackjon_ep24_collision_workshop: "충돌 · 형의 수업",
     blackjon_ep24_collision_lunch: "충돌 · 두 사람 분량",
     blackjon_ep24_collision_reception: "충돌 · 보호자란",
@@ -5222,6 +5228,7 @@ export default function Page() {
       if (currentScenario.id === "blackjon_pure_ep3_end" && choice.end) unlockEvent("blackjon_pure_ep3_complete");
       if (currentScenario.id === "blackjon_pure_ep4_end" && choice.end) unlockEvent("blackjon_pure_ep4_complete");
       if (currentScenario.id === "blackjon_pure_ep5_end" && choice.end) unlockEvent("blackjon_pure_ep5_complete");
+      if (currentScenario.id === "blackjon_pure_ep6_end" && choice.end) unlockEvent("blackjon_pure_ep6_complete");
       setView("scenarioMenu");
       return;
     }
@@ -6764,7 +6771,7 @@ export default function Page() {
     if (s.id.startsWith("pure_") || s.id.startsWith("obsession_") || s.id.startsWith("confine_") || s.id.startsWith("forced_") || s.id.startsWith("bad_ending_") || s.id === "pure_bad_ending_trigger" || s.id === "pure_bad_ending_trigger_a" || s.id === "pure_bad_ending_trigger_b") return false;
     return true;
   });
-  const sideScenarios = visibleScenarios.filter((s) => getScenarioCategory(s.id, s) !== "main" && (!s.id.startsWith("blackjon_pure_") || /^blackjon_pure_ep[12345]_01$/.test(s.id)));
+  const sideScenarios = visibleScenarios.filter((s) => getScenarioCategory(s.id, s) !== "main" && (!s.id.startsWith("blackjon_pure_") || /^blackjon_pure_ep[123456]_01$/.test(s.id)));
   const galleryImages = useMemo(() => {
     // ID prefix 기반 카테고리 자동 분류
     function categorize(id: string, imgs: string[]): GalleryTab {
@@ -7185,7 +7192,7 @@ export default function Page() {
           const savedMatchesCharacter = saved && (isHiddenRoute ? saved.id.startsWith("hidden_") : isBlackjonRoute ? saved.id.startsWith("blackjon_") : !saved.id.startsWith("hidden_") && !saved.id.startsWith("blackjon_"));
           const resume = saved && savedMatchesCharacter && (isAdminMode || !getBlackjonBranchLockReason(saved.id, seenEvents)) ? { id: saved.id, title: saved.title, line: scenarioProgress!.lineIndex } : null;
           return <div className="panel">
-            {isBlackjonRoute && <BlackjonPureStory completed={!!seenEvents.blackjon_pure_ep1_complete} completed2={!!seenEvents.blackjon_pure_ep2_complete} completed3={!!seenEvents.blackjon_pure_ep3_complete} completed4={!!seenEvents.blackjon_pure_ep4_complete} completed5={!!seenEvents.blackjon_pure_ep5_complete} resumeId={resume?.id.startsWith("blackjon_pure_") ? resume.id : undefined} onStart={startScenario} />}
+            {isBlackjonRoute && <BlackjonPureStory completed={!!seenEvents.blackjon_pure_ep1_complete} completed2={!!seenEvents.blackjon_pure_ep2_complete} completed3={!!seenEvents.blackjon_pure_ep3_complete} completed4={!!seenEvents.blackjon_pure_ep4_complete} completed5={!!seenEvents.blackjon_pure_ep5_complete} completed6={!!seenEvents.blackjon_pure_ep6_complete} resumeId={resume?.id.startsWith("blackjon_pure_") ? resume.id : undefined} onStart={startScenario} />}
             {isBlackjonRoute && seenEvents.blackjon_ep10_06 && <BlackjonRouteSummary selected={blackjonRoute} onChoose={() => startScenario("blackjon_ep10_06")} />}
             {isBlackjonRoute && blackjonRoute === "collision" && seenEvents.blackjon_ep20_collision_complete && <BlackjonSeasonNotice onReplay={() => setBlackjonSeasonFinale(true)} onStartNext={() => startScenario("blackjon_ep21_collision_01")} />}
             <StoryLibrary chapters={chapters} activeRoute={isHiddenRoute ? "hidden" : isBlackjonRoute ? "blackjon" : storyRoute} resume={resume} onStart={startScenario} onNavigate={setView}/>
