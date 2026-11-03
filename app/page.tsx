@@ -15,6 +15,7 @@ import { BLACKJON_ROUTES, BLACKJON_ROUTE_IDS, getBlackjonBranchLockReason, getBl
 import { playerText } from "./_game/playerText";
 import { CollectionTrophies } from "./_game/ui/CollectionTrophies";
 import { NOVEL_CSS } from "./_game/ui/novelStyles";
+import { BlackjonPureStory } from "./_game/ui/BlackjonPureStory";
 import { BLACKJON_LETTERS, isLetterEarned, letterChapterLabel, letterUnlockLabel, type StoryLetter } from "./_game/letters";
 import type {
   ActionItem,
@@ -3867,6 +3868,21 @@ function getCGName(imgPath: string): string {
     blackjon_ep23_collision_return: "충돌 · 돌려놓는 명찰",
     blackjon_ep23_collision_train: "충돌 · 출발",
     blackjon_ep23_collision_empty: "충돌 · 이제 형 차례",
+    blackjon_pure_ep1_shop: "순애 외전 · 저도 여기 살아요",
+    blackjon_pure_ep1_street: "순애 외전 · 한국말로 걷는 길",
+    blackjon_pure_ep1_home: "순애 외전 · 내일 저녁의 약속",
+    blackjon_pure_ep2_wait: "순애 외전 · 여섯 시보다 조금 먼저",
+    blackjon_pure_ep2_dinner: "순애 외전 · 네가 좋아하는 거",
+    blackjon_pure_ep2_river: "순애 외전 · 첫 사진",
+    blackjon_pure_ep3_stop: "순애 외전 · 먼저 온 사람",
+    blackjon_pure_ep3_gallery: "순애 외전 · 치우지 않은 식탁",
+    blackjon_pure_ep3_photo: "순애 외전 · 아까 웃으실 때처럼",
+    blackjon_pure_ep3_hand: "순애 외전 · 사진에 안 남은 것",
+    blackjon_pure_ep4_gym: "순애 외전 · 여기서는 이런 얼굴",
+    blackjon_pure_ep4_bench: "순애 외전 · 생각보다 쉽게 좋아져서",
+    blackjon_pure_ep4_dinner: "순애 외전 · 오늘 본 너",
+    blackjon_pure_ep4_walk: "순애 외전 · 듣고 있어",
+    blackjon_pure_ep4_hug: "순애 외전 · 못한 날에도 만나고 싶어서",
     blackjon_ep24_collision_workshop: "충돌 · 형의 수업",
     blackjon_ep24_collision_lunch: "충돌 · 두 사람 분량",
     blackjon_ep24_collision_reception: "충돌 · 보호자란",
@@ -5142,10 +5158,11 @@ export default function Page() {
 
   function chooseScenario(choice: Choice) {
     if (!currentScenario) return;
+    const isBlackjonPure = currentScenario.id.startsWith("blackjon_pure_");
     // 다시 보기면 stat 보상 없음 — 진입 시점에 ref에 기록한 값 사용
     const isReplay = scenarioReplayRef.current;
-    const nextStats = isReplay ? stats : applyStats(stats, choice.stat, perkBonus.affinityPassive);
-    if (!isReplay) {
+    const nextStats = isReplay || isBlackjonPure ? stats : applyStats(stats, choice.stat, perkBonus.affinityPassive);
+    if (!isReplay && !isBlackjonPure) {
       setStats(nextStats);
       showStatDelta(choice.stat);
     }
@@ -5157,12 +5174,12 @@ export default function Page() {
       setCurrentPortrait(choice.forceImage);
       unlockCGs([choice.forceImage]);
     }
-    setMemoryNotes((prev) => addMemoryNotes(prev, [{
+    if (!isBlackjonPure) setMemoryNotes((prev) => addMemoryNotes(prev, [{
       kind: "story",
       chapter: currentChapter,
       text: personalize(`${currentScenario.title}에서 히든은 "${choice.text || choice.label}" 쪽으로 반응한다.`),
     }]));
-    setMessages((m) => [...m, makeMessage("narration", `*${currentScenario.title} 이벤트를 진행한다.*`)]);
+    if (!isBlackjonPure) setMessages((m) => [...m, makeMessage("narration", `*${currentScenario.title} 이벤트를 진행한다.*`)]);
     // 선택지에 result 텍스트가 있으면 → 임시 시나리오로 보여주고 next 시나리오로 연결
     if (choice.result && choice.next && scenarioData[choice.next]) {
       const resultId = `${currentScenario.id}__r__${choice.label.replace(/\s+/g, "_").slice(0, 24)}`;
@@ -5186,11 +5203,19 @@ export default function Page() {
       startScenario(choice.next);
       return;
     }
-    setAfterScenarioCues((prev) => addAfterScenarioCue(prev, getAfterScenarioCue(currentScenario, currentChapter)));
+    if (!isBlackjonPure) setAfterScenarioCues((prev) => addAfterScenarioCue(prev, getAfterScenarioCue(currentScenario, currentChapter)));
     const ending = chapterEndTransition(currentScenario);
     // 완독했으므로 진행 상황 초기화
     setScenarioProgress((p) => (p?.id === currentScenario.id ? null : p));
     setCurrentScenarioId(null);
+    if (isBlackjonPure) {
+      if (currentScenario.id === "blackjon_pure_ep1_end" && choice.end) unlockEvent("blackjon_pure_ep1_complete");
+      if (currentScenario.id === "blackjon_pure_ep2_end" && choice.end) unlockEvent("blackjon_pure_ep2_complete");
+      if (currentScenario.id === "blackjon_pure_ep3_end" && choice.end) unlockEvent("blackjon_pure_ep3_complete");
+      if (currentScenario.id === "blackjon_pure_ep4_end" && choice.end) unlockEvent("blackjon_pure_ep4_complete");
+      setView("scenarioMenu");
+      return;
+    }
     if (currentScenario.id === "blackjon_ep20_collision_end" && choice.end) {
       unlockEvent("blackjon_ep20_collision_complete");
       setBlackjonSeasonFinale(true);
@@ -6730,7 +6755,7 @@ export default function Page() {
     if (s.id.startsWith("pure_") || s.id.startsWith("obsession_") || s.id.startsWith("confine_") || s.id.startsWith("forced_") || s.id.startsWith("bad_ending_") || s.id === "pure_bad_ending_trigger" || s.id === "pure_bad_ending_trigger_a" || s.id === "pure_bad_ending_trigger_b") return false;
     return true;
   });
-  const sideScenarios = visibleScenarios.filter((s) => getScenarioCategory(s.id, s) !== "main");
+  const sideScenarios = visibleScenarios.filter((s) => getScenarioCategory(s.id, s) !== "main" && (!s.id.startsWith("blackjon_pure_") || /^blackjon_pure_ep[1234]_01$/.test(s.id)));
   const galleryImages = useMemo(() => {
     // ID prefix 기반 카테고리 자동 분류
     function categorize(id: string, imgs: string[]): GalleryTab {
@@ -7151,6 +7176,7 @@ export default function Page() {
           const savedMatchesCharacter = saved && (isHiddenRoute ? saved.id.startsWith("hidden_") : isBlackjonRoute ? saved.id.startsWith("blackjon_") : !saved.id.startsWith("hidden_") && !saved.id.startsWith("blackjon_"));
           const resume = saved && savedMatchesCharacter && (isAdminMode || !getBlackjonBranchLockReason(saved.id, seenEvents)) ? { id: saved.id, title: saved.title, line: scenarioProgress!.lineIndex } : null;
           return <div className="panel">
+            {isBlackjonRoute && <BlackjonPureStory completed={!!seenEvents.blackjon_pure_ep1_complete} completed2={!!seenEvents.blackjon_pure_ep2_complete} completed3={!!seenEvents.blackjon_pure_ep3_complete} completed4={!!seenEvents.blackjon_pure_ep4_complete} resumeId={resume?.id.startsWith("blackjon_pure_") ? resume.id : undefined} onStart={startScenario} />}
             {isBlackjonRoute && seenEvents.blackjon_ep10_06 && <BlackjonRouteSummary selected={blackjonRoute} onChoose={() => startScenario("blackjon_ep10_06")} />}
             {isBlackjonRoute && blackjonRoute === "collision" && seenEvents.blackjon_ep20_collision_complete && <BlackjonSeasonNotice onReplay={() => setBlackjonSeasonFinale(true)} onStartNext={() => startScenario("blackjon_ep21_collision_01")} />}
             <StoryLibrary chapters={chapters} activeRoute={isHiddenRoute ? "hidden" : isBlackjonRoute ? "blackjon" : storyRoute} resume={resume} onStart={startScenario} onNavigate={setView}/>

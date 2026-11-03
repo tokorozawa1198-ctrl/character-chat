@@ -22,6 +22,15 @@ export function selectBlackjonRoute(events: Record<string, boolean>, selected: B
 
 // 장면 입장 기록이 아닌 완독 기록과 현재 선택을 함께 확인한다.
 export function getBlackjonBranchLockReason(id: string, events: Record<string, boolean>): string | null {
+  if (id.startsWith("blackjon_pure_ep4_") && !events.blackjon_pure_ep3_complete) {
+    return "순애 외전 3화 완독 필요";
+  }
+  if (id.startsWith("blackjon_pure_ep3_") && !events.blackjon_pure_ep2_complete) {
+    return "순애 외전 2화 완독 필요";
+  }
+  if (id.startsWith("blackjon_pure_ep2_") && !events.blackjon_pure_ep1_complete) {
+    return "순애 외전 1화 완독 필요";
+  }
   const episode24Route = BLACKJON_ROUTE_IDS.find((branch) => id.startsWith(`blackjon_ep24_${branch}_`));
   const episode23Route = BLACKJON_ROUTE_IDS.find((branch) => id.startsWith(`blackjon_ep23_${branch}_`));
   const episode22Route = BLACKJON_ROUTE_IDS.find((branch) => id.startsWith(`blackjon_ep22_${branch}_`));

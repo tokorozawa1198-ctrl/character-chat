@@ -1,4 +1,8 @@
 import type { Scenario } from "./gameTypes";
+import { blackjonPureEpisode1, blackjonPureEpisode1Results } from "./blackjonPureEpisode1";
+import { blackjonPureEpisode2, blackjonPureEpisode2Results } from "./blackjonPureEpisode2";
+import { blackjonPureEpisode3, blackjonPureEpisode3Results } from "./blackjonPureEpisode3";
+import { blackjonPureEpisode4, blackjonPureEpisode4Results } from "./blackjonPureEpisode4";
 import { blackjonEpisode4 } from "./blackjonEpisode4";
 import { blackjonEpisode5 } from "./blackjonEpisode5";
 import { blackjonEpisode6 } from "./blackjonEpisode6";
@@ -33,6 +37,14 @@ import { blackjonEpisode10 } from "./blackjonEpisode10";
 
 // 흑존 프롤로그 이후의 연애 이야기. 장면마다 이미지를 고정해 순서대로 보여준다.
 export const blackjonEpisodes: Record<string, Scenario> = {
+  ...blackjonPureEpisode1,
+  ...blackjonPureEpisode1Results,
+  ...blackjonPureEpisode2,
+  ...blackjonPureEpisode2Results,
+  ...blackjonPureEpisode3,
+  ...blackjonPureEpisode3Results,
+  ...blackjonPureEpisode4,
+  ...blackjonPureEpisode4Results,
   ...blackjonEpisode4,
   ...blackjonEpisode5,
   ...blackjonEpisode6,
