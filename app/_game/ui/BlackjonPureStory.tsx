@@ -4,12 +4,14 @@ import { BLACKJON_PURE_EP1_ENTRY } from "../../blackjonPureEpisode1";
 import { BLACKJON_PURE_EP2_ENTRY } from "../../blackjonPureEpisode2";
 import { BLACKJON_PURE_EP3_ENTRY } from "../../blackjonPureEpisode3";
 import { BLACKJON_PURE_EP4_ENTRY } from "../../blackjonPureEpisode4";
+import { BLACKJON_PURE_EP5_ENTRY } from "../../blackjonPureEpisode5";
 
-export function BlackjonPureStory({ completed, completed2, completed3, completed4, resumeId, onStart }: {
+export function BlackjonPureStory({ completed, completed2, completed3, completed4, completed5, resumeId, onStart }: {
   completed: boolean;
   completed2: boolean;
   completed3: boolean;
   completed4: boolean;
+  completed5: boolean;
   resumeId?: string;
   onStart: (id: string) => void;
 }) {
@@ -59,6 +61,14 @@ export function BlackjonPureStory({ completed, completed2, completed3, completed
         <p>멋있게 보이고 싶던 날, 생각대로 되지 않아도 형은 곁에 있었다. 조금 더 기대고 싶은 마음을 이번에는 숨기지 않았다.</p>
         <nav aria-label="흑존 순애 외전 4화 읽기">
           <button disabled={!completed3} onClick={() => onStart(BLACKJON_PURE_EP4_ENTRY)}>{completed4 ? "순애 외전 4화 다시 읽기" : "순애 외전 4화 읽기"}</button>
+        </nav>
+      </div>
+      <div className="pureNextEpisode">
+        <small>{completed5 ? "5화 완독" : completed4 ? "다음 이야기" : "4화를 마치면 열립니다"}</small>
+        <h3>5화 — 화요일은 아직 멀어서</h3>
+        <p>형이 먼저 만나자고 한 목요일. 늘 보던 노을도, 헤어질 때 조금 늦게 놓인 손도 자꾸 생각났다. 오늘 만났는데 벌써 보고 싶었다.</p>
+        <nav aria-label="흑존 순애 외전 5화 읽기">
+          <button disabled={!completed4} onClick={() => onStart(BLACKJON_PURE_EP5_ENTRY)}>{completed5 ? "순애 외전 5화 다시 읽기" : "순애 외전 5화 읽기"}</button>
         </nav>
       </div>
     </div>

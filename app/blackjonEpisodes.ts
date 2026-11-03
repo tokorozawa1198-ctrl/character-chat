@@ -3,6 +3,7 @@ import { blackjonPureEpisode1, blackjonPureEpisode1Results } from "./blackjonPur
 import { blackjonPureEpisode2, blackjonPureEpisode2Results } from "./blackjonPureEpisode2";
 import { blackjonPureEpisode3, blackjonPureEpisode3Results } from "./blackjonPureEpisode3";
 import { blackjonPureEpisode4, blackjonPureEpisode4Results } from "./blackjonPureEpisode4";
+import { blackjonPureEpisode5, blackjonPureEpisode5Results } from "./blackjonPureEpisode5";
 import { blackjonEpisode4 } from "./blackjonEpisode4";
 import { blackjonEpisode5 } from "./blackjonEpisode5";
 import { blackjonEpisode6 } from "./blackjonEpisode6";
@@ -45,6 +46,8 @@ export const blackjonEpisodes: Record<string, Scenario> = {
   ...blackjonPureEpisode3Results,
   ...blackjonPureEpisode4,
   ...blackjonPureEpisode4Results,
+  ...blackjonPureEpisode5,
+  ...blackjonPureEpisode5Results,
   ...blackjonEpisode4,
   ...blackjonEpisode5,
   ...blackjonEpisode6,
