@@ -5054,7 +5054,7 @@ export default function Page() {
     if (id === "bladder_ch5_01") setBladderEntryCinematic(true);
     if (id === "bladder_ch6_01") setBladderEnchantCinematic(true);
     setDailyState((prev) => ({ ...prev, scenarioCount: prev.scenarioCount + 1 }));
-    gainExp(25);
+    if (!id.startsWith("blackjon_pure_")) gainExp(25);
     dealRaidDamage(150);
     addLovePoints(20);
     showChapterTransition(chapterStartTransition(id, scenario));
